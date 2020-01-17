@@ -1,0 +1,33 @@
+const path = require("path");
+
+const ENV = process.env.NODE_ENV || "development";
+
+require("dotenv").config({
+  path: path.resolve(__dirname, `../.development.env`)
+});
+
+const Config = Object.freeze({
+  App: {
+    ENV,
+    PROD: process.env.NODE_ENV === "production",
+    REDIS_ENV: process.env.REDIS_ENV,
+    REDIS_PORT: process.env.REDIS_PORT,
+    REDIS_HOST: process.env.REDIS_HOST,
+    REDIS_AUTH: process.env.REDIS_AUTH
+  },
+  FelaMarketPlace: {
+    BASE_URL:
+      ENV === "production"
+        ? process.env.FELA_BASE_URL_PROD
+        : process.env.FELA_BASE_URL_STAGING,
+    AUTH_BEARER:
+      ENV === "production"
+        ? process.env.FELA_AUTH_BEARER_PROD
+        : process.env.FELA_AUTH_BEARER_STAGING,
+    THIS_SOURCE: process.env.FELA_THIS_SOURCE
+  }
+});
+
+console.log(Config);
+
+module.exports = Config;
