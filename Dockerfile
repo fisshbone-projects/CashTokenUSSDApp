@@ -24,6 +24,8 @@ ARG fela_auth_bearer_prod
 ENV FELA_AUTH_BEARER_PROD=$fela_auth_bearer_prod
 ARG fela_this_source
 ENV FELA_THIS_SOURCE=$fela_this_source
+ARG redis_expire_api_info
+ENV REDIS_EXPIRE_API_INFO=$redis_expire_api_info
 COPY ./package.json /var/cashtokenussd/
 RUN npm install
 WORKDIR /var/cashtokenussd/

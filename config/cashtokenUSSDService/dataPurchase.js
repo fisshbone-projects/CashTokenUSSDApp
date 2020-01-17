@@ -1,15 +1,16 @@
 const { redisClient } = require("../redisConnectConfig");
-const { FelaMarketPlace } = require("../index");
+const { FelaMarketPlace, App } = require("../index");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 // const NAIRASIGN = "\u{020A6}";
 const NAIRASIGN = "N";
+const API_DATA_EXPIRE_TIME = parseInt(App.REDIS_API_DATA_EXPIRE);
 
 async function processData(text, phoneNumber, sessionId) {
   return new Promise(async (resolve, reject) => {
     console.log("Starting Data Purchase Process");
     let response = "";
-    if (text.startsWith("3*2")) {
+    if (text.startsWith("3")) {
       let brokenDownText = text.split("*");
       response = await dataFlow(brokenDownText, phoneNumber, sessionId);
       resolve(response);
@@ -36,11 +37,11 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
     let { walletPin: checkWalletPin } = await redisClient.hgetallAsync(
       `CELDUSSD:${sessionId}`
     );
-    if (brokenDownText.length === 2) {
+    if (brokenDownText.length === 1) {
       response = `CON Insert Airtel Mobile Number:`;
       resolve(response);
-    } else if (brokenDownText.length === 3) {
-      let numberToCredit = brokenDownText[2];
+    } else if (brokenDownText.length === 2) {
+      let numberToCredit = brokenDownText[1];
       if (testNumber(numberToCredit)) {
         console.log("Number is valid");
         await redisClient.hsetAsync(
@@ -57,19 +58,34 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
         resolve(response);
       }
     } else if (
+      brokenDownText.length === 3 &&
+      parseInt(brokenDownText[2], 10) <= 7 &&
+      checkWalletPin === undefined
+    ) {
+      let selectedDataPlan = brokenDownText[2];
+      await saveSelectedDataPlanDetails(selectedDataPlan, sessionId, "first");
+      response = `CON Enter your wallet PIN:`;
+      resolve(response);
+    } else if (
+      brokenDownText.length === 3 &&
+      parseInt(brokenDownText[2], 10) == 8
+    ) {
+      response = await showDataDeals(7, 13);
+      resolve(response);
+    } else if (
       brokenDownText.length === 4 &&
       parseInt(brokenDownText[3], 10) <= 7 &&
       checkWalletPin === undefined
     ) {
       let selectedDataPlan = brokenDownText[3];
-      await saveSelectedDataPlanDetails(selectedDataPlan, sessionId, "first");
+      await saveSelectedDataPlanDetails(selectedDataPlan, sessionId, "second");
       response = `CON Enter your wallet PIN:`;
       resolve(response);
     } else if (
       brokenDownText.length === 4 &&
       parseInt(brokenDownText[3], 10) == 8
     ) {
-      response = await showDataDeals(7, 13);
+      response = await showDataDeals(14, -1);
       resolve(response);
     } else if (
       brokenDownText.length === 5 &&
@@ -77,23 +93,17 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
       checkWalletPin === undefined
     ) {
       let selectedDataPlan = brokenDownText[4];
-      await saveSelectedDataPlanDetails(selectedDataPlan, sessionId, "second");
-      response = `CON Enter your wallet PIN:`;
-      resolve(response);
-    } else if (
-      brokenDownText.length === 5 &&
-      parseInt(brokenDownText[4], 10) == 8
-    ) {
-      response = await showDataDeals(14, -1);
-      resolve(response);
-    } else if (
-      brokenDownText.length === 6 &&
-      parseInt(brokenDownText[5], 10) <= 7 &&
-      checkWalletPin === undefined
-    ) {
-      let selectedDataPlan = brokenDownText[5];
       await saveSelectedDataPlanDetails(selectedDataPlan, sessionId, "third");
       response = `CON Enter your wallet PIN:`;
+      resolve(response);
+    } else if (brokenDownText.length === 4 && brokenDownText[3].length >= 4) {
+      await redisClient.hsetAsync(
+        `CELDUSSD:${sessionId}`,
+        "walletPin",
+        `${brokenDownText[3]}`
+      );
+
+      response = await displayDataPlanPurchaseSummary(sessionId);
       resolve(response);
     } else if (brokenDownText.length === 5 && brokenDownText[4].length >= 4) {
       await redisClient.hsetAsync(
@@ -113,14 +123,32 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
 
       response = await displayDataPlanPurchaseSummary(sessionId);
       resolve(response);
-    } else if (brokenDownText.length === 7 && brokenDownText[6].length >= 4) {
-      await redisClient.hsetAsync(
-        `CELDUSSD:${sessionId}`,
-        "walletPin",
-        `${brokenDownText[6]}`
+    } else if (
+      brokenDownText.length === 5 &&
+      parseInt(brokenDownText[4], 10) === 1 &&
+      checkWalletPin !== undefined
+    ) {
+      let {
+        numberToCredit,
+        dataPlanCode,
+        dataPlanName,
+        walletPin
+      } = await redisClient.hgetallAsync(`CELDUSSD:${sessionId}`);
+      let response = await processDataPurchase(
+        sessionId,
+        phoneNumber,
+        numberToCredit,
+        dataPlanCode,
+        dataPlanName,
+        walletPin
       );
-
-      response = await displayDataPlanPurchaseSummary(sessionId);
+      resolve(response);
+    } else if (
+      brokenDownText.length === 5 &&
+      parseInt(brokenDownText[4], 10) === 2 &&
+      checkWalletPin !== undefined
+    ) {
+      response = `END Transaction Cancelled!`;
       resolve(response);
     } else if (
       brokenDownText.length === 6 &&
@@ -176,33 +204,6 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
     ) {
       response = `END Transaction Cancelled!`;
       resolve(response);
-    } else if (
-      brokenDownText.length === 8 &&
-      parseInt(brokenDownText[7], 10) === 1 &&
-      checkWalletPin !== undefined
-    ) {
-      let {
-        numberToCredit,
-        dataPlanCode,
-        dataPlanName,
-        walletPin
-      } = await redisClient.hgetallAsync(`CELDUSSD:${sessionId}`);
-      let response = await processDataPurchase(
-        sessionId,
-        phoneNumber,
-        numberToCredit,
-        dataPlanCode,
-        dataPlanName,
-        walletPin
-      );
-      resolve(response);
-    } else if (
-      brokenDownText.length === 8 &&
-      parseInt(brokenDownText[7], 10) === 2 &&
-      checkWalletPin !== undefined
-    ) {
-      response = `END Transaction Cancelled!`;
-      resolve(response);
     } else {
       response = "END An error occured, please try again.";
       resolve(response);
@@ -230,13 +231,19 @@ async function getAirtelDataPlans() {
             bundle.price,
             bundle.title
           );
-          redisClient.expire(`CELDUSSD:AirtelDataBundleNames`, 1800);
+          redisClient.expire(
+            `CELDUSSD:AirtelDataBundleNames`,
+            API_DATA_EXPIRE_TIME
+          );
           await redisClient.zaddAsync(
             `CELDUSSD:AirtelDataBundleCodes`,
             bundle.price,
             bundle.code
           );
-          redisClient.expire(`CELDUSSD:AirtelDataBundleCodes`, 1800);
+          redisClient.expire(
+            `CELDUSSD:AirtelDataBundleCodes`,
+            API_DATA_EXPIRE_TIME
+          );
           resolve();
         });
       })
@@ -274,7 +281,7 @@ function showDataDeals(dataIndexStart, dataIndexEnd) {
         });
 
         if (dataIndexEnd !== -1) {
-          response += `8 Next to see more data deals\n0 Menu`;
+          response += `8 Next\n0 Menu`;
         } else {
           response += `0 Menu`;
         }

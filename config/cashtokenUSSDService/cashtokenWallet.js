@@ -29,14 +29,14 @@ async function getUsersWalletDetails(phoneNumber) {
         continue;
       }
       totalBalance += parseFloat(value.balance);
-      response += `${index++} ${WalletTypes[value.title]} - ${
+      response += `${index++} ${WalletTypes[value.title]} - ${NAIRASIGN}${
         value.balance
-      } (${NAIRASIGN})\n`;
+      }\n`;
     }
 
-    response += `${index} Total Wallet Balance - ${totalBalance.toFixed(
+    response += `${index} Total Wallet Balance - ${NAIRASIGN}${totalBalance.toFixed(
       2
-    )} (${NAIRASIGN})`;
+    )}`;
 
     resolve(response);
   });

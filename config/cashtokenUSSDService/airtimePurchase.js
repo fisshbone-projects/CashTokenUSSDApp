@@ -9,7 +9,7 @@ async function processAirtime(text, phoneNumber, sessionId) {
   return new Promise(async (resolve, reject) => {
     console.log("Starting Airtime Purchase Process");
     let response = "";
-    if (text.startsWith("3*1")) {
+    if (text.startsWith("2")) {
       let brokenDownText = text.split("*");
       response = await airtimeFlow(brokenDownText, phoneNumber, sessionId);
       resolve(response);
@@ -33,11 +33,11 @@ function testNumber(phoneNumber) {
 async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
   return new Promise(async (resolve, reject) => {
     let response = "";
-    if (brokenDownText.length === 2) {
+    if (brokenDownText.length === 1) {
       response = `CON Insert Airtel Mobile Number:`;
       resolve(response);
-    } else if (brokenDownText.length === 3) {
-      let numberToCredit = brokenDownText[2];
+    } else if (brokenDownText.length === 2) {
+      let numberToCredit = brokenDownText[1];
       if (testNumber(numberToCredit)) {
         console.log("Number is valid");
         await redisClient.hsetAsync(
@@ -52,8 +52,8 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         response = `END Error! Inputted number is not a valid phone number`;
         resolve(response);
       }
-    } else if (brokenDownText.length === 4) {
-      let amount = brokenDownText[3];
+    } else if (brokenDownText.length === 3) {
+      let amount = brokenDownText[2];
       await redisClient.hsetAsync(
         `CELDUSSD:${sessionId}`,
         "amount",
@@ -61,8 +61,8 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
       );
       response = `CON Enter your wallet pin: `;
       resolve(response);
-    } else if (brokenDownText.length === 5) {
-      let walletPin = brokenDownText[4];
+    } else if (brokenDownText.length === 4) {
+      let walletPin = brokenDownText[3];
       await redisClient.hsetAsync(
         `CELDUSSD:${sessionId}`,
         "walletPin",
@@ -77,8 +77,8 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
       )}\n\n1 Confirm\n2 Cancel`;
       resolve(response);
     } else if (
-      brokenDownText.length === 6 &&
-      parseInt(brokenDownText[5], 10) === 1
+      brokenDownText.length === 5 &&
+      parseInt(brokenDownText[4], 10) === 1
     ) {
       let {
         amount,
@@ -94,8 +94,8 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
       );
       resolve(response);
     } else if (
-      brokenDownText.length === 6 &&
-      parseInt(brokenDownText[5], 10) === 2
+      brokenDownText.length === 5 &&
+      parseInt(brokenDownText[4], 10) === 2
     ) {
       response = `END Transaction Cancelled.`;
       resolve(response);

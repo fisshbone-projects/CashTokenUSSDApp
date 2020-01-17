@@ -163,41 +163,27 @@ async function NormalFlow(phoneNumber, text, walletHoldername, sessionId) {
         walletHoldername === undefined || walletHoldername === ""
           ? phoneNumber
           : walletHoldername
-      } to CashToken\n1 How to Qualify\n2 CashToken Wallet\n3 Redeem Cash\n4 Reset Wallet PIN\n5 CashToken Deals`;
+      } to CashToken\n1 CashToken Wallet\n2 Buy Airtime\n3 Buy Data\n4 Redeem Cash\n5 Reset Wallet PIN\n6 Gift CashToken`;
       resolve(response);
     } else if (text === "1") {
-      console.log("Sending user how to qualify details");
-      response =
-        "CON Dear Customer you will receive an SMS shortly\n0 Main Menu";
-      resolve(response);
-    } else if (text === "2") {
-      response = `CON 1 My CashTokens\n2 My CashToken Wallet Balances\n# Back\n0 Main Menu`;
-      resolve(response);
-    } else if (text === "2*1") {
-      response = await getUsersCashtoken(phoneNumber);
-      resolve(response);
-    } else if (text === "2*2") {
       response = await getUsersWalletDetails(phoneNumber);
       resolve(response);
-    } else if (text === "3") {
-      response = `CON 1 Purchase Airtime\n2 Purchase Data\n3 Move to Bank\n# Back\n0 Main Menu`;
-      resolve(response);
-    } else if (text.startsWith("3*1")) {
+    } else if (text.startsWith("2")) {
       response = await processAirtime(text, phoneNumber, sessionId);
       resolve(response);
-    } else if (text.startsWith("3*2")) {
+    } else if (text.startsWith("3")) {
       response = await processData(text, phoneNumber, sessionId);
       resolve(response);
-    } else if (text.startsWith("3*3")) {
+    } else if (text.startsWith("4")) {
       response = await processFundDisbursement(text, phoneNumber, sessionId);
       resolve(response);
       // response = await processElectricity(text, phoneNumber, sessionId);
       // resolve(response);
-    } else if (text.startsWith("4")) {
+    } else if (text.startsWith("5")) {
       response = await resetPin(text, phoneNumber, sessionId);
       resolve(response);
-    } else if (text === "5") {
-      response = `CON Please go to CashToken.ng and check out available deals\n# Back\n0 Main Menu`;
+    } else if (text === "6") {
+      response = `CON Gifting of CashToken is still under development\n0 Main Menu`;
       resolve(response);
     } else {
       response = "CON Please input a valid service option.\n0 Main Menu";
@@ -236,7 +222,7 @@ async function activateWalletCall(sessionId, phoneNumber, walletPin) {
       )
       .then(resp => {
         console.log(resp);
-        let feedback = `END Wallet Activation Successful!\nPlease redial *479# to start enjoying CashToken goodies`;
+        let feedback = `END Wallet Activation Successful!\nPlease redial *347*999# to start enjoying CashToken goodies`;
         resolve(feedback);
       })
       .catch(resp => {
