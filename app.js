@@ -47,6 +47,14 @@ app.post("/ussd", async (req, res) => {
         refinedText
       );
       break;
+    case "*384*24223#":
+      response = await CELDUSSD(
+        req.body.sessionId,
+        req.body.serviceCode,
+        req.body.phoneNumber,
+        refinedText
+      );
+      break;
     default:
       response = "END Sorry, this service does not exist";
       break;

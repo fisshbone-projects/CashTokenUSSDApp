@@ -9,7 +9,7 @@ async function resetPin(text, phoneNumber, sessionId) {
     let response = "";
     let brokenDownText = text.split("*");
 
-    if (text === "4") {
+    if (text === "5") {
       response = "CON Enter a 6 digit PIN";
       resolve(response);
     } else if (brokenDownText.length === 2) {
@@ -43,19 +43,6 @@ async function resetPin(text, phoneNumber, sessionId) {
         resolve(response);
       }
     }
-    // if (text == "4") {
-    //   response = `CON 1 Setup New PIN \n2 Forgot Wallet PIN\n# Back\n0 Main Menu`;
-    //   resolve(response);
-    // } else if (brokenDownText[1] === "1") {
-    //   response = await processResetPin(brokenDownText, phoneNumber, sessionId);
-    //   resolve(response);
-    // } else if (brokenDownText[1] === "2") {
-    //   response = await processForgotPin(brokenDownText, phoneNumber, sessionId);
-    //   resolve(response);
-    // } else {
-    //   response = "END An error occured, please try again later";
-    //   resolve(response);
-    // }
   });
 }
 
@@ -87,7 +74,7 @@ async function resetPinCall(sessionId, phoneNumber, walletPin) {
         }
       )
       .then(resp => {
-        console.log(resp);
+        console.log(resp.data);
         let feedback = `END Your PIN has been reset successfully!`;
         resolve(feedback);
       })
