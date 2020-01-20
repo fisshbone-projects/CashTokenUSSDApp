@@ -31,14 +31,6 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
               .substring(0, 8)}`
           );
 
-          await redisClient.hset(
-            `CELDUSSD:HitLogs`,
-            `${sessionId}`,
-            `${newDate.toDateString()} ${newDate
-              .toTimeString()
-              .substring(0, 8)}`
-          );
-
           console.log(`Wallet Status for ${phoneNumber}: ${walletStatus}`);
           if (
             walletHoldername !== undefined &&

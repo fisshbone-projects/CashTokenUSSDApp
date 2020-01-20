@@ -387,34 +387,33 @@ function processDataPurchase(
   walletPin
 ) {
   return new Promise((resolve, reject) => {
+    let payload = {
+      offeringGroup: "core",
+      offeringName: "databundle",
+      method: "felawallet",
+      auth: {
+        source: `${FelaMarketPlace.THIS_SOURCE}`,
+        passkey: `${walletPin}`
+      },
+      params: {
+        account_id: `${numberToCredit}`,
+        bundle_code: `${dataPlanCode}`,
+        network: "Airtel",
+        passkey: `${walletPin}`
+      },
+      user: {
+        sessionId: `${sessionId}`,
+        source: `${FelaMarketPlace.THIS_SOURCE}`,
+        sourceId: `${phoneNumber}`,
+        phoneNumber: `${phoneNumber}`
+      }
+    };
+
+    console.log(payload);
     axios
-      .post(
-        `${FelaMarketPlace.BASE_URL}/payment/request`,
-        {
-          offeringGroup: "core",
-          offeringName: "databundle",
-          method: "felawallet",
-          auth: {
-            source: `${FelaMarketPlace.THIS_SOURCE}`,
-            passkey: `${walletPin}`
-          },
-          params: {
-            account_id: `${numberToCredit}`,
-            bundle_code: `${dataPlanCode}`,
-            network: "Airtel",
-            passkey: `${walletPin}`
-          },
-          user: {
-            sessionId: `${sessionId}`,
-            source: `${FelaMarketPlace.THIS_SOURCE}`,
-            sourceId: `${phoneNumber}`,
-            phoneNumber: `${phoneNumber}`
-          }
-        },
-        {
-          headers: felaHeader
-        }
-      )
+      .post(`${FelaMarketPlace.BASE_URL}/payment/request`, payload, {
+        headers: felaHeader
+      })
       .then(response => {
         console.log(JSON.stringify(response.data, null, 2));
         // console.log(response)
