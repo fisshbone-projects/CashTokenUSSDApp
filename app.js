@@ -37,6 +37,7 @@ app.post(
     let response = "";
 
     let refinedText = refineText(req.body.text);
+
     console.log("***REFINED TEXT IS: ", refinedText);
 
     switch (req.body.serviceCode) {
