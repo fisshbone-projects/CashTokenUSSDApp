@@ -35,7 +35,6 @@ app.post(
   async (req, res) => {
     console.log(req.body);
     let response = "";
-
     let refinedText = refineText(req.body.text);
 
     console.log("***REFINED TEXT IS: ", refinedText);
