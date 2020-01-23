@@ -222,5 +222,6 @@ module.exports = {
   createValidationFor,
   checkValidationResult,
   storeInternalLog,
-  refineText
+  refineText,
+  testNumber
 };
