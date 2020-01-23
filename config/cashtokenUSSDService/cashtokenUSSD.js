@@ -113,7 +113,7 @@ async function ActivateUser(phoneNumber, text, sessionId) {
     let brokenDownText = text !== "" ? text.split("*") : [];
 
     if (text === "") {
-      response = `CON Welcome, your CashToken wallet is not yet activated.\nGenerate your wallet PIN:`;
+      response = `CON Welcome, your CashToken wallet is not yet activated.\nGenerate your wallet PIN (Min 4 digit):`;
       resolve(response);
     } else if (brokenDownText.length === 1) {
       await redisClient.hsetAsync(
@@ -129,13 +129,25 @@ async function ActivateUser(phoneNumber, text, sessionId) {
       );
 
       if (brokenDownText[1] === registeredPin) {
-        console.log("PIN confirmed successful, going on to activate user");
-        response = await activateWalletCall(
-          sessionId,
-          phoneNumber,
-          registeredPin
-        );
-        resolve(response);
+        if (registeredPin.match(/^[0-9]+$/)) {
+          if (registeredPin.length >= 4 && registeredPin.length <= 12) {
+            console.log("PIN confirmed successful, going on to activate user");
+            response = await activateWalletCall(
+              sessionId,
+              phoneNumber,
+              registeredPin
+            );
+            resolve(response);
+          } else {
+            console.log("PIN not between 4 to 12 digits");
+            response = `END Your PIN can only be 4 to 12 digits long, please try again`;
+            resolve(response);
+          }
+        } else {
+          console.log("PIN containing non-digits, please try again");
+          response = `END Your PIN can only be numbers`;
+          resolve(response);
+        }
       } else {
         console.log("PIN not matching");
         response = "END Your PIN does not match, please try again.";
@@ -214,7 +226,12 @@ async function activateWalletCall(sessionId, phoneNumber, walletPin) {
       )
       .then(resp => {
         console.log(resp);
-        let feedback = `END Wallet Activation Successful!\nPlease redial *347*999# to start enjoying CashToken goodies`;
+        redisClient
+          .hmsetAsync(`CELDUSSD:${sessionId}`, "walletStatus", "active")
+          .then(() => {
+            redisClient.expire(`CELDUSSD:${sessionId}`, 300);
+          });
+        let feedback = `CON Wallet Activation Successful!\nInput 0 or redial *347*999# to start enjoying lifechanging CashToken opportunies`;
         resolve(feedback);
       })
       .catch(resp => {

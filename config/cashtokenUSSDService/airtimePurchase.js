@@ -34,7 +34,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
   return new Promise(async (resolve, reject) => {
     let response = "";
     if (brokenDownText.length === 1) {
-      response = `CON Insert Airtel Mobile Number:`;
+      response = `CON Insert Recipient's Phone Number:`;
       resolve(response);
     } else if (brokenDownText.length === 2) {
       let numberToCredit = brokenDownText[1];

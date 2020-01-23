@@ -28,18 +28,26 @@ async function resetPin(text, phoneNumber, sessionId) {
       console.log(`This is the new Pin ${newPin}`);
 
       if (newPin === brokenDownText[2]) {
-        if (newPin.length === 6) {
-          console.log("PIN confirmed successful, going on to reset user's PIN");
-          response = await resetPinCall(sessionId, phoneNumber, newPin);
-          resolve(response);
+        if (newPin.match(/^[0-9]+$/)) {
+          if (newPin.length >= 4 && newPin.length <= 12) {
+            console.log(
+              "PIN confirmed successful, going on to reset user's PIN"
+            );
+            response = await resetPinCall(sessionId, phoneNumber, newPin);
+            resolve(response);
+          } else {
+            console.log("PIN not between 4 to 12 digits");
+            response = `END Your PIN can only be 4 to 12 digits long, please try again`;
+            resolve(response);
+          }
         } else {
-          console.log("PIN length is not 6 digits.");
-          response = `END PIN entered is not a 6 digit PIN.\nPlease try again.`;
+          console.log("PIN containing non-digits, please try again");
+          response = `END Your PIN can only be numbers`;
           resolve(response);
         }
       } else {
         console.log("PIN not matching");
-        response = `END Your PIN does not match, please try again.`;
+        response = `END Your PIN does not match, please try again`;
         resolve(response);
       }
     }

@@ -39,7 +39,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
   return new Promise(async (resolve, reject) => {
     let response = "";
     if (brokenDownText.length === 3) {
-      response = `CON Enter the airtel number to credit:`;
+      response = `CON Enter the phone number to credit:`;
       resolve(response);
     } else if (brokenDownText.length === 4) {
       let numberToCredit = brokenDownText[3];
@@ -113,7 +113,7 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
   return new Promise(async (resolve, reject) => {
     let response = "";
     if (brokenDownText.length === 3) {
-      response = `CON Enter the airtel number to credit:`;
+      response = `CON Enter the phone number to credit:`;
       resolve(response);
     } else if (brokenDownText.length === 4) {
       let numberToCredit = brokenDownText[3];

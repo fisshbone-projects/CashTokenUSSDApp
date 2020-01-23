@@ -38,7 +38,7 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
       `CELDUSSD:${sessionId}`
     );
     if (brokenDownText.length === 1) {
-      response = `CON Insert Airtel Mobile Number:`;
+      response = `CON Insert Recipient's Phone Number:`;
       resolve(response);
     } else if (brokenDownText.length === 2) {
       let numberToCredit = brokenDownText[1];
