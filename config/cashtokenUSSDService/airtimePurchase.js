@@ -16,7 +16,7 @@ async function processAirtime(text, phoneNumber, sessionId) {
       response = await airtimeFlow(brokenDownText, phoneNumber, sessionId);
       resolve(response);
     } else {
-      response = "END An error occured, please try again";
+      response = "CON An error occured, please try again\n\n0 Menu";
       resolve(response);
     }
   });
@@ -58,7 +58,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         resolve(response);
       } else {
         console.log("Number is invalid");
-        response = `END Error! Inputted number is not a valid phone number`;
+        response = `CON Error! Inputted number is not a valid phone number\n\n0 Menu`;
         resolve(response);
       }
     } else if (brokenDownText.length === 4) {
@@ -120,10 +120,10 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
       brokenDownText.length === 6 &&
       parseInt(brokenDownText[5], 10) === 2
     ) {
-      response = `END Transaction Cancelled`;
+      response = `CON Transaction Cancelled!\n\n0 Menu`;
       resolve(response);
     } else {
-      response = "END An error occured, please try again";
+      response = "CON An error occured, please try again\n\n0 Menu";
       resolve(response);
     }
   });
@@ -226,8 +226,6 @@ function processAirtimePurchase(
       }
     };
 
-    console.log("_______", payload);
-
     axios
       .post(`${FelaMarketPlace.BASE_URL}/payment/request`, payload, {
         headers: felaHeader
@@ -236,16 +234,18 @@ function processAirtimePurchase(
         console.log(JSON.stringify(response.data, null, 2));
         // console.log(response)
         resolve(
-          `END Dear Customer, your line ${numberToCredit} has been successfully credited with ${NAIRASIGN}${amount} Airtime`
+          `CON Dear Customer, your line ${numberToCredit} has been successfully credited with ${NAIRASIGN}${amount} Airtime\n\n0 Menu`
         );
       })
       .catch(error => {
         console.log("error");
         console.log(JSON.stringify(error.response.data, null, 2));
         if (error.response.data.code === 422) {
-          resolve(`END Transaction Failed!\nInsufficient user balance`);
+          resolve(
+            `CON Transaction Failed!\nInsufficient user balance\n\n0 Menu`
+          );
         } else {
-          resolve(`END Transaction Failed!`);
+          resolve(`CON Transaction Failed!\n\n0 Menu`);
         }
       });
   });

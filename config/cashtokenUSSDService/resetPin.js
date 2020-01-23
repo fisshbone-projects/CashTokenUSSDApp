@@ -37,17 +37,17 @@ async function resetPin(text, phoneNumber, sessionId) {
             resolve(response);
           } else {
             console.log("PIN not between 4 to 12 digits");
-            response = `END Your PIN can only be 4 to 12 digits long`;
+            response = `CON Your PIN can only be 4 to 12 digits long\n\n0 Menu`;
             resolve(response);
           }
         } else {
           console.log("PIN containing non-digits");
-          response = `END Your PIN can only be numbers`;
+          response = `CON Your PIN can only be numbers\n\n0 Menu`;
           resolve(response);
         }
       } else {
         console.log("PIN not matching");
-        response = `END Your PIN does not match`;
+        response = `CON Your PIN does not match\n\n0 Menu`;
         resolve(response);
       }
     }
@@ -83,12 +83,12 @@ async function resetPinCall(sessionId, phoneNumber, walletPin) {
       )
       .then(resp => {
         console.log(resp.data);
-        let feedback = `END Your PIN has been reset successfully!`;
+        let feedback = `CON Your PIN has been reset successfully!\n\n0 Menu`;
         resolve(feedback);
       })
       .catch(resp => {
         console.log(resp);
-        let feedback = `END PIN reset failed!`;
+        let feedback = `CON PIN reset failed!\n\n0 Menu`;
         resolve(feedback);
       });
   });

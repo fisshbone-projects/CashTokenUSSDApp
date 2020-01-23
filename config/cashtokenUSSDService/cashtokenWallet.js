@@ -10,8 +10,8 @@ let response = "";
 async function getUsersCashtoken(phoneNumber) {
   return new Promise(async resolve => {
     console.log(`Getting ${phoneNumber}'s cashtokens`);
-    let usersTokens = "xxx";
-    response = `END Dear Customer, you have ${usersTokens} CashTokens. Your CashTokens qualify you to win up to ${NAIRASIGN}100 million in the weekly draw`;
+    let usersTokens = "XX";
+    response = `CON Dear Customer, you have ${usersTokens} CashTokens. Your CashTokens qualify you to win up to ${NAIRASIGN}100 million in the weekly draw\n\n0 Menu`;
     resolve(response);
   });
 }
@@ -20,7 +20,7 @@ async function getUsersWalletDetails(phoneNumber) {
   return new Promise(async resolve => {
     console.log(`Getting ${phoneNumber}'s walletDetails`);
     let { wallet: usersWallet } = await fetchWalletDetails(phoneNumber);
-    response = `END Dear Customer, Your Balances are:\n`;
+    response = `CON Dear Customer, Your Balances are:\n`;
     let totalBalance = 0.0;
     let index = 1;
 
@@ -36,7 +36,7 @@ async function getUsersWalletDetails(phoneNumber) {
 
     response += `${index} Total Wallet Balance - ${NAIRASIGN}${totalBalance.toFixed(
       2
-    )}`;
+    )}\n\n0 Menu`;
 
     resolve(response);
   });
@@ -59,7 +59,9 @@ async function fetchWalletDetails(phoneNumber) {
       })
       .catch(e => {
         console.log(e.response.data);
-        resolve("END There was an error retrieving your wallet details");
+        resolve(
+          "CON There was an error retrieving your wallet details\n\n0 Menu"
+        );
       });
   });
 }

@@ -45,7 +45,7 @@ async function processFundDisbursement(text, phoneNumber, sessionId) {
             if (response !== "") {
               resolve(response);
             } else {
-              response = "END An error occured, please try again";
+              response = "CON An error occured, please try again\n\n0 Menu";
               resolve(response);
             }
           }
@@ -168,7 +168,7 @@ async function processWithdrawTransaction(
       brokenDownText[5] === "2" &&
       menuStage == "confirmBankTransfer"
     ) {
-      let response = "END Transaction cancelled by user";
+      let response = "CON Transaction cancelled!\n\n0 Menu";
       resolve(response);
     } else if (
       brokenDownText.length === 7 &&
@@ -182,7 +182,7 @@ async function processWithdrawTransaction(
       brokenDownText[6] === "2" &&
       menuStage == "confirmBankTransfer"
     ) {
-      let response = "END Transaction cancelled by user";
+      let response = "CON Transaction cancelled!\n\n0 Menu";
       resolve(response);
     } else if (
       brokenDownText.length === 8 &&
@@ -196,7 +196,7 @@ async function processWithdrawTransaction(
       brokenDownText[7] === "2" &&
       menuStage == "confirmBankTransfer"
     ) {
-      let response = "END Transaction cancelled by user";
+      let response = "CON Transaction cancelled!\n\n0 Menu";
       resolve(response);
     } else if (
       brokenDownText.length === 9 &&
@@ -210,7 +210,7 @@ async function processWithdrawTransaction(
       brokenDownText[8] === "2" &&
       menuStage == "confirmBankTransfer"
     ) {
-      let response = "END Transaction cancelled by user";
+      let response = "CON Transaction cancelled!\n\n0 Menu";
       resolve(response);
     } else if (
       brokenDownText.length === 10 &&
@@ -224,7 +224,7 @@ async function processWithdrawTransaction(
       brokenDownText[9] === "2" &&
       menuStage == "confirmBankTransfer"
     ) {
-      let response = "END Transaction cancelled by user";
+      let response = "CON Transaction cancelled!\n\n0 Menu";
       resolve(response);
     } else {
       resolve("");
@@ -272,20 +272,22 @@ async function makeWalletWithdrawal(
       .then(response => {
         // console.log(JSON.stringify(response.data, null, 2));
         console.log(response);
-        let feedback = `END Dear Customer, Your Account will be credited within 24 hours`;
+        let feedback = `CON Dear Customer, Your Account will be credited within 24 hours\n\n0 Menu`;
         resolve(feedback);
       })
       .catch(error => {
         console.log("error");
         // console.log(error);
         console.log(JSON.stringify(error.response.data, null, 2));
-        let feedback = `END Transaction Failed!`;
+        let feedback = `CON Transaction Failed!`;
         if (error.response.data.message.includes("Insufficient user balance")) {
-          feedback += `\nInsufficient user balance in wallet`;
+          feedback += `\nInsufficient user balance in wallet\n\n0 Menu`;
         } else if (
           error.response.data.message.includes("authentication failed")
         ) {
-          feedback = `Process failed!\n${error.response.data.response.body.message}`;
+          feedback = `Process failed!\n${error.response.data.response.body.message}\n\n0 Menu`;
+        } else {
+          feedback += `\n\n0 Menu`;
         }
         resolve(feedback);
       });
@@ -453,7 +455,9 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
         "bankName",
         selectedBankName[0],
         "bankCode",
-        selectedBankName[1]
+        selectedBankName[1],
+        "menuStage",
+        "obtainingAccountNumber"
       );
       resolve("CON Enter your account number:");
     } else if (
@@ -475,7 +479,9 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
         "bankName",
         selectedBankName[0],
         "bankCode",
-        selectedBankName[1]
+        selectedBankName[1],
+        "menuStage",
+        "obtainingAccountNumber"
       );
       resolve("CON Enter your account number:");
     } else if (
@@ -498,7 +504,9 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
         "bankName",
         selectedBankName[0],
         "bankCode",
-        selectedBankName[1]
+        selectedBankName[1],
+        "menuStage",
+        "obtainingAccountNumber"
       );
       resolve("CON Enter your account number:");
     } else if (
@@ -520,7 +528,9 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
         "bankName",
         selectedBankName[0],
         "bankCode",
-        selectedBankName[1]
+        selectedBankName[1],
+        "menuStage",
+        "obtainingAccountNumber"
       );
       resolve("CON Enter your account number:");
     } else if (
@@ -542,7 +552,9 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
         "bankName",
         selectedBankName[0],
         "bankCode",
-        selectedBankName[1]
+        selectedBankName[1],
+        "menuStage",
+        "obtainingAccountNumber"
       );
       resolve("CON Enter your account number:");
     } else {
@@ -553,7 +565,15 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
 
 async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
   return new Promise(async (resolve, reject) => {
-    if (brokenDownText.length == 4 && brokenDownText[3].length == 10) {
+    let menuStage = await redisClient.hgetAsync(
+      `AirtelThanksUSSD:${sessionId}`,
+      "menuStage"
+    );
+    if (
+      brokenDownText.length == 4 &&
+      brokenDownText[3].length == 10 &&
+      menuStage == "obtainingAccountNumber"
+    ) {
       console.log("Account Number is: " + brokenDownText[3]);
       await redisClient.hsetAsync(
         `CELDUSSD:${sessionId}`,
@@ -561,7 +581,11 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
         brokenDownText[3]
       );
       resolve("CON Enter your wallet PIN:");
-    } else if (brokenDownText.length == 5 && brokenDownText[4].length == 10) {
+    } else if (
+      brokenDownText.length == 5 &&
+      brokenDownText[4].length == 10 &&
+      menuStage == "obtainingAccountNumber"
+    ) {
       console.log("Account Number is: " + brokenDownText[4]);
       await redisClient.hsetAsync(
         `CELDUSSD:${sessionId}`,
@@ -569,7 +593,11 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
         brokenDownText[4]
       );
       resolve("CON Enter your wallet PIN:");
-    } else if (brokenDownText.length == 6 && brokenDownText[5].length == 10) {
+    } else if (
+      brokenDownText.length == 6 &&
+      brokenDownText[5].length == 10 &&
+      menuStage == "obtainingAccountNumber"
+    ) {
       console.log("Account Number is: " + brokenDownText[5]);
       await redisClient.hsetAsync(
         `CELDUSSD:${sessionId}`,
@@ -577,7 +605,11 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
         brokenDownText[5]
       );
       resolve("CON Enter your wallet PIN:");
-    } else if (brokenDownText.length == 7 && brokenDownText[6].length == 10) {
+    } else if (
+      brokenDownText.length == 7 &&
+      brokenDownText[6].length == 10 &&
+      menuStage == "obtainingAccountNumber"
+    ) {
       console.log("Account Number is: " + brokenDownText[6]);
       await redisClient.hsetAsync(
         `CELDUSSD:${sessionId}`,
@@ -585,7 +617,11 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
         brokenDownText[6]
       );
       resolve("CON Enter your wallet PIN:");
-    } else if (brokenDownText.length == 8 && brokenDownText[7].length == 10) {
+    } else if (
+      brokenDownText.length == 8 &&
+      brokenDownText[7].length == 10 &&
+      menuStage == "obtainingAccountNumber"
+    ) {
       console.log("Account Number is: " + brokenDownText[7]);
       await redisClient.hsetAsync(
         `CELDUSSD:${sessionId}`,
