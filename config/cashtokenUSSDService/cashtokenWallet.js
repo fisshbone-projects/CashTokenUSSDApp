@@ -10,7 +10,7 @@ let response = "";
 async function getUsersCashtoken(phoneNumber) {
   return new Promise(async resolve => {
     console.log(`Getting ${phoneNumber}'s cashtokens`);
-    let usersTokens = 10;
+    let usersTokens = "xxx";
     response = `END Dear Customer, you have ${usersTokens} CashTokens. Your CashTokens qualify you to win up to ${NAIRASIGN}100 million in the weekly draw`;
     resolve(response);
   });

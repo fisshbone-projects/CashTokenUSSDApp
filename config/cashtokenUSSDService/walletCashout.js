@@ -45,7 +45,7 @@ async function processFundDisbursement(text, phoneNumber, sessionId) {
             if (response !== "") {
               resolve(response);
             } else {
-              response = "END An error occured, please try again.";
+              response = "END An error occured, please try again";
               resolve(response);
             }
           }
@@ -81,7 +81,7 @@ async function obtainFinalPermissionForWithdrawalHelper(
     accountNumber,
     amountToWithdraw
   } = await returnWithdrawalRequestData(sessionId);
-  let response = `CON Please confirm this transaction:\nBank Name: ${
+  let response = `CON Confirm this transaction:\nBank Name: ${
     BANK_NAME_ABR[bankName]
   }\nAccount Number: ${accountNumber}\nAmount: ${NAIRASIGN}${formatNumber(
     amountToWithdraw
@@ -168,7 +168,7 @@ async function processWithdrawTransaction(
       brokenDownText[5] === "2" &&
       menuStage == "confirmBankTransfer"
     ) {
-      let response = "END Transaction cancelled by user.";
+      let response = "END Transaction cancelled by user";
       resolve(response);
     } else if (
       brokenDownText.length === 7 &&
@@ -182,7 +182,7 @@ async function processWithdrawTransaction(
       brokenDownText[6] === "2" &&
       menuStage == "confirmBankTransfer"
     ) {
-      let response = "END Transaction cancelled by user.";
+      let response = "END Transaction cancelled by user";
       resolve(response);
     } else if (
       brokenDownText.length === 8 &&
@@ -196,7 +196,7 @@ async function processWithdrawTransaction(
       brokenDownText[7] === "2" &&
       menuStage == "confirmBankTransfer"
     ) {
-      let response = "END Transaction cancelled by user.";
+      let response = "END Transaction cancelled by user";
       resolve(response);
     } else if (
       brokenDownText.length === 9 &&
@@ -210,7 +210,7 @@ async function processWithdrawTransaction(
       brokenDownText[8] === "2" &&
       menuStage == "confirmBankTransfer"
     ) {
-      let response = "END Transaction cancelled by user.";
+      let response = "END Transaction cancelled by user";
       resolve(response);
     } else if (
       brokenDownText.length === 10 &&
@@ -224,7 +224,7 @@ async function processWithdrawTransaction(
       brokenDownText[9] === "2" &&
       menuStage == "confirmBankTransfer"
     ) {
-      let response = "END Transaction cancelled by user.";
+      let response = "END Transaction cancelled by user";
       resolve(response);
     } else {
       resolve("");
@@ -272,7 +272,7 @@ async function makeWalletWithdrawal(
       .then(response => {
         // console.log(JSON.stringify(response.data, null, 2));
         console.log(response);
-        let feedback = `END Dear Customer, Your Account will be credited within 24 hours.`;
+        let feedback = `END Dear Customer, Your Account will be credited within 24 hours`;
         resolve(feedback);
       })
       .catch(error => {

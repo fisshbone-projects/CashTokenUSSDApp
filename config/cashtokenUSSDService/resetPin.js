@@ -10,7 +10,7 @@ async function resetPin(text, phoneNumber, sessionId) {
     let brokenDownText = text.split("*");
 
     if (text === "5") {
-      response = "CON Enter a 6 digit PIN";
+      response = "CON Enter a desired PIN (MIN 4 digit)";
       resolve(response);
     } else if (brokenDownText.length === 2) {
       await redisClient.hsetAsync(
@@ -37,17 +37,17 @@ async function resetPin(text, phoneNumber, sessionId) {
             resolve(response);
           } else {
             console.log("PIN not between 4 to 12 digits");
-            response = `END Your PIN can only be 4 to 12 digits long, please try again`;
+            response = `END Your PIN can only be 4 to 12 digits long`;
             resolve(response);
           }
         } else {
-          console.log("PIN containing non-digits, please try again");
+          console.log("PIN containing non-digits");
           response = `END Your PIN can only be numbers`;
           resolve(response);
         }
       } else {
         console.log("PIN not matching");
-        response = `END Your PIN does not match, please try again`;
+        response = `END Your PIN does not match`;
         resolve(response);
       }
     }
@@ -88,73 +88,11 @@ async function resetPinCall(sessionId, phoneNumber, walletPin) {
       })
       .catch(resp => {
         console.log(resp);
-        let feedback = `END PIN reset failed.!\nPlease try again.`;
+        let feedback = `END PIN reset failed!`;
         resolve(feedback);
       });
   });
 }
-
-// function processResetPin(brokenDownText, phoneNumber, sessionId) {
-//   return new Promise(async resolve => {
-//     let response = "";
-//     if (brokenDownText.length == 2) {
-//       response = `CON Enter Current PIN:`;
-//       resolve(response);
-//     } else if (brokenDownText.length === 3) {
-//       console.log(`Entering current PIN: ${brokenDownText[2]}`);
-//       await redisClient.hsetAsync(
-//         `CELDUSSD:${sessionId}`,
-//         "walletPin",
-//         `${brokenDownText[2]}`
-//       );
-
-//       response = `CON Enter desired 6 digit PIN: `;
-//       resolve(response);
-//     } else if (brokenDownText.length === 4) {
-//       console.log(`Entering New PIN: ${brokenDownText[3]}`);
-//       await redisClient.hsetAsync(
-//         `CELDUSSD:${sessionId}`,
-//         "walletNewPin",
-//         `${brokenDownText[3]}`
-//       );
-
-//       response = `CON Confirm New PIN: `;
-//       resolve(response);
-//     } else if (brokenDownText.length === 5) {
-//       let newPin = await redisClient.hgetAsync(
-//         `CELDUSSD:${sessionId}`,
-//         "walletNewPin"
-//       );
-
-//       if (brokenDownText[4] === newPin && newPin.length === 6) {
-//         console.log("New pin being set is correct");
-//         response = `END Your PIN has been reset successfully`;
-//         resolve(response);
-//       } else {
-//         if (newPin.length < 6) {
-//           console.log("New pin didn't pass 6 digit test");
-//           response = `END Inputted PIN is not 6 digits, try again.`;
-//           resolve(response);
-//         } else {
-//           console.log("New pin not set correctly");
-//           response = `END PINs are not the same, try again.`;
-//           resolve(response);
-//         }
-//       }
-
-//       response = `CON Enter desired 6 digit PIN: `;
-//       resolve(response);
-//     }
-//   });
-// }
-
-// function processForgotPin(brokenDownText, phoneNumber, sessionId) {
-//   return new Promise(resolve => {
-//     let response = "";
-//     response = `END Temporary PIN will be sent via sms`;
-//     resolve(response);
-//   });
-// }
 
 module.exports = {
   resetPin

@@ -15,7 +15,7 @@ async function processData(text, phoneNumber, sessionId) {
       response = await dataFlow(brokenDownText, phoneNumber, sessionId);
       resolve(response);
     } else {
-      response = "END An error occured, please try again later";
+      response = "END An error occured, please try again";
       resolve(response);
     }
   });
@@ -205,7 +205,7 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
       response = `END Transaction Cancelled!`;
       resolve(response);
     } else {
-      response = "END An error occured, please try again.";
+      response = "END An error occured, please try again";
       resolve(response);
     }
   });
@@ -317,7 +317,7 @@ function displayDataPlanPurchaseSummary(sessionId) {
       dataPlanPrice
     } = await redisClient.hgetallAsync(`CELDUSSD:${sessionId}`);
 
-    let response = `CON Please confirm your DataPlan Purchase:\nRecipient's Number: ${numberToCredit}\nDataPlan: ${dataPlanName}\nPrice: ${NAIRASIGN}${formatNumber(
+    let response = `CON Confirm your DataPlan Purchase:\nRecipient's Number: ${numberToCredit}\nDataPlan: ${dataPlanName}\nPrice: ${NAIRASIGN}${formatNumber(
       dataPlanPrice
     )}\n\n1. Confirm\n 2. Cancel`;
     resolve(response);

@@ -16,7 +16,7 @@ async function processAirtime(text, phoneNumber, sessionId) {
       response = await airtimeFlow(brokenDownText, phoneNumber, sessionId);
       resolve(response);
     } else {
-      response = "END An error occured, please try again later";
+      response = "END An error occured, please try again";
       resolve(response);
     }
   });
@@ -68,7 +68,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         "airtimeAmount",
         `${amount}`
       );
-      response = `CON Enter your wallet pin: `;
+      response = `CON Enter your wallet PIN: `;
       resolve(response);
     } else if (brokenDownText.length === 5) {
       let walletPin = brokenDownText[4];
@@ -120,10 +120,10 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
       brokenDownText.length === 6 &&
       parseInt(brokenDownText[5], 10) === 2
     ) {
-      response = `END Transaction Cancelled.`;
+      response = `END Transaction Cancelled`;
       resolve(response);
     } else {
-      response = "END An error occured, please try again.";
+      response = "END An error occured, please try again";
       resolve(response);
     }
   });

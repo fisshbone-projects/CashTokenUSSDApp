@@ -21,7 +21,7 @@ app.post("/v1/ussd", async (req, res) => {
   let { action, params, user } = req.body;
 
   if (action == undefined || params == undefined || user == undefined) {
-    res.status(400).send("Please send the right payloads");
+    res.status(400).send("Error! Send the right payloads");
   }
 
   let response = await processUSSDRequests(action, params, user);

@@ -140,17 +140,17 @@ async function ActivateUser(phoneNumber, text, sessionId) {
             resolve(response);
           } else {
             console.log("PIN not between 4 to 12 digits");
-            response = `END Your PIN can only be 4 to 12 digits long, please try again`;
+            response = `END Your PIN can only be 4 to 12 digits long`;
             resolve(response);
           }
         } else {
-          console.log("PIN containing non-digits, please try again");
+          console.log("PIN containing non-digits");
           response = `END Your PIN can only be numbers`;
           resolve(response);
         }
       } else {
         console.log("PIN not matching");
-        response = "END Your PIN does not match, please try again.";
+        response = "END Your PIN does not match";
         resolve(response);
       }
     }
@@ -190,7 +190,7 @@ async function NormalFlow(phoneNumber, text, walletHoldername, sessionId) {
       response = `CON Gifting of CashToken is still under development\n0 Main Menu`;
       resolve(response);
     } else {
-      response = "CON Please input a valid service option.\n0 Main Menu";
+      response = "CON Input a valid service option\n0 Main Menu";
       resolve(response);
     }
   });
@@ -236,7 +236,7 @@ async function activateWalletCall(sessionId, phoneNumber, walletPin) {
       })
       .catch(resp => {
         console.log(resp);
-        let feedback = `END Wallet Activation Failed!\nPlease try again.`;
+        let feedback = `END Wallet Activation Failed!\nPlease try again`;
         resolve(feedback);
       });
   });
