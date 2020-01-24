@@ -41,20 +41,22 @@ app.post(
 
     switch (req.body.serviceCode) {
       case "*347*999#":
-        response = await CELDUSSD(
-          req.body.sessionId,
-          req.body.serviceCode,
-          req.body.phoneNumber,
-          refinedText
-        );
+        response = `END Hello!!! You have reached CashToken.\nOur systems are currently undergoing upgrades.\nServices will be restored shortly, please check back soon. `;
+        // response = await CELDUSSD(
+        //   req.body.sessionId,
+        //   req.body.serviceCode,
+        //   req.body.phoneNumber,
+        //   refinedText
+        // );
         break;
       case "*384*24222#":
-        response = await CELDUSSD(
-          req.body.sessionId,
-          req.body.serviceCode,
-          req.body.phoneNumber,
-          refinedText
-        );
+        response = `END Hello!!! You have reached CashToken.\nOur systems are currently undergoing upgrades.\nServices will be restored shortly, please check back soon. `;
+        // response = await CELDUSSD(
+        //   req.body.sessionId,
+        //   req.body.serviceCode,
+        //   req.body.phoneNumber,
+        //   refinedText
+        // );
         break;
       case "*384*24223#":
         response = await CELDUSSD(
