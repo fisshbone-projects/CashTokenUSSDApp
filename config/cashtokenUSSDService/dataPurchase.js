@@ -10,9 +10,13 @@ async function processData(text, phoneNumber, sessionId) {
   return new Promise(async (resolve, reject) => {
     console.log("Starting Data Purchase Process");
     let response = "";
+    // if (text.startsWith("3")) {
+    //   let brokenDownText = text.split("*");
+    //   response = await dataFlow(brokenDownText, phoneNumber, sessionId);
+    //   resolve(response);
+    // }
     if (text.startsWith("3")) {
-      let brokenDownText = text.split("*");
-      response = await dataFlow(brokenDownText, phoneNumber, sessionId);
+      response = `CON Welcome!!!\nThis service is still under development, but please check back soon, we are always ready to serve you.\n\n0 Menu`;
       resolve(response);
     } else {
       response = "CON An error occured, please try again\n\n0 Menu";
@@ -38,7 +42,8 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
       `CELDUSSD:${sessionId}`
     );
     if (brokenDownText.length === 1) {
-      response = `CON Enter Recipient's Phone Number:`;
+      response = await getDataProviders();
+      // response = `CON Enter Recipient's Phone Number:`;
       resolve(response);
     } else if (brokenDownText.length === 2) {
       let numberToCredit = brokenDownText[1];
@@ -208,6 +213,74 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
       response = "CON An error occured, please try again\n\n0 Menu";
       resolve(response);
     }
+  });
+}
+
+function getDataProviders() {
+  return new Promise(resolve => {
+    redisClient.existsAsync(`CELDUSSD:DataProvidersNames`).then(async resp => {
+      let response = "";
+      if (resp === 0) {
+        await fetchDataProviders();
+      }
+
+      let providers = await redisClient.zrangeAsync(
+        `CELDUSSD:DataProvidersNames`,
+        0,
+        -1
+      );
+
+      response = `CON Select Recipent's Network:\n`;
+
+      providers.forEach((provider, index) => {
+        response += `${++index} ${provider}\n`;
+      });
+      response += `# Back\n0 Main Menu`;
+
+      resolve(response);
+    });
+  });
+}
+
+async function fetchDataProviders() {
+  return new Promise(resolve => {
+    axios
+      .get(`${FelaMarketPlace.BASE_URL}/list/dataProviders`, {
+        headers: {
+          Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER} `
+        }
+      })
+      .then(async response => {
+        let dataProvidersArray = Object.values(response.data.data);
+
+        for (let [index, provider] of dataProvidersArray.entries()) {
+          console.log(provider);
+          let code = ++index;
+          await redisClient.zaddAsync(
+            `CELDUSSD:DataProvidersNames`,
+            code,
+            provider.title
+          );
+          redisClient.expire(
+            `CELDUSSD:DataProvidersNames`,
+            API_DATA_EXPIRE_TIME
+          );
+
+          await redisClient.zaddAsync(
+            `CELDUSSD:DataProvidersCodes`,
+            code,
+            provider.code
+          );
+          redisClient.expire(
+            `CELDUSSD:DataProvidersCodes`,
+            API_DATA_EXPIRE_TIME
+          );
+        }
+
+        console.log("Done fetching dataProviders");
+
+        resolve();
+      });
   });
 }
 

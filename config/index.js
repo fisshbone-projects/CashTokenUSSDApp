@@ -26,6 +26,11 @@ const Config = Object.freeze({
         ? process.env.FELA_AUTH_BEARER_PROD
         : process.env.FELA_AUTH_BEARER_STAGING,
     THIS_SOURCE: process.env.FELA_THIS_SOURCE
+  },
+  INFOBIP: {
+    BASE_URL: process.env.INFOBIP_URL,
+    USERNAME: process.env.INFOBIP_USERNAME,
+    PASSWORD: process.env.INFOBIP_PASSWORD
   }
 });
 

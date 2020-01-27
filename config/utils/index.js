@@ -38,6 +38,37 @@ const BANK_NAME_ABR = {
 
 Object.freeze(BANK_NAME_ABR);
 
+const MYBANKUSSD_BANK_CODES = {
+  Access: "901",
+  UBA: "919",
+  GTB: "737",
+  Zenith: "966",
+  Ecobank: "326",
+  Sterling: "822",
+  Fidelity: "770",
+  Union: "826",
+  WEMA: "945",
+  Keystone: "777",
+  Stanbic: "909",
+  FBN: "894",
+  Unity: "799"
+};
+
+Object.freeze(MYBANKUSSD_BANK_CODES);
+
+const MYBANKUSSD_SERVICE_CODES = {
+  airtime: "02",
+  electicity: "03",
+  cashtoken: "01",
+  cableTvDSTV: "14",
+  cableTvGOTV: "15",
+  cableTvStarTimes: "16"
+};
+
+Object.freeze(MYBANKUSSD_SERVICE_CODES);
+
+const MYBANKUSSD_BASE_CODE = "000*111";
+
 const WalletTypes = {
   "myFela Top-Up": "FELA Wallet",
   iSavings: "iSavings",
@@ -223,5 +254,8 @@ module.exports = {
   checkValidationResult,
   storeInternalLog,
   refineText,
-  testNumber
+  testNumber,
+  MYBANKUSSD_BANK_CODES,
+  MYBANKUSSD_SERVICE_CODES,
+  MYBANKUSSD_BASE_CODE
 };

@@ -187,7 +187,7 @@ async function NormalFlow(phoneNumber, text, walletHoldername, sessionId) {
       response = await resetPin(text, phoneNumber, sessionId);
       resolve(response);
     } else if (text === "6") {
-      response = `CON Gifting of CashToken is still under development\n0 Main Menu`;
+      response = `CON Welcome!!!\nThis service is still under development, but please check back soon, we are always ready to serve you.\n\n0 Menu`;
       resolve(response);
     } else {
       response = "CON Input a valid service option\n0 Main Menu";
@@ -199,31 +199,29 @@ async function NormalFlow(phoneNumber, text, walletHoldername, sessionId) {
 
 async function activateWalletCall(sessionId, phoneNumber, walletPin) {
   return new Promise(async (resolve, reject) => {
+    let payload = {
+      offeringGroup: "felawallet",
+      offeringName: "profile",
+      auth: {
+        source: `${FelaMarketPlace.THIS_SOURCE}`,
+        passkey: `${walletPin}`
+      },
+      params: {
+        operation: "approve"
+        // name: `${userName}`
+      },
+      user: {
+        sessionId: `${sessionId}`,
+        source: `${FelaMarketPlace.THIS_SOURCE}`,
+        sourceId: `${phoneNumber}`,
+        phoneNumber: `${phoneNumber}`
+      }
+    };
+    console.log(payload);
     axios
-      .post(
-        `${FelaMarketPlace.BASE_URL}/offering/fulfil`,
-        {
-          offeringGroup: "felawallet",
-          offeringName: "profile",
-          auth: {
-            source: `${FelaMarketPlace.THIS_SOURCE}`,
-            passkey: `${walletPin}`
-          },
-          params: {
-            operation: "approve"
-            // name: `${userName}`
-          },
-          user: {
-            sessionId: `${sessionId}`,
-            source: `${FelaMarketPlace.THIS_SOURCE}`,
-            sourceId: `${phoneNumber}`,
-            phoneNumber: `${phoneNumber}`
-          }
-        },
-        {
-          headers: felaHeader
-        }
-      )
+      .post(`${FelaMarketPlace.BASE_URL}/offering/fulfil`, payload, {
+        headers: felaHeader
+      })
       .then(resp => {
         console.log(resp);
         redisClient
