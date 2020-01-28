@@ -91,31 +91,56 @@ async function obtainFinalPermissionForWithdrawalHelper(
 
 async function obtainFinalPermissionForWithdrawal(sessionId, brokenDownText) {
   return new Promise(async (resolve, reject) => {
-    if (brokenDownText.length == 5 && brokenDownText[4].length >= 4) {
+    let menuStage = await redisClient.hgetAsync(
+      `CELDUSSD:${sessionId}`,
+      "menuStage"
+    );
+    console.log(`AT OBTAIN FINAL PERM MenuStage: ${menuStage}`);
+    if (
+      brokenDownText.length == 5 &&
+      brokenDownText[4].length >= 4 &&
+      menuStage == "obtainingWalletPin"
+    ) {
       let response = obtainFinalPermissionForWithdrawalHelper(
         sessionId,
         brokenDownText[4]
       );
       resolve(response);
-    } else if (brokenDownText.length == 6 && brokenDownText[5].length >= 4) {
+    } else if (
+      brokenDownText.length == 6 &&
+      brokenDownText[5].length >= 4 &&
+      menuStage == "obtainingWalletPin"
+    ) {
       let response = obtainFinalPermissionForWithdrawalHelper(
         sessionId,
         brokenDownText[5]
       );
       resolve(response);
-    } else if (brokenDownText.length == 7 && brokenDownText[6].length >= 4) {
+    } else if (
+      brokenDownText.length == 7 &&
+      brokenDownText[6].length >= 4 &&
+      menuStage == "obtainingWalletPin"
+    ) {
       let response = obtainFinalPermissionForWithdrawalHelper(
         sessionId,
         brokenDownText[6]
       );
       resolve(response);
-    } else if (brokenDownText.length == 8 && brokenDownText[7].length >= 4) {
+    } else if (
+      brokenDownText.length == 8 &&
+      brokenDownText[7].length >= 4 &&
+      menuStage == "obtainingWalletPin"
+    ) {
       let response = obtainFinalPermissionForWithdrawalHelper(
         sessionId,
         brokenDownText[7]
       );
       resolve(response);
-    } else if (brokenDownText.length == 9 && brokenDownText[8].length >= 4) {
+    } else if (
+      brokenDownText.length == 9 &&
+      brokenDownText[8].length >= 4 &&
+      menuStage == "obtainingWalletPin"
+    ) {
       let response = obtainFinalPermissionForWithdrawalHelper(
         sessionId,
         brokenDownText[8]
@@ -155,7 +180,7 @@ async function processWithdrawTransaction(
       `CELDUSSD:${sessionId}`,
       "menuStage"
     );
-    console.log(`MenuStage: ${menuStage}`);
+    console.log(`AT PROCESS WITHDRAW MenuStage: ${menuStage}`);
     if (
       brokenDownText.length === 6 &&
       brokenDownText[5] === "1" &&
@@ -435,7 +460,7 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
       `CELDUSSD:${sessionId}`,
       "menuStage"
     );
-    console.log(`MenuStage: ${menuStage}`);
+    console.log(`AT OBTAIN BANKNAME MenuStage: ${menuStage}`);
     if (
       brokenDownText.length === 3 &&
       parseInt(brokenDownText[2], 10) <= 10 &&
@@ -566,19 +591,22 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
 async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
   return new Promise(async (resolve, reject) => {
     let menuStage = await redisClient.hgetAsync(
-      `AirtelThanksUSSD:${sessionId}`,
+      `CELDUSSD:${sessionId}`,
       "menuStage"
     );
+    console.log(`AT OBTAIN ACCOUNT NUMBER MenuStage: ${menuStage}`);
     if (
       brokenDownText.length == 4 &&
       brokenDownText[3].length == 10 &&
       menuStage == "obtainingAccountNumber"
     ) {
       console.log("Account Number is: " + brokenDownText[3]);
-      await redisClient.hsetAsync(
+      await redisClient.hmsetAsync(
         `CELDUSSD:${sessionId}`,
         "accountNumber",
-        brokenDownText[3]
+        brokenDownText[3],
+        "menuStage",
+        "obtainingWalletPin"
       );
       resolve("CON Enter your wallet PIN:");
     } else if (
@@ -587,10 +615,12 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
       menuStage == "obtainingAccountNumber"
     ) {
       console.log("Account Number is: " + brokenDownText[4]);
-      await redisClient.hsetAsync(
+      await redisClient.hmsetAsync(
         `CELDUSSD:${sessionId}`,
         "accountNumber",
-        brokenDownText[4]
+        brokenDownText[4],
+        "menuStage",
+        "obtainingWalletPin"
       );
       resolve("CON Enter your wallet PIN:");
     } else if (
@@ -599,10 +629,12 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
       menuStage == "obtainingAccountNumber"
     ) {
       console.log("Account Number is: " + brokenDownText[5]);
-      await redisClient.hsetAsync(
+      await redisClient.hmsetAsync(
         `CELDUSSD:${sessionId}`,
         "accountNumber",
-        brokenDownText[5]
+        brokenDownText[5],
+        "menuStage",
+        "obtainingWalletPin"
       );
       resolve("CON Enter your wallet PIN:");
     } else if (
@@ -611,10 +643,12 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
       menuStage == "obtainingAccountNumber"
     ) {
       console.log("Account Number is: " + brokenDownText[6]);
-      await redisClient.hsetAsync(
+      await redisClient.hmsetAsync(
         `CELDUSSD:${sessionId}`,
         "accountNumber",
-        brokenDownText[6]
+        brokenDownText[6],
+        "menuStage",
+        "obtainingWalletPin"
       );
       resolve("CON Enter your wallet PIN:");
     } else if (
@@ -623,10 +657,12 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
       menuStage == "obtainingAccountNumber"
     ) {
       console.log("Account Number is: " + brokenDownText[7]);
-      await redisClient.hsetAsync(
+      await redisClient.hmsetAsync(
         `CELDUSSD:${sessionId}`,
         "accountNumber",
-        brokenDownText[7]
+        brokenDownText[7],
+        "menuStage",
+        "obtainingWalletPin"
       );
       resolve("CON Enter your wallet PIN:");
     } else {
