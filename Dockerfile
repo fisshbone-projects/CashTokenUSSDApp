@@ -28,10 +28,8 @@ ARG redis_expire_api_info
 ENV REDIS_EXPIRE_API_INFO=$redis_expire_api_info
 ARG infobip_url
 ENV INFOBIP_URL=$infobip_url
-ARG infobip_username
-ENV INFOBIP_USERNAME=$infobip_username
-ARG infobip_password
-ENV INFOBIP_PASSWORD=$infobip_password
+ARG infobip_api_key
+ENV INFOBIP_API_KEY=$infobip_api_key
 COPY ./package.json /var/cashtokenussd/
 RUN npm install
 WORKDIR /var/cashtokenussd/

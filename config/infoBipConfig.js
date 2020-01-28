@@ -1,12 +1,12 @@
 let btoa = require("btoa");
 let axios = require("axios");
 let { INFOBIP } = require("./index");
-const KEY = btoa(`${INFOBIP.USERNAME}:${INFOBIP.PASSWORD}`);
+// const KEY = btoa(`${INFOBIP.USERNAME}:${INFOBIP.PASSWORD}`);
 
 const headers = {
   Accept: "application/json",
   "Content-Type": "application/json",
-  Authorization: "Basic " + KEY
+  Authorization: "App " + INFOBIP.API_KEY
 };
 
 async function sendSMS(phoneNumber, messageText) {

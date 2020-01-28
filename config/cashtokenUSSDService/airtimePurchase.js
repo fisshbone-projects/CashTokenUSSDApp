@@ -364,7 +364,7 @@ function processAirtimeUSSDString(
   //Send SMS to user
   smsMessage = `You are about to purchase N${airtimeAmount} for ${prunedRecipentNumber}.\nPlease dial ${ussdCode} to complete your transaction.`;
 
-  // sendSMS(phoneNumber, smsMessage);
+  sendSMS(phoneNumber, smsMessage);
   return response;
 }
 

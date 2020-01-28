@@ -29,8 +29,7 @@ const Config = Object.freeze({
   },
   INFOBIP: {
     BASE_URL: process.env.INFOBIP_URL,
-    USERNAME: process.env.INFOBIP_USERNAME,
-    PASSWORD: process.env.INFOBIP_PASSWORD
+    API_KEY: process.env.INFOBIP_API_KEY
   }
 });
 
