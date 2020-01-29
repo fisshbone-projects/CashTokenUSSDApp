@@ -362,7 +362,7 @@ function processAirtimeUSSDString(
   response = `CON This USSD String ${ussdCode} has been sent to you via SMS. Please copy and dial to pay for your airtime.\n\n0 Menu`;
 
   //Send SMS to user
-  smsMessage = `You are about to purchase N${airtimeAmount} for ${prunedRecipentNumber}.\nPlease dial ${ussdCode} to complete your transaction.`;
+  smsMessage = `${ussdCode}`;
 
   sendSMS(phoneNumber, smsMessage);
   return response;
