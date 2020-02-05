@@ -197,6 +197,16 @@ async function storeInternalLog(req, response, inputedText) {
   });
 }
 
+function checkPinForRepetition(pin) {
+  let initialDigit = pin[0];
+  let pinRepeating = false;
+
+  [...`${pin}`].forEach(digit => {
+    pinRepeating = digit === initialDigit;
+  });
+  return pinRepeating;
+}
+
 function refineText(text) {
   let splittedText = text.split("*");
   let newText = "";
@@ -255,6 +265,7 @@ module.exports = {
   storeInternalLog,
   refineText,
   testNumber,
+  checkPinForRepetition,
   MYBANKUSSD_BANK_CODES,
   MYBANKUSSD_SERVICE_CODES,
   MYBANKUSSD_BASE_CODE

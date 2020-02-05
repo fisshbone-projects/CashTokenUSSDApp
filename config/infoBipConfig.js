@@ -1,4 +1,3 @@
-let btoa = require("btoa");
 let axios = require("axios");
 let { INFOBIP } = require("./index");
 // const KEY = btoa(`${INFOBIP.USERNAME}:${INFOBIP.PASSWORD}`);

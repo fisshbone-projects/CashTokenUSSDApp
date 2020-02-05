@@ -1,5 +1,6 @@
 const { redisClient } = require("../redisConnectConfig");
 const { FelaMarketPlace } = require("../index");
+const { checkPinForRepetition } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 
@@ -29,11 +30,16 @@ async function resetPin(text, phoneNumber, sessionId) {
 
       if (newPin === brokenDownText[2]) {
         if (newPin.match(/^[0-9]+$/)) {
-          if (newPin.length >= 4 && newPin.length <= 12) {
+          let isPinRepeating = checkPinForRepetition(newPin);
+          if (newPin.length >= 4 && newPin.length <= 12 && !isPinRepeating) {
             console.log(
               "PIN confirmed successful, going on to reset user's PIN"
             );
             response = await resetPinCall(sessionId, phoneNumber, newPin);
+            resolve(response);
+          } else if (isPinRepeating) {
+            console.log("PIN is repeating i.e PIN is of type 1111");
+            response = `CON Repeated digit PINs are not allowed (e.g 1111).\n Please use a different kind of PIN\n\n0 Menu`;
             resolve(response);
           } else {
             console.log("PIN not between 4 to 12 digits");

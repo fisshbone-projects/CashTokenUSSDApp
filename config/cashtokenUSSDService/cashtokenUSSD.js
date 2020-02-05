@@ -4,6 +4,7 @@ const { processFundDisbursement } = require("./walletCashout");
 const { processAirtime } = require("./airtimePurchase");
 const { processData } = require("./dataPurchase");
 const { resetPin } = require("./resetPin");
+const { checkPinForRepetition } = require("../utils");
 // const { processElectricity } = require("./electricityPayment");
 const {
   getUsersCashtoken,
@@ -130,13 +131,23 @@ async function ActivateUser(phoneNumber, text, sessionId) {
 
       if (brokenDownText[1] === registeredPin) {
         if (registeredPin.match(/^[0-9]+$/)) {
-          if (registeredPin.length >= 4 && registeredPin.length <= 12) {
+          let isPinRepeating = checkPinForRepetition(registeredPin);
+
+          if (
+            registeredPin.length >= 4 &&
+            registeredPin.length <= 12 &&
+            !isPinRepeating
+          ) {
             console.log("PIN confirmed successful, going on to activate user");
             response = await activateWalletCall(
               sessionId,
               phoneNumber,
               registeredPin
             );
+            resolve(response);
+          } else if (isPinRepeating) {
+            console.log("PIN is repeating i.e PIN is of type 1111");
+            response = `CON Repeated digit PINs are not allowed (e.g 1111).\n Please use a different kind of PIN\n\n0 Menu`;
             resolve(response);
           } else {
             console.log("PIN not between 4 to 12 digits");
@@ -167,7 +178,7 @@ async function NormalFlow(phoneNumber, text, walletHoldername, sessionId) {
         walletHoldername === undefined || walletHoldername === ""
           ? phoneNumber
           : walletHoldername
-      } to CashToken\n1 CashToken Wallet\n2 Buy Airtime\n3 Buy Data\n4 Redeem Cash\n5 Reset Wallet PIN\n6 Gift CashToken`;
+      } to myBankUSSD\n1 CashToken Wallet\n2 Buy Airtime\n3 Buy Data\n4 Redeem Cash\n5 Reset Wallet PIN\n6 Gift CashToken\n\nWin 5K-100M weekly`;
       resolve(response);
     } else if (text === "1") {
       response = await getUsersWalletDetails(phoneNumber);

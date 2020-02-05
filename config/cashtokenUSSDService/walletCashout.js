@@ -266,34 +266,33 @@ async function makeWalletWithdrawal(
   walletPin
 ) {
   return new Promise((resolve, reject) => {
+    let payload = {
+      offeringGroup: "felawallet",
+      offeringName: "withdraw",
+      auth: {
+        source: `${FelaMarketPlace.THIS_SOURCE}`,
+        passkey: `${walletPin}`
+      },
+      params: {
+        amount: `${amount}`,
+        bankCode: `${bankCode.length == 2 ? "0" + bankCode : bankCode}`,
+        accountNo: `${accountNo}`,
+        walletType: "fela"
+      },
+      user: {
+        sessionId: `${sessionId}`,
+        source: `${FelaMarketPlace.THIS_SOURCE}`,
+        sourceId: `${phoneNumber}`,
+        phoneNumber: `${phoneNumber}`,
+        passkey: `${walletPin}`
+      }
+    };
+
+    console.log("Wallet Cashout Payload", payload);
     axios
-      .post(
-        `${FelaMarketPlace.BASE_URL}/offering/fulfil`,
-        {
-          offeringGroup: "felawallet",
-          offeringName: "withdraw",
-          auth: {
-            source: `${FelaMarketPlace.THIS_SOURCE}`,
-            passkey: `${walletPin}`
-          },
-          params: {
-            amount: `${amount}`,
-            bankCode: `${bankCode.length == 2 ? "0" + bankCode : bankCode}`,
-            accountNo: `${accountNo}`,
-            walletType: "fela"
-          },
-          user: {
-            sessionId: `${sessionId}`,
-            source: `${FelaMarketPlace.THIS_SOURCE}`,
-            sourceId: `${phoneNumber}`,
-            phoneNumber: `${phoneNumber}`,
-            passkey: `${walletPin}`
-          }
-        },
-        {
-          headers: felaHeader
-        }
-      )
+      .post(`${FelaMarketPlace.BASE_URL}/offering/fulfil`, payload, {
+        headers: felaHeader
+      })
       .then(response => {
         // console.log(JSON.stringify(response.data, null, 2));
         console.log(response);

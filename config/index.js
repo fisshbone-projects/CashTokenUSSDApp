@@ -30,6 +30,20 @@ const Config = Object.freeze({
   INFOBIP: {
     BASE_URL: process.env.INFOBIP_URL,
     API_KEY: process.env.INFOBIP_API_KEY
+  },
+  CELD: {
+    BASE_URL:
+      ENV === "production"
+        ? process.env.CELD_BASE_URL_PROD
+        : process.env.CELD_BASE_URL_STAGING,
+    PUBLIC_KEY:
+      ENV === "production"
+        ? "90101912909"
+        : process.env.CELD_PUBLIC_KEY_STAGING,
+    PRIVATE_KEY:
+      ENV === "production"
+        ? "90128812912"
+        : process.env.CELD_PRIVATE_KEY_STAGING
   }
 });
 

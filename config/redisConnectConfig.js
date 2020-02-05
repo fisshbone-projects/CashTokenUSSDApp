@@ -6,7 +6,7 @@ promisify.promisifyAll(require("redis"));
 
 let redisClient = null;
 
-if (App.REDIS_ENV === "staging") {
+if (App.ENV === "production") {
   redisClient = redis.createClient(App.REDIS_PORT, App.REDIS_HOST);
 
   redisClient.auth(App.REDIS_AUTH, (err, resp) => {
@@ -19,7 +19,7 @@ if (App.REDIS_ENV === "staging") {
   redisClient.on("error", err => {
     console.error("Error connecting to Redis Server" + err);
   });
-} else if (App.REDIS_ENV === "local") {
+} else if (App.ENV === "development") {
   redisClient = redis.createClient(6379);
   redisClient.on("connect", () => {
     console.log("Server connected to the Redis DB");
