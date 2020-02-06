@@ -178,7 +178,7 @@ async function NormalFlow(phoneNumber, text, walletHoldername, sessionId) {
         walletHoldername === undefined || walletHoldername === ""
           ? phoneNumber
           : walletHoldername
-      } to myBankUSSD\n1 CashToken Wallet\n2 Buy Airtime\n3 Buy Data\n4 Redeem Cash\n5 Reset Wallet PIN\n6 Gift CashToken\n\nWin 5K-100M weekly`;
+      } to myBankUSSD\n1 CashToken Wallet\n2 Buy Airtime\n3 Buy Data\n4 Redeem Cash\n5 Reset Wallet PIN\n6 Gift CashToken`;
       resolve(response);
     } else if (text === "1") {
       response = await getUsersWalletDetails(phoneNumber);
