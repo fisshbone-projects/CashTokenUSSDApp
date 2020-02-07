@@ -38,6 +38,23 @@ const BANK_NAME_ABR = {
 
 Object.freeze(BANK_NAME_ABR);
 
+const DIRECTDIAL_BANK_MAP = {
+  "Access Bank Nigeria": "901",
+  "United Bank For Africa Plc": "919",
+  "Gtbank Plc": "737",
+  "Zenith Bank Plc": "966",
+  "Ecobank Nigeria Limited": "326",
+  "Sterling Bank Plc": "822",
+  "Fidelity Bank Plc": "770",
+  "Union Bank Of Nigeria Plc": "826",
+  "Wema Bank Plc": "945",
+  "Keystone Bank Plc": "777",
+  "Stanbic Ibtc Bank Plc": "909",
+  "First Bank Plc": "894",
+  "Unity Bank Plc": "799"
+};
+Object.freeze(DIRECTDIAL_BANK_MAP);
+
 const MYBANKUSSD_BANK_CODES = {
   Access: "901",
   UBA: "919",
@@ -274,6 +291,7 @@ module.exports = {
   testNumber,
   checkPinForRepetition,
   formatNumber,
+  DIRECTDIAL_BANK_MAP,
   MYBANKUSSD_BANK_CODES,
   MYBANKUSSD_SERVICE_CODES,
   MYBANKUSSD_BASE_CODE

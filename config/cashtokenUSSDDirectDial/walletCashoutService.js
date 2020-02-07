@@ -1,7 +1,7 @@
 const axios = require("axios");
 const { redisClient } = require("../redisConnectConfig");
 const { getBankCodes } = require("./directDialUtils");
-const { formatNumber } = require("../utils");
+const { formatNumber, DIRECTDIAL_BANK_MAP } = require("../utils");
 const { FelaMarketPlace } = require("../../config");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 
@@ -28,19 +28,24 @@ async function processWalletCashout(sessionId, userPhone, text) {
       console.log("Direct Dial: Bank Code is invalid!");
       response = checkBankCode.bankCodeVerificationResp;
     } else {
-      let refinedCode = bankCode.startsWith("0")
-        ? bankCode.substring(1)
-        : bankCode;
-
-      let [
-        chosenBankName,
-        chosenBankCode
-      ] = await redisClient.zrangebyscoreAsync(
+      let selectedBankName = "";
+      for ([name, code] of Object.entries(DIRECTDIAL_BANK_MAP)) {
+        if (bankCode === code) {
+          selectedBankName = name;
+        }
+      }
+      let selectedBankIndex = await redisClient.zrankAsync(
         "CELDUSSD:BankCodes",
-        refinedCode,
-        refinedCode,
+        selectedBankName
+      );
+
+      let [chosenBankName, chosenBankCode] = await redisClient.zrangeAsync(
+        "CELDUSSD:BankCodes",
+        selectedBankIndex,
+        selectedBankIndex,
         "withscores"
       );
+      console.log(chosenBankCode, chosenBankName);
 
       await redisClient.hmsetAsync(
         `CELDUSSD:DIRECTDIAL:${sessionId}`,
@@ -173,9 +178,12 @@ async function verifyBankCode(bankCode) {
     let regTest = /^[0-9]*$/;
 
     if (regTest.test(bankCode) && bankCode.length === 3) {
-      if (bankCodes.includes(bankCode)) {
-        bankCodeStatus = true;
-      } else {
+      for ([name, code] of Object.entries(DIRECTDIAL_BANK_MAP)) {
+        if (bankCode === code) {
+          bankCodeStatus = true;
+        }
+      }
+      if (bankCodeStatus === "") {
         bankCodeStatus = false;
         bankCodeVerificationResp =
           "END CashToken Direct Dial Service.\n\nBank code inputted does not exist";
