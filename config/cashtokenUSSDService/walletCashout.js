@@ -9,11 +9,11 @@ const NAIRASIGN = "N";
 async function processFundDisbursement(text, phoneNumber, sessionId) {
   return new Promise(async (resolve, reject) => {
     console.log("Starting the move to bank process");
-    if (text === "4") {
+    let brokenDownText = text.split("*");
+    if (brokenDownText.length === 2 && brokenDownText[1] === "1") {
       let response = `CON Enter the amount you would like to cash-out:`;
       resolve(response);
     }
-    let brokenDownText = text.split("*");
 
     let response = await displayBankList(brokenDownText, sessionId);
     if (response !== "") {
@@ -97,16 +97,6 @@ async function obtainFinalPermissionForWithdrawal(sessionId, brokenDownText) {
     );
     console.log(`AT OBTAIN FINAL PERM MenuStage: ${menuStage}`);
     if (
-      brokenDownText.length == 5 &&
-      brokenDownText[4].length >= 4 &&
-      menuStage == "obtainingWalletPin"
-    ) {
-      let response = obtainFinalPermissionForWithdrawalHelper(
-        sessionId,
-        brokenDownText[4]
-      );
-      resolve(response);
-    } else if (
       brokenDownText.length == 6 &&
       brokenDownText[5].length >= 4 &&
       menuStage == "obtainingWalletPin"
@@ -146,6 +136,16 @@ async function obtainFinalPermissionForWithdrawal(sessionId, brokenDownText) {
         brokenDownText[8]
       );
       resolve(response);
+    } else if (
+      brokenDownText.length == 10 &&
+      brokenDownText[9].length >= 4 &&
+      menuStage == "obtainingWalletPin"
+    ) {
+      let response = obtainFinalPermissionForWithdrawalHelper(
+        sessionId,
+        brokenDownText[9]
+      );
+      resolve(response);
     } else {
       resolve("");
     }
@@ -182,20 +182,6 @@ async function processWithdrawTransaction(
     );
     console.log(`AT PROCESS WITHDRAW MenuStage: ${menuStage}`);
     if (
-      brokenDownText.length === 6 &&
-      brokenDownText[5] === "1" &&
-      menuStage == "confirmBankTransfer"
-    ) {
-      let response = processWithdrawTransactionHelper(sessionId, phoneNumber);
-      resolve(response);
-    } else if (
-      brokenDownText.length === 6 &&
-      brokenDownText[5] === "2" &&
-      menuStage == "confirmBankTransfer"
-    ) {
-      let response = "CON Transaction cancelled!\n\n0 Menu";
-      resolve(response);
-    } else if (
       brokenDownText.length === 7 &&
       brokenDownText[6] === "1" &&
       menuStage == "confirmBankTransfer"
@@ -247,6 +233,20 @@ async function processWithdrawTransaction(
     } else if (
       brokenDownText.length === 10 &&
       brokenDownText[9] === "2" &&
+      menuStage == "confirmBankTransfer"
+    ) {
+      let response = "CON Transaction cancelled!\n\n0 Menu";
+      resolve(response);
+    } else if (
+      brokenDownText.length === 11 &&
+      brokenDownText[10] === "1" &&
+      menuStage == "confirmBankTransfer"
+    ) {
+      let response = processWithdrawTransactionHelper(sessionId, phoneNumber);
+      resolve(response);
+    } else if (
+      brokenDownText.length === 11 &&
+      brokenDownText[10] === "2" &&
       menuStage == "confirmBankTransfer"
     ) {
       let response = "CON Transaction cancelled!\n\n0 Menu";
@@ -373,11 +373,11 @@ async function getBankCodes() {
 
 async function displayBankList(brokenDownText, sessionId) {
   return new Promise(async (resolve, reject) => {
-    if (brokenDownText.length === 2) {
+    if (brokenDownText.length === 3) {
       await redisClient.hmsetAsync(
         `CELDUSSD:${sessionId}`,
         "amountToWithdraw",
-        brokenDownText[1],
+        brokenDownText[2],
         "menuStage",
         "obtainingBankInputs"
       );
@@ -400,18 +400,6 @@ async function displayBankList(brokenDownText, sessionId) {
         }
       });
     } else if (
-      brokenDownText.length === 3 &&
-      parseInt(brokenDownText[2], 10) === 11
-    ) {
-      redisClient.existsAsync(`CELDUSSD:BankCodes`).then(async resp => {
-        if (resp === 0) {
-          await getBankCodes();
-        }
-
-        let response = await helperDisplayBankList(10, 15);
-        resolve(response);
-      });
-    } else if (
       brokenDownText.length === 4 &&
       parseInt(brokenDownText[3], 10) === 11
     ) {
@@ -420,7 +408,7 @@ async function displayBankList(brokenDownText, sessionId) {
           await getBankCodes();
         }
 
-        let response = await helperDisplayBankList(16, 21);
+        let response = await helperDisplayBankList(10, 15);
         resolve(response);
       });
     } else if (
@@ -432,12 +420,24 @@ async function displayBankList(brokenDownText, sessionId) {
           await getBankCodes();
         }
 
-        let response = await helperDisplayBankList(22, 27);
+        let response = await helperDisplayBankList(16, 21);
         resolve(response);
       });
     } else if (
       brokenDownText.length === 6 &&
       parseInt(brokenDownText[5], 10) === 11
+    ) {
+      redisClient.existsAsync(`CELDUSSD:BankCodes`).then(async resp => {
+        if (resp === 0) {
+          await getBankCodes();
+        }
+
+        let response = await helperDisplayBankList(22, 27);
+        resolve(response);
+      });
+    } else if (
+      brokenDownText.length === 7 &&
+      parseInt(brokenDownText[6], 10) === 11
     ) {
       redisClient.existsAsync(`CELDUSSD:BankCodes`).then(async resp => {
         if (resp === 0) {
@@ -461,35 +461,11 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
     );
     console.log(`AT OBTAIN BANKNAME MenuStage: ${menuStage}`);
     if (
-      brokenDownText.length === 3 &&
-      parseInt(brokenDownText[2], 10) <= 10 &&
-      menuStage == "obtainingBankInputs"
-    ) {
-      let selectedBankID = parseInt(brokenDownText[2], 10);
-      console.log(selectedBankID);
-      let selectedBankName = await redisClient.zrangeAsync(
-        `CELDUSSD:BankCodes`,
-        selectedBankID - 1,
-        selectedBankID - 1,
-        "withscores"
-      );
-      console.log(selectedBankName);
-      await redisClient.hmsetAsync(
-        `CELDUSSD:${sessionId}`,
-        "bankName",
-        selectedBankName[0],
-        "bankCode",
-        selectedBankName[1],
-        "menuStage",
-        "obtainingAccountNumber"
-      );
-      resolve("CON Enter your account number:");
-    } else if (
       brokenDownText.length === 4 &&
-      parseInt(brokenDownText[3], 10) <= 6 &&
+      parseInt(brokenDownText[3], 10) <= 10 &&
       menuStage == "obtainingBankInputs"
     ) {
-      let selectedBankID = parseInt(brokenDownText[3], 10) + 10;
+      let selectedBankID = parseInt(brokenDownText[3], 10);
       console.log(selectedBankID);
       let selectedBankName = await redisClient.zrangeAsync(
         `CELDUSSD:BankCodes`,
@@ -513,8 +489,7 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
       parseInt(brokenDownText[4], 10) <= 6 &&
       menuStage == "obtainingBankInputs"
     ) {
-      let selectedBankID = parseInt(brokenDownText[4], 10) + 16;
-      // console.log(parseInt(brokenDownText[4], 10));
+      let selectedBankID = parseInt(brokenDownText[4], 10) + 10;
       console.log(selectedBankID);
       let selectedBankName = await redisClient.zrangeAsync(
         `CELDUSSD:BankCodes`,
@@ -538,7 +513,8 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
       parseInt(brokenDownText[5], 10) <= 6 &&
       menuStage == "obtainingBankInputs"
     ) {
-      let selectedBankID = parseInt(brokenDownText[5], 10) + 22;
+      let selectedBankID = parseInt(brokenDownText[5], 10) + 16;
+      // console.log(parseInt(brokenDownText[4], 10));
       console.log(selectedBankID);
       let selectedBankName = await redisClient.zrangeAsync(
         `CELDUSSD:BankCodes`,
@@ -559,10 +535,34 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
       resolve("CON Enter your account number:");
     } else if (
       brokenDownText.length === 7 &&
-      parseInt(brokenDownText[6], 10) <= 4 &&
+      parseInt(brokenDownText[6], 10) <= 6 &&
       menuStage == "obtainingBankInputs"
     ) {
-      let selectedBankID = parseInt(brokenDownText[6], 10) + 28;
+      let selectedBankID = parseInt(brokenDownText[6], 10) + 22;
+      console.log(selectedBankID);
+      let selectedBankName = await redisClient.zrangeAsync(
+        `CELDUSSD:BankCodes`,
+        selectedBankID - 1,
+        selectedBankID - 1,
+        "withscores"
+      );
+      console.log(selectedBankName);
+      await redisClient.hmsetAsync(
+        `CELDUSSD:${sessionId}`,
+        "bankName",
+        selectedBankName[0],
+        "bankCode",
+        selectedBankName[1],
+        "menuStage",
+        "obtainingAccountNumber"
+      );
+      resolve("CON Enter your account number:");
+    } else if (
+      brokenDownText.length === 8 &&
+      parseInt(brokenDownText[7], 10) <= 4 &&
+      menuStage == "obtainingBankInputs"
+    ) {
+      let selectedBankID = parseInt(brokenDownText[7], 10) + 28;
       console.log(selectedBankID);
       let selectedBankName = await redisClient.zrangeAsync(
         `CELDUSSD:BankCodes`,
@@ -595,20 +595,6 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
     );
     console.log(`AT OBTAIN ACCOUNT NUMBER MenuStage: ${menuStage}`);
     if (
-      brokenDownText.length == 4 &&
-      brokenDownText[3].length == 10 &&
-      menuStage == "obtainingAccountNumber"
-    ) {
-      console.log("Account Number is: " + brokenDownText[3]);
-      await redisClient.hmsetAsync(
-        `CELDUSSD:${sessionId}`,
-        "accountNumber",
-        brokenDownText[3],
-        "menuStage",
-        "obtainingWalletPin"
-      );
-      resolve("CON Enter your wallet PIN:");
-    } else if (
       brokenDownText.length == 5 &&
       brokenDownText[4].length == 10 &&
       menuStage == "obtainingAccountNumber"
@@ -660,6 +646,20 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
         `CELDUSSD:${sessionId}`,
         "accountNumber",
         brokenDownText[7],
+        "menuStage",
+        "obtainingWalletPin"
+      );
+      resolve("CON Enter your wallet PIN:");
+    } else if (
+      brokenDownText.length == 9 &&
+      brokenDownText[8].length == 10 &&
+      menuStage == "obtainingAccountNumber"
+    ) {
+      console.log("Account Number is: " + brokenDownText[7]);
+      await redisClient.hmsetAsync(
+        `CELDUSSD:${sessionId}`,
+        "accountNumber",
+        brokenDownText[8],
         "menuStage",
         "obtainingWalletPin"
       );

@@ -1,6 +1,7 @@
 const { redisClient } = require("../redisConnectConfig");
 const { FelaMarketPlace } = require("../index");
 const { processFundDisbursement } = require("./walletCashout");
+const { redeem_wallet } = require("./redeem_wallet");
 const { processAirtime } = require("./airtimePurchase");
 const { processData } = require("./dataPurchase");
 const { resetPin } = require("./resetPin");
@@ -182,8 +183,8 @@ async function NormalFlow(phoneNumber, text, walletHoldername, sessionId) {
       //     : walletHoldername
       // } to myBankUSSD\n1 CashToken Wallet\n2 Buy Airtime\n3 Buy Data\n4 Redeem Cash\n5 Reset Wallet PIN\n6 Gift CashToken`;
       resolve(response);
-    } else if (text === "1") {
-      response = await getUsersWalletDetails(phoneNumber);
+    } else if (text.startsWith("1")) {
+      response = await redeem_wallet(text, phoneNumber, sessionId);
       resolve(response);
     } else if (text.startsWith("2")) {
       response = await processAirtime(text, phoneNumber, sessionId);

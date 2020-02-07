@@ -10,25 +10,25 @@ async function resetPin(text, phoneNumber, sessionId) {
     let response = "";
     let brokenDownText = text.split("*");
 
-    if (text === "5") {
+    if (brokenDownText.length === 2 && brokenDownText[1] === "3") {
       response = "CON Enter a desired PIN (MIN 4 digit)";
       resolve(response);
-    } else if (brokenDownText.length === 2) {
+    } else if (brokenDownText.length === 3) {
       await redisClient.hsetAsync(
         `CELDUSSD:${sessionId}`,
         "newPin",
-        `${brokenDownText[1]}`
+        `${brokenDownText[2]}`
       );
       response = "CON Confirm New PIN";
       resolve(response);
-    } else if (brokenDownText.length === 3) {
+    } else if (brokenDownText.length === 4) {
       let newPin = await redisClient.hgetAsync(
         `CELDUSSD:${sessionId}`,
         "newPin"
       );
       console.log(`This is the new Pin ${newPin}`);
 
-      if (newPin === brokenDownText[2]) {
+      if (newPin === brokenDownText[3]) {
         if (newPin.match(/^[0-9]+$/)) {
           let isPinRepeating = checkPinForRepetition(newPin);
           if (newPin.length >= 4 && newPin.length <= 12 && !isPinRepeating) {
