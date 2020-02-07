@@ -189,17 +189,26 @@ async function NormalFlow(phoneNumber, text, walletHoldername, sessionId) {
       response = await processAirtime(text, phoneNumber, sessionId);
       resolve(response);
     } else if (text.startsWith("3")) {
-      response = await processData(text, phoneNumber, sessionId);
+      // response = await processData(text, phoneNumber, sessionId);
+      // resolve(response);
+      response = `CON Welcome!!!\nThis service is still under development, but please check back soon, we are always ready to serve you.\n\n0 Menu`;
       resolve(response);
     } else if (text.startsWith("4")) {
-      response = await processFundDisbursement(text, phoneNumber, sessionId);
+      // response = await processFundDisbursement(text, phoneNumber, sessionId);
+      // resolve(response);
+      response = `CON Welcome!!!\nThis service is still under development, but please check back soon, we are always ready to serve you.\n\n0 Menu`;
       resolve(response);
       // response = await processElectricity(text, phoneNumber, sessionId);
       // resolve(response);
     } else if (text.startsWith("5")) {
-      response = await resetPin(text, phoneNumber, sessionId);
+      // response = await resetPin(text, phoneNumber, sessionId);
+      // resolve(response);
+      response = `CON Welcome!!!\nThis service is still under development, but please check back soon, we are always ready to serve you.\n\n0 Menu`;
       resolve(response);
     } else if (text === "6") {
+      response = `CON Welcome!!!\nThis service is still under development, but please check back soon, we are always ready to serve you.\n\n0 Menu`;
+      resolve(response);
+    } else if (text === "7") {
       response = `CON Welcome!!!\nThis service is still under development, but please check back soon, we are always ready to serve you.\n\n0 Menu`;
       resolve(response);
     } else {
