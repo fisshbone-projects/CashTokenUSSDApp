@@ -1,5 +1,8 @@
 const { check, validationResult } = require("express-validator");
 const { redisClient } = require("../redisConnectConfig");
+const axios = require("axios");
+const { FelaMarketPlace } = require("../../config");
+const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 
 const BANK_NAME_ABR = {
   "First Bank Plc": "First Bank",
@@ -214,6 +217,30 @@ async function storeInternalLog(req, response, inputedText) {
   });
 }
 
+async function getBankCharge() {
+  return new Promise(resolve => {
+    axios
+      .get(
+        `${FelaMarketPlace.BASE_URL}/info/felaWalletCharge?chargeType=transfer`,
+        {
+          headers: felaHeader
+        }
+      )
+      .then(async response => {
+        await redisClient.setAsync(
+          "CELDUSSD:BankCharge",
+          response.data.data.fee
+        );
+        await redisClient.expireAsync("CELDUSSD:BankCharge", 360); //Cache for 1 hour
+        resolve();
+      })
+      .catch(e => {
+        console.loe("There was an error retrieving bank charge");
+        console.log(e);
+      });
+  });
+}
+
 function checkPinForRepetition(pin) {
   let initialDigit = pin[0];
   let pinRepeating = false;
@@ -292,6 +319,7 @@ module.exports = {
   checkPinForRepetition,
   formatNumber,
   DIRECTDIAL_BANK_MAP,
+  getBankCharge,
   MYBANKUSSD_BANK_CODES,
   MYBANKUSSD_SERVICE_CODES,
   MYBANKUSSD_BASE_CODE

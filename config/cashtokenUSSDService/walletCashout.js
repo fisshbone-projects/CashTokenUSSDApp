@@ -1,6 +1,6 @@
 const { redisClient } = require("../redisConnectConfig");
 const { FelaMarketPlace } = require("../index");
-const { BANK_NAME_ABR, formatNumber } = require("../utils");
+const { BANK_NAME_ABR, formatNumber, getBankCharge } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 // const NAIRASIGN = "\u{020A6}";
@@ -81,11 +81,17 @@ async function obtainFinalPermissionForWithdrawalHelper(
     accountNumber,
     amountToWithdraw
   } = await returnWithdrawalRequestData(sessionId);
+
+  if ((await redisClient.existsAsync("CELDUSSD:BankCharge")) === 0) {
+    await getBankCharge();
+  }
+  let bankCharge = await redisClient.getAsync("CELDUSSD:BankCharge");
+
   let response = `CON Confirm this transaction:\nBank Name: ${
     BANK_NAME_ABR[bankName]
   }\nAccount Number: ${accountNumber}\nAmount: ${NAIRASIGN}${formatNumber(
     amountToWithdraw
-  )}\n\n1. Confirm\n2. Cancel`;
+  )}\n(N${bankCharge} charge applies)\n\n1. Confirm\n2. Cancel`;
   return response;
 }
 

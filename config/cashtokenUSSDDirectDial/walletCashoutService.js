@@ -1,7 +1,11 @@
 const axios = require("axios");
 const { redisClient } = require("../redisConnectConfig");
 const { getBankCodes } = require("./directDialUtils");
-const { formatNumber, DIRECTDIAL_BANK_MAP } = require("../utils");
+const {
+  formatNumber,
+  DIRECTDIAL_BANK_MAP,
+  getBankCharge
+} = require("../utils");
 const { FelaMarketPlace } = require("../../config");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 
@@ -59,10 +63,16 @@ async function processWalletCashout(sessionId, userPhone, text) {
         chosenBankName
       );
       await redisClient.expireAsync(`CELDUSSD:DIRECTDIAL:${sessionId}`, 300);
+      if ((await redisClient.existsAsync("CELDUSSD:BankCharge")) === 0) {
+        await getBankCharge();
+      }
+      let bankCharge = await redisClient.getAsync("CELDUSSD:BankCharge");
 
-      response = `CON Confirm your transaction:\nAmount: ${formatNumber(
+      console.log("THis is the bank Charge", bankCharge);
+
+      response = `CON Amount: ${formatNumber(
         amount
-      )}\nBank Name: ${chosenBankName}\nAccount Number: ${accountNumber}\n\nEnter wallet PIN to Confirm\nor input 2 to Cancel`;
+      )}\nBank Name: ${chosenBankName}\nAccount Number: ${accountNumber}\n(N${bankCharge} charge applies)\n\nEnter wallet PIN to Confirm\nor input 2 to Cancel`;
     }
   } else if (brokenDownText.length === 5) {
     let confirmationResp = brokenDownText[4];
