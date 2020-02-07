@@ -1,6 +1,6 @@
 const { redisClient } = require("../redisConnectConfig");
 const { FelaMarketPlace } = require("../index");
-const { BANK_NAME_ABR } = require("../utils");
+const { BANK_NAME_ABR, formatNumber } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 // const NAIRASIGN = "\u{020A6}";
@@ -668,14 +668,6 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
       resolve("");
     }
   });
-}
-
-function formatNumber(num) {
-  if (typeof num === "string") {
-    num = parseInt(num, 10);
-    console.log(num);
-  }
-  return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
 }
 
 module.exports = {

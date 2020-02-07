@@ -9,6 +9,10 @@ const {
   refineText
 } = require("./config/utils");
 const { CELDUSSD } = require("./config/cashtokenUSSDService/cashtokenUSSD");
+const {
+  DIRECTDIALSERVICE
+} = require("./config/cashtokenUSSDDirectDial/directDialUtils");
+const { processDirectDial } = require("./config/cashtokenUSSDDirectDial");
 const { processUSSDRequests } = require("./config/airtelThanksUSSDAPI");
 const app = express();
 
@@ -36,35 +40,56 @@ app.post(
     console.log(req.body);
     let response = "";
     let refinedText = refineText(req.body.text);
+    let getDirectDialService = refinedText.substring(0, 2);
+    let listOfDirectDialServices = Object.values(DIRECTDIALSERVICE);
 
     console.log("***REFINED TEXT IS: ", refinedText);
 
     switch (req.body.serviceCode) {
       case "*347*999#":
         // response = `END Hello!!! You have reached CashToken.\nOur systems are currently undergoing upgrades.\nServices will be restored shortly, please check back soon. `;
-        response = await CELDUSSD(
-          req.body.sessionId,
-          req.body.serviceCode,
-          req.body.phoneNumber,
-          refinedText
-        );
+
+        response = listOfDirectDialServices.includes(`${getDirectDialService}`)
+          ? await processDirectDial(
+              req.body.sessionId,
+              req.body.phoneNumber,
+              refinedText
+            )
+          : await CELDUSSD(
+              req.body.sessionId,
+              req.body.serviceCode,
+              req.body.phoneNumber,
+              refinedText
+            );
         break;
       case "*384*24222#":
         // response = `END Hello!!! You have reached CashToken.\nOur systems are currently undergoing upgrades.\nServices will be restored shortly, please check back soon. `;
-        response = await CELDUSSD(
-          req.body.sessionId,
-          req.body.serviceCode,
-          req.body.phoneNumber,
-          refinedText
-        );
+        response = listOfDirectDialServices.includes(`${getDirectDialService}`)
+          ? await processDirectDial(
+              req.body.sessionId,
+              req.body.phoneNumber,
+              refinedText
+            )
+          : await CELDUSSD(
+              req.body.sessionId,
+              req.body.serviceCode,
+              req.body.phoneNumber,
+              refinedText
+            );
         break;
       case "*384*24223#":
-        response = await CELDUSSD(
-          req.body.sessionId,
-          req.body.serviceCode,
-          req.body.phoneNumber,
-          refinedText
-        );
+        response = listOfDirectDialServices.includes(`${getDirectDialService}`)
+          ? await processDirectDial(
+              req.body.sessionId,
+              req.body.phoneNumber,
+              refinedText
+            )
+          : await CELDUSSD(
+              req.body.sessionId,
+              req.body.serviceCode,
+              req.body.phoneNumber,
+              refinedText
+            );
         break;
       default:
         response = "END Sorry, this service does not exist";

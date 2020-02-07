@@ -206,6 +206,13 @@ function checkPinForRepetition(pin) {
   });
   return pinRepeating;
 }
+function formatNumber(num) {
+  if (typeof num === "string") {
+    num = parseInt(num, 10);
+    // console.log(num);
+  }
+  return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
+}
 
 function refineText(text) {
   let splittedText = text.split("*");
@@ -266,6 +273,7 @@ module.exports = {
   refineText,
   testNumber,
   checkPinForRepetition,
+  formatNumber,
   MYBANKUSSD_BANK_CODES,
   MYBANKUSSD_SERVICE_CODES,
   MYBANKUSSD_BASE_CODE
