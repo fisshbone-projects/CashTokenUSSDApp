@@ -174,11 +174,13 @@ async function NormalFlow(phoneNumber, text, walletHoldername, sessionId) {
     let response = "";
     if (text === "") {
       console.log("Welcome page");
-      response = `CON Welcome ${
-        walletHoldername === undefined || walletHoldername === ""
-          ? phoneNumber
-          : walletHoldername
-      } to myBankUSSD\n1 CashToken Wallet\n2 Buy Airtime\n3 Buy Data\n4 Redeem Cash\n5 Reset Wallet PIN\n6 Gift CashToken`;
+      response = `CON MyBankUSSD\nCashTokenRewards\n\n1 Redeem/Wallet\n2 Airtime\n3 Airtime (N1000)\n4 PayBills\n5 LCC\n6 GiftCashToken\n7 BorrowPower\n\nWin up to  5K-100M Weekly`;
+      // response = `CON Welcome to myBankUSSD CashToken Rewards\n1 CashToken Wallet\n2 Buy Airtime\n3 Buy Data\n4 Redeem Cash\n5 Reset Wallet PIN\n6 Gift CashToken\n\nInstant Cash-Back\nWin 5K-100M Weekly`;
+      // response = `CON Welcome ${
+      //   walletHoldername === undefined || walletHoldername === ""
+      //     ? phoneNumber
+      //     : walletHoldername
+      // } to myBankUSSD\n1 CashToken Wallet\n2 Buy Airtime\n3 Buy Data\n4 Redeem Cash\n5 Reset Wallet PIN\n6 Gift CashToken`;
       resolve(response);
     } else if (text === "1") {
       response = await getUsersWalletDetails(phoneNumber);
