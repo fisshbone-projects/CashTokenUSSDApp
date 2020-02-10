@@ -3,6 +3,7 @@ const { FelaMarketPlace, App } = require("../index");
 const { sendSMS } = require("../infoBipConfig");
 const {
   testNumber,
+  formatNumber,
   MYBANKUSSD_BANK_CODES,
   MYBANKUSSD_BASE_CODE,
   MYBANKUSSD_SERVICE_CODES
@@ -376,7 +377,7 @@ function processAirtimePurchase(
   walletPin,
   providerCode
 ) {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     let payload = {
       offeringGroup: "core",
       offeringName: "airtime",
@@ -399,36 +400,29 @@ function processAirtimePurchase(
       }
     };
 
-    axios
-      .post(`${FelaMarketPlace.BASE_URL}/payment/request`, payload, {
-        headers: felaHeader
-      })
-      .then(response => {
-        console.log(JSON.stringify(response.data, null, 2));
-        // console.log(response)
-        resolve(
-          `CON Dear Customer, your line ${numberToCredit} has been successfully credited with ${NAIRASIGN}${amount} Airtime\n\n0 Menu`
-        );
-      })
-      .catch(error => {
-        console.log("error");
-        console.log(JSON.stringify(error.response.data, null, 2));
-        if (error.response.data.code === 422) {
-          resolve(
-            `CON Transaction Failed!\nInsufficient user balance\n\n0 Menu`
-          );
-        } else {
-          resolve(`CON Transaction Failed!\n\n0 Menu`);
+    try {
+      let response = await axios.post(
+        `${FelaMarketPlace.BASE_URL}/payment/request`,
+        payload,
+        {
+          headers: felaHeader
         }
-      });
+      );
+      console.log(JSON.stringify(response.data, null, 2));
+      // console.log(response)
+      resolve(
+        `CON Dear Customer, your line ${recipentNumber} has been successfully credited with ${NAIRASIGN}${airtimeAmount} Airtime\n\n0 Menu`
+      );
+    } catch (error) {
+      console.log("error");
+      console.log(JSON.stringify(error.response.data, null, 2));
+      if (error.response.data.code === 422) {
+        resolve(`CON Transaction Failed!\nInsufficient user balance\n\n0 Menu`);
+      } else {
+        resolve(`CON Transaction Failed!\n\n0 Menu`);
+      }
+    }
   });
-}
-function formatNumber(num) {
-  if (typeof num === "string") {
-    num = parseInt(num, 10);
-    console.log(num);
-  }
-  return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
 }
 
 module.exports = {
