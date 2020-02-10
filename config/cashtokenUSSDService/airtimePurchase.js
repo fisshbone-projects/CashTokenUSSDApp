@@ -200,8 +200,9 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         phoneNumber,
         recipentNumber,
         airtimeAmount,
-        walletPin,
-        providerCode
+        providerCode,
+        "felawallet",
+        walletPin
       );
       resolve(response);
     } else if (
@@ -212,17 +213,40 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         "airtimePaymentMethod"
       )) === "MyBankUSSD"
     ) {
+      // let {
+      //   airtimeAmount,
+      //   recipentNumber,
+      //   chosenUSSDBankCode,
+      //   chosenUSSDBankName
+      // } = await redisClient.hgetallAsync(`CELDUSSD:${sessionId}`);
+
       let {
         airtimeAmount,
         recipentNumber,
-        chosenUSSDBankCode,
-        chosenUSSDBankName
+        recipentLine,
+        chosenUSSDBankCode
       } = await redisClient.hgetallAsync(`CELDUSSD:${sessionId}`);
+      let providerCode = await redisClient.zrangebyscoreAsync(
+        `CELDUSSD:AirtimeProvidersCodes`,
+        recipentLine,
+        recipentLine
+      );
 
-      let response = await processAirtimeUSSDString(
+      // let response = await processAirtimeUSSDString(
+      //   phoneNumber,
+      //   recipentNumber,
+      //   airtimeAmount,
+      //   chosenUSSDBankCode
+      // );
+
+      let response = await processAirtimePurchase(
+        sessionId,
         phoneNumber,
         recipentNumber,
         airtimeAmount,
+        providerCode,
+        "coralpay",
+        undefined,
         chosenUSSDBankCode
       );
       resolve(response);
@@ -332,56 +356,58 @@ function displayMyBankUSSDBanks() {
   return response;
 }
 
-function processAirtimeUSSDString(
-  phoneNumber,
-  recipentNumber,
-  airtimeAmount,
-  chosenUSSDBankCode
-) {
-  function cleanRecipentNumber(number) {
-    let regPhone1 = /^[+]{0,1}(234){1}[0-9]{10}$/;
-    let cleanedRecipentNumber = "";
-    if (regPhone1.test(number)) {
-      if (number.includes("+")) {
-        cleanedRecipentNumber = number.slice(4);
-        cleanedRecipentNumber = `0${cleanedRecipentNumber}`;
-      } else {
-        cleanedRecipentNumber = number.slice(3);
-        cleanedRecipentNumber = `0${cleanedRecipentNumber}`;
-      }
-    } else {
-      cleanedRecipentNumber = number;
-    }
+// function processAirtimeUSSDString(
+//   phoneNumber,
+//   recipentNumber,
+//   airtimeAmount,
+//   chosenUSSDBankCode
+// ) {
+//   function cleanRecipentNumber(number) {
+//     let regPhone1 = /^[+]{0,1}(234){1}[0-9]{10}$/;
+//     let cleanedRecipentNumber = "";
+//     if (regPhone1.test(number)) {
+//       if (number.includes("+")) {
+//         cleanedRecipentNumber = number.slice(4);
+//         cleanedRecipentNumber = `0${cleanedRecipentNumber}`;
+//       } else {
+//         cleanedRecipentNumber = number.slice(3);
+//         cleanedRecipentNumber = `0${cleanedRecipentNumber}`;
+//       }
+//     } else {
+//       cleanedRecipentNumber = number;
+//     }
 
-    return cleanedRecipentNumber;
-  }
+//     return cleanedRecipentNumber;
+//   }
 
-  let prunedRecipentNumber = cleanRecipentNumber(recipentNumber);
+//   let prunedRecipentNumber = cleanRecipentNumber(recipentNumber);
 
-  let ussdCode = `*${chosenUSSDBankCode}*${MYBANKUSSD_BASE_CODE}${MYBANKUSSD_SERVICE_CODES.airtime}${prunedRecipentNumber}${airtimeAmount}#`;
+//   let ussdCode = `*${chosenUSSDBankCode}*${MYBANKUSSD_BASE_CODE}${MYBANKUSSD_SERVICE_CODES.airtime}${prunedRecipentNumber}${airtimeAmount}#`;
 
-  response = `CON This USSD String ${ussdCode} has been sent to you via SMS. Please copy and dial to pay for your airtime.\n\n0 Menu`;
+//   response = `CON This USSD String ${ussdCode} has been sent to you via SMS. Please copy and dial to pay for your airtime.\n\n0 Menu`;
 
-  //Send SMS to user
-  smsMessage = `${ussdCode}`;
+//   //Send SMS to user
+//   smsMessage = `${ussdCode}`;
 
-  sendSMS(phoneNumber, smsMessage);
-  return response;
-}
+//   // sendSMS(phoneNumber, smsMessage);
+//   return response;
+// }
 
 function processAirtimePurchase(
   sessionId,
   phoneNumber,
   recipentNumber,
   airtimeAmount,
-  walletPin,
-  providerCode
+  providerCode,
+  paymentMethod,
+  walletPin = "",
+  chosenUSSDBankCode = ""
 ) {
   return new Promise(async (resolve, reject) => {
     let payload = {
       offeringGroup: "core",
       offeringName: "airtime",
-      method: "felawallet",
+      method: paymentMethod,
       auth: {
         source: `${FelaMarketPlace.THIS_SOURCE}`,
         passkey: `${walletPin}`
@@ -408,11 +434,24 @@ function processAirtimePurchase(
           headers: felaHeader
         }
       );
-      console.log(JSON.stringify(response.data, null, 2));
-      // console.log(response)
-      resolve(
-        `CON Dear Customer, your line ${recipentNumber} has been successfully credited with ${NAIRASIGN}${airtimeAmount} Airtime\n\n0 Menu`
-      );
+
+      switch (paymentMethod) {
+        case "felawallet":
+          // console.log(JSON.stringify(response.data, null, 2));
+          // console.log(response)
+          resolve(
+            `CON Dear Customer, your line ${recipentNumber} has been successfully credited with ${NAIRASIGN}${airtimeAmount} Airtime\n\n0 Menu`
+          );
+          break;
+
+        case "coralpay":
+          console.log("Geting response from coral pay");
+          let paymentToken = response.data.data.paymentToken;
+          // console.log(response.data);
+          resolve(
+            `CON To complete your transaction, dial *${chosenUSSDBankCode}*000*${paymentToken}#\nPlease note that this USSD String will expire in the next 5 minutes.\n\n 0 Menu`
+          );
+      }
     } catch (error) {
       console.log("error");
       console.log(JSON.stringify(error.response.data, null, 2));
