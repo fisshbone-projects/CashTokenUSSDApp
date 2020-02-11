@@ -272,7 +272,7 @@ async function makeWalletWithdrawal(
       })
       .then(response => {
         // console.log(JSON.stringify(response.data, null, 2));
-        console.log(response);
+        console.log(response.data);
         let feedback = `END Dear Customer, Your Account will be credited within 24 hours`;
         resolve(feedback);
       })

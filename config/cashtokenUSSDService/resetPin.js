@@ -39,7 +39,7 @@ async function resetPin(text, phoneNumber, sessionId) {
             resolve(response);
           } else if (isPinRepeating) {
             console.log("PIN is repeating i.e PIN is of type 1111");
-            response = `CON Repeated digit PINs are not allowed (e.g 1111).\n Please use a different pattern of PIN\n\n0 Menu`;
+            response = `CON Repeated digit PINs are not allowed (e.g 1111).\nUse a different pattern of PIN\n\n0 Menu`;
             resolve(response);
           } else {
             console.log("PIN not between 4 to 12 digits");

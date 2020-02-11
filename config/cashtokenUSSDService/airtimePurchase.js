@@ -120,13 +120,15 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         recipentNumber,
         recipentLine
       } = await redisClient.hgetallAsync(`CELDUSSD:${sessionId}`);
-      let airtimeProvider = await redisClient.zrangebyscoreAsync(
+      let [airtimeProvider] = await redisClient.zrangebyscoreAsync(
         `CELDUSSD:AirtimeProvidersNames`,
         recipentLine,
         recipentLine
       );
 
-      response = `CON Confirm your Airtime Purchase:\nRecipient's Line: ${airtimeProvider}\nRecipient's Number: ${recipentNumber}\nAmount: ${NAIRASIGN}${formatNumber(
+      response = `CON Confirm Airtime Purchase:\nRecipient's Line: ${
+        airtimeProvider.includes("Etisalat") ? "9mobile" : airtimeProvider
+      }\nRecipient's Number: ${recipentNumber}\nAmount: ${NAIRASIGN}${formatNumber(
         airtimeAmount
       )}\nPayment Method: Wallet\n\n1 Confirm\n2 Cancel`;
       resolve(response);
@@ -159,18 +161,21 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         recipentNumber,
         recipentLine
       } = await redisClient.hgetallAsync(`CELDUSSD:${sessionId}`);
-      let airtimeProvider = await redisClient.zrangebyscoreAsync(
+      let [airtimeProvider] = await redisClient.zrangebyscoreAsync(
         `CELDUSSD:AirtimeProvidersNames`,
         recipentLine,
         recipentLine
       );
 
-      response = `CON Confirm your Airtime Purchase:\nRecipient's Line: ${airtimeProvider}\nRecipient's Number: ${recipentNumber}\nAmount: ${NAIRASIGN}${formatNumber(
+      response = `CON Confirm Airtime Purchase:\nRecipient's Line: ${
+        airtimeProvider.includes("9mobile") ? "9mobile" : airtimeProvider
+      }\nRecipient's Number: ${recipentNumber}\nAmount: ${NAIRASIGN}${formatNumber(
         airtimeAmount
       )}\nPayment Method: ${
         chosenUSSDBankName.includes("bank") ||
         chosenUSSDBankName == "GTB" ||
-        chosenUSSDBankName == "FBN"
+        chosenUSSDBankName == "FBN" ||
+        chosenUSSDBankName == "UBA"
           ? chosenUSSDBankName
           : `${chosenUSSDBankName} Bank`
       }\n\n1 Confirm\n2 Cancel`;
@@ -190,11 +195,12 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         recipentLine,
         walletPin
       } = await redisClient.hgetallAsync(`CELDUSSD:${sessionId}`);
-      let providerCode = await redisClient.zrangebyscoreAsync(
+      let [providerCode] = await redisClient.zrangebyscoreAsync(
         `CELDUSSD:AirtimeProvidersCodes`,
         recipentLine,
         recipentLine
       );
+
       let response = await processAirtimePurchase(
         sessionId,
         phoneNumber,
@@ -226,7 +232,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         recipentLine,
         chosenUSSDBankCode
       } = await redisClient.hgetallAsync(`CELDUSSD:${sessionId}`);
-      let providerCode = await redisClient.zrangebyscoreAsync(
+      let [providerCode] = await redisClient.zrangebyscoreAsync(
         `CELDUSSD:AirtimeProvidersCodes`,
         recipentLine,
         recipentLine
@@ -445,7 +451,7 @@ function processAirtimePurchase(
           break;
 
         case "coralpay":
-          console.log("Geting response from coral pay");
+          console.log("Getting response from coral pay");
           let paymentToken = response.data.data.paymentToken;
           // console.log(response.data);
           resolve(

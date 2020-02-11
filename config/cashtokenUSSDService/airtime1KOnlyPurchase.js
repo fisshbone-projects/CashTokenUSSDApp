@@ -1,0 +1,386 @@
+const { redisClient } = require("../redisConnectConfig");
+const { FelaMarketPlace, App } = require("../index");
+const {
+  testNumber,
+  formatNumber,
+  MYBANKUSSD_BANK_CODES,
+  MYBANKUSSD_BASE_CODE,
+  MYBANKUSSD_SERVICE_CODES
+} = require("../utils");
+const axios = require("axios");
+const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
+// const NAIRASIGN = "\u{020A6}";
+const NAIRASIGN = "N";
+const API_DATA_EXPIRE_TIME = parseInt(App.REDIS_API_DATA_EXPIRE);
+
+async function process1KOnlyAirtime(text, phoneNumber, sessionId) {
+  return new Promise(async resolve => {
+    console.log("Starting 1K only Airtime purchase Process");
+    let response = "";
+    if (text.startsWith("3")) {
+      let brokenDownText = text.split("*");
+      response = await airtime1KOnlyFlow(
+        brokenDownText,
+        phoneNumber,
+        sessionId
+      );
+      resolve(response);
+    } else {
+      response = "CON An error occured, please try again\n\n0 Menu";
+      resolve(response);
+    }
+  });
+}
+
+async function airtime1KOnlyFlow(brokenDownText, phoneNumber, sessionId) {
+  return new Promise(async resolve => {
+    let response = "";
+
+    if (brokenDownText.length === 1) {
+      response = `CON 1K Airtime Self Service\n`;
+      let listOfBundle = await generateAirtimeBundle();
+      response += listOfBundle;
+      resolve(response);
+    } else if (
+      brokenDownText.length === 2 &&
+      parseInt(brokenDownText[1]) <= 8
+    ) {
+      //getInfo and show confirmation
+      response = await getPurchaseConfirmation(
+        brokenDownText,
+        phoneNumber,
+        sessionId
+      );
+      resolve(response);
+    } else if (
+      brokenDownText.length === 2 &&
+      parseInt(brokenDownText[1]) === 11
+    ) {
+      response = `CON 1K Airtime Self Service\n`;
+      let listOfBundle = await generateAirtimeBundle(true);
+      response += listOfBundle;
+      resolve(response);
+    } else if (
+      brokenDownText.length === 3 &&
+      parseInt(brokenDownText[2]) == 1 &&
+      (await redisClient.hgetAsync(
+        `CELDUSSD:${sessionId}`,
+        "confirmPurchase"
+      )) == "true"
+    ) {
+      let { providerCode, chosenBankCode } = await redisClient.hgetallAsync(
+        `CELDUSSD:${sessionId}`
+      );
+      response = await processAirtimePurchase(
+        sessionId,
+        phoneNumber,
+        providerCode,
+        chosenBankCode
+      );
+      resolve(response);
+    } else if (
+      brokenDownText.length === 3 &&
+      parseInt(brokenDownText[2]) == 2 &&
+      (await redisClient.hgetAsync(
+        `CELDUSSD:${sessionId}`,
+        "confirmPurchase"
+      )) == "true"
+    ) {
+      response = `CON Transaction Cancelled!\n\n0 Menu`;
+      resolve(response);
+    } else if (
+      brokenDownText.length === 3 &&
+      parseInt(brokenDownText[2]) <= 8
+    ) {
+      response = await getPurchaseConfirmation(
+        brokenDownText,
+        phoneNumber,
+        sessionId
+      );
+      resolve(response);
+    } else if (
+      brokenDownText.length === 4 &&
+      parseInt(brokenDownText[3]) == 1 &&
+      (await redisClient.hgetAsync(
+        `CELDUSSD:${sessionId}`,
+        "confirmPurchase"
+      )) == "true"
+    ) {
+      let { providerCode, chosenBankCode } = await redisClient.hgetallAsync(
+        `CELDUSSD:${sessionId}`
+      );
+      response = await processAirtimePurchase(
+        sessionId,
+        phoneNumber,
+        providerCode,
+        chosenBankCode
+      );
+      resolve(response);
+    } else if (
+      brokenDownText.length === 4 &&
+      parseInt(brokenDownText[3]) == 2 &&
+      (await redisClient.hgetAsync(
+        `CELDUSSD:${sessionId}`,
+        "confirmPurchase"
+      )) == "true"
+    ) {
+      response = `CON Transaction Cancelled!\n\n0 Menu`;
+      resolve(response);
+    } else {
+      response = "CON An error occured, please try again\n\n0 Menu";
+      resolve(response);
+    }
+  });
+}
+
+async function generateAirtimeBundle(nextPage = false) {
+  return new Promise(resolve => {
+    redisClient
+      .existsAsync(`CELDUSSD:AirtimeProvidersNames`)
+      .then(async resp => {
+        let response = "";
+        if (resp === 0) {
+          await fetchAirtimeProviders();
+        }
+
+        let providers = await redisClient.zrangeAsync(
+          `CELDUSSD:AirtimeProvidersNames`,
+          0,
+          -1
+        );
+
+        let topBanksName;
+
+        if (!nextPage) {
+          topBanksName = Object.keys(MYBANKUSSD_BANK_CODES).filter(value => {
+            return value.includes("GTB") || value.includes("Access");
+          });
+        } else {
+          topBanksName = Object.keys(MYBANKUSSD_BANK_CODES).filter(value => {
+            return value.includes("UBA") || value.includes("Zenith");
+          });
+        }
+
+        let index = 0;
+
+        topBanksName.sort().forEach(bank => {
+          providers.forEach(provider => {
+            response += `${++index} ${
+              provider.includes("9mobile") ? "9mobile" : provider
+            }/${bank}\n`;
+          });
+        });
+
+        if (!nextPage) {
+          response += "11 Next";
+        }
+
+        resolve(response);
+      });
+  });
+}
+
+async function getPurchaseConfirmation(brokenDownText, phoneNumber, sessionId) {
+  return new Promise(async resolve => {
+    let providerCode;
+    let providerName;
+    let chosenBankName;
+    let chosenBankCode;
+    let response = "";
+
+    if (brokenDownText.length == 2 && Number(brokenDownText[1]) <= 4) {
+      [providerCode] = await redisClient.zrangeAsync(
+        `CELDUSSD:AirtimeProvidersCodes`,
+        Number(brokenDownText[1]) - 1,
+        Number(brokenDownText[1]) - 1
+      );
+      [providerName] = await redisClient.zrangeAsync(
+        `CELDUSSD:AirtimeProvidersNames`,
+        Number(brokenDownText[1]) - 1,
+        Number(brokenDownText[1]) - 1
+      );
+
+      chosenBankName = "Access";
+      chosenBankCode = MYBANKUSSD_BANK_CODES[chosenBankName];
+    } else if (
+      brokenDownText.length == 2 &&
+      Number(brokenDownText[1]) >= 5 &&
+      Number(brokenDownText[1]) <= 8
+    ) {
+      [providerCode] = await redisClient.zrangeAsync(
+        `CELDUSSD:AirtimeProvidersCodes`,
+        Number(brokenDownText[1]) - 5,
+        Number(brokenDownText[1]) - 5
+      );
+      [providerName] = await redisClient.zrangeAsync(
+        `CELDUSSD:AirtimeProvidersNames`,
+        Number(brokenDownText[1]) - 5,
+        Number(brokenDownText[1]) - 5
+      );
+
+      chosenBankName = "GTB";
+      chosenBankCode = MYBANKUSSD_BANK_CODES[chosenBankName];
+    }
+
+    if (brokenDownText.length == 3 && Number(brokenDownText[2]) <= 4) {
+      [providerCode] = await redisClient.zrangeAsync(
+        `CELDUSSD:AirtimeProvidersCodes`,
+        Number(brokenDownText[2]) - 1,
+        Number(brokenDownText[2]) - 1
+      );
+      [providerName] = await redisClient.zrangeAsync(
+        `CELDUSSD:AirtimeProvidersNames`,
+        Number(brokenDownText[2]) - 1,
+        Number(brokenDownText[2]) - 1
+      );
+
+      chosenBankName = "UBA";
+      chosenBankCode = MYBANKUSSD_BANK_CODES[chosenBankName];
+    } else if (
+      brokenDownText.length == 3 &&
+      Number(brokenDownText[2]) >= 5 &&
+      Number(brokenDownText[2]) <= 8
+    ) {
+      [providerCode] = await redisClient.zrangeAsync(
+        `CELDUSSD:AirtimeProvidersCodes`,
+        Number(brokenDownText[2]) - 5,
+        Number(brokenDownText[2]) - 5
+      );
+      [providerName] = await redisClient.zrangeAsync(
+        `CELDUSSD:AirtimeProvidersNames`,
+        Number(brokenDownText[2]) - 5,
+        Number(brokenDownText[2]) - 5
+      );
+
+      chosenBankName = "Zenith";
+      chosenBankCode = MYBANKUSSD_BANK_CODES[chosenBankName];
+    }
+
+    await redisClient.hmsetAsync(
+      `CELDUSSD:${sessionId}`,
+      "providerCode",
+      providerCode,
+      "providerName",
+      providerName,
+      "chosenBankName",
+      chosenBankName,
+      "chosenBankCode",
+      chosenBankCode,
+      "confirmPurchase",
+      "true"
+    );
+
+    response = `CON Confirm Airtime Purchase:\nRecipient's Line: ${
+      providerName.includes("9mobile") ? "9mobile" : providerName
+    }\nRecipient's Number: Self\nAmount: ${NAIRASIGN}${formatNumber(
+      "1000"
+    )}\nPayment Method: ${
+      chosenBankName.includes("bank") ||
+      chosenBankName == "GTB" ||
+      chosenBankName == "FBN" ||
+      chosenBankName == "UBA"
+        ? chosenBankName
+        : `${chosenBankName} Bank`
+    }\n\n1 Confirm\n2 Cancel`;
+
+    resolve(response);
+  });
+}
+
+async function fetchAirtimeProviders() {
+  return new Promise(resolve => {
+    axios
+      .get(`${FelaMarketPlace.BASE_URL}/list/airtimeProviders`, {
+        headers: {
+          Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER} `
+        }
+      })
+      .then(async response => {
+        let airtimeProvidersArray = Object.values(response.data.data);
+
+        for (let [index, provider] of airtimeProvidersArray.entries()) {
+          let code = ++index;
+          await redisClient.zaddAsync(
+            `CELDUSSD:AirtimeProvidersNames`,
+            code,
+            provider.title
+          );
+          redisClient.expire(
+            `CELDUSSD:AirtimeProvidersNames`,
+            API_DATA_EXPIRE_TIME
+          );
+
+          await redisClient.zaddAsync(
+            `CELDUSSD:AirtimeProvidersCodes`,
+            code,
+            provider.code
+          );
+          redisClient.expire(
+            `CELDUSSD:AirtimeProvidersCodes`,
+            API_DATA_EXPIRE_TIME
+          );
+        }
+
+        console.log("Done fetching airtimeProviders");
+
+        resolve();
+      });
+  });
+}
+
+function processAirtimePurchase(
+  sessionId,
+  phoneNumber,
+  providerCode,
+  chosenUSSDBankCode
+) {
+  return new Promise(async (resolve, reject) => {
+    let payload = {
+      offeringGroup: "core",
+      offeringName: "airtime",
+      method: "coralpay",
+      auth: {
+        source: `${FelaMarketPlace.THIS_SOURCE}`,
+        passkey: ""
+      },
+      params: {
+        recipient: `${phoneNumber}`,
+        amount: "1000",
+        network: `${providerCode}`,
+        passkey: ""
+      },
+      user: {
+        sessionId: `${sessionId}`,
+        source: `${FelaMarketPlace.THIS_SOURCE}`,
+        sourceId: `${phoneNumber}`,
+        phoneNumber: `${phoneNumber}`
+      }
+    };
+
+    try {
+      let response = await axios.post(
+        `${FelaMarketPlace.BASE_URL}/payment/request`,
+        payload,
+        {
+          headers: felaHeader
+        }
+      );
+
+      console.log("Getting response from coral pay");
+      let paymentToken = response.data.data.paymentToken;
+      // console.log(response.data);
+      resolve(
+        `CON To complete your transaction, dial *${chosenUSSDBankCode}*000*${paymentToken}#\nPlease note that this USSD String will expire in the next 5 minutes.\n\n 0 Menu`
+      );
+    } catch (error) {
+      console.log("error");
+      console.log(JSON.stringify(error.response.data, null, 2));
+
+      resolve(`CON Transaction Failed!\n\n0 Menu`);
+    }
+  });
+}
+
+module.exports = {
+  process1KOnlyAirtime
+};

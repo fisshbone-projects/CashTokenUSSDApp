@@ -3,6 +3,7 @@ const { FelaMarketPlace } = require("../index");
 const { processFundDisbursement } = require("./walletCashout");
 const { redeem_wallet } = require("./redeem_wallet");
 const { processAirtime } = require("./airtimePurchase");
+const { process1KOnlyAirtime } = require("./airtime1KOnlyPurchase");
 const { processData } = require("./dataPurchase");
 const { resetPin } = require("./resetPin");
 const { checkPinForRepetition } = require("../utils");
@@ -148,7 +149,7 @@ async function ActivateUser(phoneNumber, text, sessionId) {
             resolve(response);
           } else if (isPinRepeating) {
             console.log("PIN is repeating i.e PIN is of type 1111");
-            response = `CON Repeated digit PINs are not allowed (e.g 1111).\nPlease use a different pattern of PIN\n\n0 Menu`;
+            response = `CON Repeated digit PINs are not allowed (e.g 1111).\nUse a different pattern of PIN\n\n0 Menu`;
             resolve(response);
           } else {
             console.log("PIN not between 4 to 12 digits");
@@ -190,9 +191,7 @@ async function NormalFlow(phoneNumber, text, walletHoldername, sessionId) {
       response = await processAirtime(text, phoneNumber, sessionId);
       resolve(response);
     } else if (text.startsWith("3")) {
-      // response = await processData(text, phoneNumber, sessionId);
-      // resolve(response);
-      response = `CON Welcome!!!\nThis service is still under development, but please check back soon, we are always ready to serve you.\n\n0 Menu`;
+      response = await process1KOnlyAirtime(text, phoneNumber, sessionId);
       resolve(response);
     } else if (text.startsWith("4")) {
       // response = await processFundDisbursement(text, phoneNumber, sessionId);
