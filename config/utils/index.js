@@ -258,55 +258,177 @@ function formatNumber(num) {
   return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
 }
 
-function refineText(text) {
-  let splittedText = text.split("*");
-  let newText = "";
-  let backToMainMenu = false;
-  let backToMainMenuIndex = 0;
-  let backOneStep = false;
-  let backOneStepIndex = 0;
+// function removeHashes(stringMe) {
+//   let formatedMe = "";
 
-  for (let i = splittedText.length - 1; i > 0; i--) {
-    if (splittedText[i] === "0") {
-      backToMainMenu = true;
-      backToMainMenuIndex = i;
-      break;
-    } else if (splittedText[i] === "#") {
-      backOneStep = true;
-      backOneStepIndex = i;
-      break;
+//   for (let index = 0; index < stringMe.length; index++) {
+//     let i = index;
+//     if (stringMe[i] == "#") {
+//       continue;
+//     } else if (stringMe[i] == "*" && stringMe[i + 1] == "#") {
+//       continue;
+//     } else if (stringMe[i] == "*" && stringMe[i + 1] != "#") {
+//       formatedMe += stringMe[i];
+//     } else {
+//       formatedMe += stringMe[i];
+//     }
+//   }
+//   return formatedMe;
+// }
+
+// function removeHashes(stringMe) {
+//   let formatedMe = "";
+
+//   for (let index = 0; index < stringMe.length; index++) {
+//     let i = index;
+//     if (stringMe[i] == "#") {
+//       continue;
+//     } else if (
+//       stringMe[i] == "*" &&
+//       stringMe[i + 1] != "#" &&
+//       stringMe[i + 1] != "*" &&
+//       stringMe[i + 2] == "*" &&
+//       stringMe[i + 3] == "#"
+//     ) {
+//       continue;
+//     } else if (
+//       stringMe[i] != "#" &&
+//       stringMe[i] != "*" &&
+//       stringMe[i + 1] == "*" &&
+//       stringMe[i + 2] == "#"
+//     ) {
+//       continue;
+//     } else if (stringMe[i] == "*" && stringMe[i + 1] == "#") {
+//       continue;
+//     } else if (stringMe[i] == "*" && stringMe[i + 1] != "#") {
+//       formatedMe += stringMe[i];
+//     } else {
+//       formatedMe += stringMe[i];
+//     }
+//   }
+//   return formatedMe;
+// }
+
+function removeHashes(stringMe) {
+  let formatedMe = [];
+  let brokenDownText = stringMe.split("*");
+  console.log(brokenDownText);
+
+  for (let index = 0; index < brokenDownText.length; index++) {
+    let i = index;
+    if (brokenDownText[index] === "#") {
+      continue;
+    } else if (brokenDownText[index] != "#" && brokenDownText[i + 1] === "#") {
+      continue;
+    } else {
+      formatedMe.push(brokenDownText[index]);
     }
   }
 
-  if (backToMainMenu) {
-    if (splittedText[backToMainMenuIndex + 1] === undefined) {
-      newText = "";
-    } else {
-      let newSplitArray = splittedText.splice(backToMainMenuIndex + 1);
-      newText = newSplitArray.join("*");
-    }
-  } else if (backOneStep) {
-    if (splittedText[backOneStepIndex + 1] === undefined) {
-      let newSplitArray = splittedText.filter(value => {
-        return value !== "#";
-      });
-      console.log(newSplitArray);
-
-      let finalSplitArray = newSplitArray.slice();
-      for (let i = 0; i < newSplitArray.length; i++) {
-        console.log("I'm popping");
-        finalSplitArray.pop();
-      }
-      newText = finalSplitArray.join("*");
-    } else {
-      let newSplitArray = splittedText.splice(backOneStepIndex + 1);
-      newText = newSplitArray.join("*");
-    }
-  } else {
-    newText = text;
-  }
-  return newText;
+  return formatedMe.join("*");
 }
+
+async function refineText(text, sessionId) {
+  return new Promise(async resolve => {
+    let backOneStep = false;
+    if (text[text.length - 1] === "#") {
+      backOneStep = true;
+    }
+
+    let formatedHashText = removeHashes(text);
+    console.log("Initial Text: ", text, "Formated Text", formatedHashText);
+    let splittedText = formatedHashText.split("*");
+    let newText = "";
+    let backToMainMenu = false;
+    let backToMainMenuIndex = 0;
+
+    for (let i = splittedText.length - 1; i > 0; i--) {
+      if (splittedText[i] === "0") {
+        backToMainMenu = true;
+        backToMainMenuIndex = i;
+        break;
+      }
+    }
+
+    if (backToMainMenu) {
+      if (splittedText[backToMainMenuIndex + 1] === undefined) {
+        newText = "";
+        await redisClient.rpushAsync(`CELDUSSD:history:${sessionId}`, newText);
+      } else {
+        let newSplitArray = splittedText.splice(backToMainMenuIndex + 1);
+        newText = newSplitArray.join("*");
+        await redisClient.rpushAsync(`CELDUSSD:history:${sessionId}`, newText);
+      }
+    } else if (backOneStep) {
+      await redisClient.RPOPAsync(`CELDUSSD:history:${sessionId}`);
+      let [previousStage] = await redisClient.lrangeAsync(
+        `CELDUSSD:history:${sessionId}`,
+        -1,
+        -1
+      );
+      console.log("previousStage", previousStage);
+      newText = previousStage;
+      // await redisClient.rpushAsync(`CELDUSSD:history:${sessionId}`, newText);
+    } else {
+      newText = formatedHashText;
+
+      await redisClient.rpushAsync(`CELDUSSD:history:${sessionId}`, newText);
+      redisClient.expire(`CELDUSSD:history:${sessionId}`, 420);
+    }
+
+    resolve(newText);
+  });
+}
+
+// function refineText(text) {
+//   let splittedText = text.split("*");
+//   let newText = "";
+//   let backToMainMenu = false;
+//   let backToMainMenuIndex = 0;
+//   let backOneStep = false;
+//   let backOneStepIndex = 0;
+
+//   for (let i = splittedText.length - 1; i > 0; i--) {
+//     if (splittedText[i] === "0") {
+//       backToMainMenu = true;
+//       backToMainMenuIndex = i;
+//       break;
+//     } else if (splittedText[i] === "#") {
+//       backOneStep = true;
+//       backOneStepIndex = i;
+//       break;
+//     }
+//   }
+
+//   if (backToMainMenu) {
+//     if (splittedText[backToMainMenuIndex + 1] === undefined) {
+//       newText = "";
+//     } else {
+//       let newSplitArray = splittedText.splice(backToMainMenuIndex + 1);
+//       newText = newSplitArray.join("*");
+//     }
+//   } else if (backOneStep) {
+//     if (splittedText[backOneStepIndex + 1] === undefined) {
+//       let newSplitArray = splittedText.filter(value => {
+//         return value !== "#";
+//       });
+//       console.log(newSplitArray);
+
+//       let finalSplitArray = newSplitArray.slice();
+//       for (let i = 0; i < newSplitArray.length; i++) {
+//         console.log("I'm popping");
+//         finalSplitArray.pop();
+//       }
+//       newText = finalSplitArray.join("*");
+//     } else {
+//       let newSplitArray = splittedText.splice(backOneStepIndex + 1);
+//       newText = newSplitArray.join("*");
+//     }
+//   } else {
+//     newText = text;
+//   }
+//   return newText;
+// }
 
 module.exports = {
   BANK_NAME_ABR,

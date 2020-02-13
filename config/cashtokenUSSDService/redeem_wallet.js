@@ -15,6 +15,9 @@ function redeem_wallet(text, phoneNumber, sessionId) {
       response = await resetPin(text, phoneNumber, sessionId);
     } else if (brokenDownText.length === 2 && brokenDownText[1] === "4") {
       response = `CON Threshold will be updated soon.\nPlease stay tuned\n\n0 Menu`;
+    } else {
+      response = "CON An error occured, please try again\n\n0 Menu";
+      resolve(response);
     }
 
     resolve(response);

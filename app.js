@@ -39,7 +39,7 @@ app.post(
   async (req, res) => {
     console.log(req.body);
     let response = "";
-    let refinedText = refineText(req.body.text);
+    let refinedText = await refineText(req.body.text, req.body.sessionId);
     let getDirectDialService = refinedText.substring(0, 2);
     let listOfDirectDialServices = Object.values(DIRECTDIALSERVICE);
 

@@ -116,7 +116,7 @@ async function ActivateUser(phoneNumber, text, sessionId) {
     let brokenDownText = text !== "" ? text.split("*") : [];
 
     if (text === "") {
-      response = `CON Welcome, your CashToken wallet is not yet activated.\nGenerate your wallet PIN (Min 4 digit):`;
+      response = `CON MyBankUSSD\nWelcome, your CashToken wallet is not yet activated.\nGenerate your wallet PIN (Min 4 digit):`;
       resolve(response);
     } else if (brokenDownText.length === 1) {
       await redisClient.hsetAsync(

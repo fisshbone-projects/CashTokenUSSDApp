@@ -18,25 +18,32 @@ async function getUsersCashtoken(phoneNumber) {
 
 async function getUsersWalletDetails(phoneNumber) {
   return new Promise(async resolve => {
+    let response = "";
     console.log(`Getting ${phoneNumber}'s walletDetails`);
-    let { wallet: usersWallet } = await fetchWalletDetails(phoneNumber);
-    response = `CON Dear Customer, Your Balances are:\n`;
-    let totalBalance = 0.0;
-    let index = 1;
+    let walletResponse = await fetchWalletDetails(phoneNumber);
 
-    for (let [key, value] of Object.entries(usersWallet)) {
-      if (value.title === "iSavings") {
-        continue;
+    if (typeof walletResponse === "object") {
+      let { wallet: usersWallet } = walletResponse;
+      response = `CON Dear Customer, Your Balances are:\n`;
+      let totalBalance = 0.0;
+      let index = 1;
+
+      for (let [key, value] of Object.entries(usersWallet)) {
+        if (value.title === "iSavings") {
+          continue;
+        }
+        totalBalance += parseFloat(value.balance);
+        response += `${index++} ${WalletTypes[value.title]} - ${NAIRASIGN}${
+          value.balance
+        }\n`;
       }
-      totalBalance += parseFloat(value.balance);
-      response += `${index++} ${WalletTypes[value.title]} - ${NAIRASIGN}${
-        value.balance
-      }\n`;
-    }
 
-    response += `${index} Total Wallet Balance - ${NAIRASIGN}${totalBalance.toFixed(
-      2
-    )}\n\n0 Menu`;
+      response += `${index} Total Wallet Balance - ${NAIRASIGN}${totalBalance.toFixed(
+        2
+      )}\n\n0 Menu`;
+    } else {
+      response = walletResponse;
+    }
 
     resolve(response);
   });
@@ -58,7 +65,7 @@ async function fetchWalletDetails(phoneNumber) {
         });
       })
       .catch(e => {
-        console.log(e.response.data);
+        console.log(e);
         resolve(
           "CON There was an error retrieving your wallet details\n\n0 Menu"
         );
