@@ -54,7 +54,7 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
             walletHoldername = undefined;
           }
 
-          if (walletStatus !== "active") {
+          if (walletStatus === "inactive") {
             redisClient
               .hsetAsync(`CELDUSSD:${sessionId}`, "walletStatus", "inactive")
               .then(() => {
@@ -75,6 +75,9 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
               walletHoldername,
               sessionId
             );
+            resolve(response);
+          } else {
+            let response = `END Welcome to MyBankUSSD CashToken Rewards!\nSorry, our service is temporarily unavailable.\nPlease try again.`;
             resolve(response);
           }
         } else if (resp === 1) {
@@ -279,9 +282,16 @@ async function checkWalletStatus(phoneNumber) {
         });
       })
       .catch(e => {
-        console.log(e);
-        // console.log(e.response.data);
-        resolve({ status: "inactive" });
+        // console.log(e);
+        if (e.response.status === 404) {
+          console.log(e.response.data);
+          console.log("Response about user: User not profiled");
+          resolve({ status: "inactive" });
+        } else {
+          console.log("Could not get response from ESPI");
+          console.log(e.response.data);
+          resolve({ status: "returnError" });
+        }
       });
   });
 }

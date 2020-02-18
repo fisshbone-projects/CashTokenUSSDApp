@@ -360,13 +360,14 @@ async function refineText(text, sessionId) {
         await redisClient.rpushAsync(`CELDUSSD:history:${sessionId}`, newText);
       }
     } else if (backOneStep) {
+      console.log("WORKING IN BACKSTEP");
       await redisClient.RPOPAsync(`CELDUSSD:history:${sessionId}`);
       let [previousStage] = await redisClient.lrangeAsync(
         `CELDUSSD:history:${sessionId}`,
         -1,
         -1
       );
-      console.log("previousStage", previousStage);
+      // console.log("previousStage", previousStage);
       newText = previousStage;
       // await redisClient.rpushAsync(`CELDUSSD:history:${sessionId}`, newText);
     } else {
