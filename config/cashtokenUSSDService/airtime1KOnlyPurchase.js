@@ -1,7 +1,8 @@
 const { redisClient } = require("../redisConnectConfig");
 const { FelaMarketPlace, App } = require("../index");
 const {
-  testNumber,
+  APP_PREFIX_REDIS,
+  testPhoneNumber,
   formatNumber,
   MYBANKUSSD_BANK_CODES,
   MYBANKUSSD_BASE_CODE,
@@ -64,12 +65,12 @@ async function airtime1KOnlyFlow(brokenDownText, phoneNumber, sessionId) {
       brokenDownText.length === 3 &&
       parseInt(brokenDownText[2]) == 1 &&
       (await redisClient.hgetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "confirmPurchase"
       )) == "true"
     ) {
       let { providerCode, chosenBankCode } = await redisClient.hgetallAsync(
-        `CELDUSSD:${sessionId}`
+        `${APP_PREFIX_REDIS}:${sessionId}`
       );
       response = await processAirtimePurchase(
         sessionId,
@@ -82,7 +83,7 @@ async function airtime1KOnlyFlow(brokenDownText, phoneNumber, sessionId) {
       brokenDownText.length === 3 &&
       parseInt(brokenDownText[2]) == 2 &&
       (await redisClient.hgetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "confirmPurchase"
       )) == "true"
     ) {
@@ -102,12 +103,12 @@ async function airtime1KOnlyFlow(brokenDownText, phoneNumber, sessionId) {
       brokenDownText.length === 4 &&
       parseInt(brokenDownText[3]) == 1 &&
       (await redisClient.hgetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "confirmPurchase"
       )) == "true"
     ) {
       let { providerCode, chosenBankCode } = await redisClient.hgetallAsync(
-        `CELDUSSD:${sessionId}`
+        `${APP_PREFIX_REDIS}:${sessionId}`
       );
       response = await processAirtimePurchase(
         sessionId,
@@ -120,7 +121,7 @@ async function airtime1KOnlyFlow(brokenDownText, phoneNumber, sessionId) {
       brokenDownText.length === 4 &&
       parseInt(brokenDownText[3]) == 2 &&
       (await redisClient.hgetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "confirmPurchase"
       )) == "true"
     ) {
@@ -136,7 +137,7 @@ async function airtime1KOnlyFlow(brokenDownText, phoneNumber, sessionId) {
 async function generateAirtimeBundle(nextPage = false) {
   return new Promise(resolve => {
     redisClient
-      .existsAsync(`CELDUSSD:AirtimeProvidersNames`)
+      .existsAsync(`${APP_PREFIX_REDIS}:AirtimeProvidersNames`)
       .then(async resp => {
         let response = "";
         if (resp === 0) {
@@ -144,7 +145,7 @@ async function generateAirtimeBundle(nextPage = false) {
         }
 
         let providers = await redisClient.zrangeAsync(
-          `CELDUSSD:AirtimeProvidersNames`,
+          `${APP_PREFIX_REDIS}:AirtimeProvidersNames`,
           0,
           -1
         );
@@ -190,12 +191,12 @@ async function getPurchaseConfirmation(brokenDownText, phoneNumber, sessionId) {
 
     if (brokenDownText.length == 2 && Number(brokenDownText[1]) <= 4) {
       [providerCode] = await redisClient.zrangeAsync(
-        `CELDUSSD:AirtimeProvidersCodes`,
+        `${APP_PREFIX_REDIS}:AirtimeProvidersCodes`,
         Number(brokenDownText[1]) - 1,
         Number(brokenDownText[1]) - 1
       );
       [providerName] = await redisClient.zrangeAsync(
-        `CELDUSSD:AirtimeProvidersNames`,
+        `${APP_PREFIX_REDIS}:AirtimeProvidersNames`,
         Number(brokenDownText[1]) - 1,
         Number(brokenDownText[1]) - 1
       );
@@ -208,12 +209,12 @@ async function getPurchaseConfirmation(brokenDownText, phoneNumber, sessionId) {
       Number(brokenDownText[1]) <= 8
     ) {
       [providerCode] = await redisClient.zrangeAsync(
-        `CELDUSSD:AirtimeProvidersCodes`,
+        `${APP_PREFIX_REDIS}:AirtimeProvidersCodes`,
         Number(brokenDownText[1]) - 5,
         Number(brokenDownText[1]) - 5
       );
       [providerName] = await redisClient.zrangeAsync(
-        `CELDUSSD:AirtimeProvidersNames`,
+        `${APP_PREFIX_REDIS}:AirtimeProvidersNames`,
         Number(brokenDownText[1]) - 5,
         Number(brokenDownText[1]) - 5
       );
@@ -224,12 +225,12 @@ async function getPurchaseConfirmation(brokenDownText, phoneNumber, sessionId) {
 
     if (brokenDownText.length == 3 && Number(brokenDownText[2]) <= 4) {
       [providerCode] = await redisClient.zrangeAsync(
-        `CELDUSSD:AirtimeProvidersCodes`,
+        `${APP_PREFIX_REDIS}:AirtimeProvidersCodes`,
         Number(brokenDownText[2]) - 1,
         Number(brokenDownText[2]) - 1
       );
       [providerName] = await redisClient.zrangeAsync(
-        `CELDUSSD:AirtimeProvidersNames`,
+        `${APP_PREFIX_REDIS}:AirtimeProvidersNames`,
         Number(brokenDownText[2]) - 1,
         Number(brokenDownText[2]) - 1
       );
@@ -242,12 +243,12 @@ async function getPurchaseConfirmation(brokenDownText, phoneNumber, sessionId) {
       Number(brokenDownText[2]) <= 8
     ) {
       [providerCode] = await redisClient.zrangeAsync(
-        `CELDUSSD:AirtimeProvidersCodes`,
+        `${APP_PREFIX_REDIS}:AirtimeProvidersCodes`,
         Number(brokenDownText[2]) - 5,
         Number(brokenDownText[2]) - 5
       );
       [providerName] = await redisClient.zrangeAsync(
-        `CELDUSSD:AirtimeProvidersNames`,
+        `${APP_PREFIX_REDIS}:AirtimeProvidersNames`,
         Number(brokenDownText[2]) - 5,
         Number(brokenDownText[2]) - 5
       );
@@ -257,7 +258,7 @@ async function getPurchaseConfirmation(brokenDownText, phoneNumber, sessionId) {
     }
 
     await redisClient.hmsetAsync(
-      `CELDUSSD:${sessionId}`,
+      `${APP_PREFIX_REDIS}:${sessionId}`,
       "providerCode",
       providerCode,
       "providerName",
@@ -301,22 +302,22 @@ async function fetchAirtimeProviders() {
         for (let [index, provider] of airtimeProvidersArray.entries()) {
           let code = ++index;
           await redisClient.zaddAsync(
-            `CELDUSSD:AirtimeProvidersNames`,
+            `${APP_PREFIX_REDIS}:AirtimeProvidersNames`,
             code,
             provider.title
           );
           redisClient.expire(
-            `CELDUSSD:AirtimeProvidersNames`,
+            `${APP_PREFIX_REDIS}:AirtimeProvidersNames`,
             API_DATA_EXPIRE_TIME
           );
 
           await redisClient.zaddAsync(
-            `CELDUSSD:AirtimeProvidersCodes`,
+            `${APP_PREFIX_REDIS}:AirtimeProvidersCodes`,
             code,
             provider.code
           );
           redisClient.expire(
-            `CELDUSSD:AirtimeProvidersCodes`,
+            `${APP_PREFIX_REDIS}:AirtimeProvidersCodes`,
             API_DATA_EXPIRE_TIME
           );
         }

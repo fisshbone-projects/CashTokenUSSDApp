@@ -1,8 +1,10 @@
 const { redisClient } = require("../redisConnectConfig");
 const { FelaMarketPlace, App } = require("../index");
 const { sendSMS } = require("../infoBipConfig");
+const moment = require("moment");
 const {
-  testNumber,
+  APP_PREFIX_REDIS,
+  testPhoneNumber,
   formatNumber,
   MYBANKUSSD_BANK_CODES,
   MYBANKUSSD_BASE_CODE,
@@ -41,12 +43,14 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
       brokenDownText.length === 2 &&
       brokenDownText[1] <=
         parseInt(
-          await redisClient.zcardAsync(`CELDUSSD:AirtimeProvidersNames`),
+          await redisClient.zcardAsync(
+            `${APP_PREFIX_REDIS}:AirtimeProvidersNames`
+          ),
           10
         )
     ) {
       await redisClient.hsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "recipentLine",
         `${brokenDownText[1]}`
       );
@@ -54,10 +58,10 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
       resolve(response);
     } else if (brokenDownText.length === 3) {
       let recipentNumber = brokenDownText[2];
-      if (testNumber(recipentNumber)) {
+      if (testPhoneNumber(recipentNumber)) {
         console.log("Number is valid");
         await redisClient.hsetAsync(
-          `CELDUSSD:${sessionId}`,
+          `${APP_PREFIX_REDIS}:${sessionId}`,
           "recipentNumber",
           `${recipentNumber}`
         );
@@ -70,21 +74,28 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
       }
     } else if (brokenDownText.length === 4) {
       let amount = brokenDownText[3];
-      await redisClient.hsetAsync(
-        `CELDUSSD:${sessionId}`,
-        "airtimeAmount",
-        `${amount}`
-      );
+      if (/^[0-9]*$/.test(amount)) {
+        console.log("Amount is valid");
+        await redisClient.hsetAsync(
+          `${APP_PREFIX_REDIS}:${sessionId}`,
+          "airtimeAmount",
+          `${amount}`
+        );
 
-      response = `CON Select Payment Method:\n1 My CashToken Wallet\n2 MyBankUSSD`;
-      resolve(response);
+        response = `CON Select Payment Method:\n1 My CashToken Wallet\n2 MyBankUSSD`;
+        resolve(response);
+      } else {
+        console.log("Amount is invalid");
+        response = `CON Error! Inputted amount is not a valid number\n\n0 Menu`;
+        resolve(response);
+      }
     } else if (
       brokenDownText.length === 5 &&
       parseInt(brokenDownText[4], 10) === 1
     ) {
       console.log("Fulfiling airtime payment through wallet");
       await redisClient.hsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "airtimePaymentMethod",
         "wallet"
       );
@@ -96,7 +107,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
     ) {
       console.log("Fulfiling airtime payment through MyBankUSSD");
       await redisClient.hsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "airtimePaymentMethod",
         "MyBankUSSD"
       );
@@ -105,13 +116,13 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
     } else if (
       brokenDownText.length === 6 &&
       (await redisClient.hgetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "airtimePaymentMethod"
       )) === "wallet"
     ) {
       let walletPin = brokenDownText[5];
       await redisClient.hsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "walletPin",
         `${walletPin}`
       );
@@ -119,9 +130,9 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         airtimeAmount,
         recipentNumber,
         recipentLine
-      } = await redisClient.hgetallAsync(`CELDUSSD:${sessionId}`);
+      } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       let [airtimeProvider] = await redisClient.zrangebyscoreAsync(
-        `CELDUSSD:AirtimeProvidersNames`,
+        `${APP_PREFIX_REDIS}:AirtimeProvidersNames`,
         recipentLine,
         recipentLine
       );
@@ -137,7 +148,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
       parseInt(brokenDownText[5], 10) <=
         Object.values(MYBANKUSSD_BANK_CODES).length &&
       (await redisClient.hgetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "airtimePaymentMethod"
       )) === "MyBankUSSD"
     ) {
@@ -149,7 +160,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         chosenUSSDBank - 1
       ];
       await redisClient.hmsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "chosenUSSDBankName",
         chosenUSSDBankName,
         "chosenUSSDBankCode",
@@ -160,9 +171,9 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         airtimeAmount,
         recipentNumber,
         recipentLine
-      } = await redisClient.hgetallAsync(`CELDUSSD:${sessionId}`);
+      } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       let [airtimeProvider] = await redisClient.zrangebyscoreAsync(
-        `CELDUSSD:AirtimeProvidersNames`,
+        `${APP_PREFIX_REDIS}:AirtimeProvidersNames`,
         recipentLine,
         recipentLine
       );
@@ -185,7 +196,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
       brokenDownText.length === 7 &&
       parseInt(brokenDownText[6], 10) === 1 &&
       (await redisClient.hgetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "airtimePaymentMethod"
       )) === "wallet"
     ) {
@@ -194,9 +205,9 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         recipentNumber,
         recipentLine,
         walletPin
-      } = await redisClient.hgetallAsync(`CELDUSSD:${sessionId}`);
+      } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       let [providerCode] = await redisClient.zrangebyscoreAsync(
-        `CELDUSSD:AirtimeProvidersCodes`,
+        `${APP_PREFIX_REDIS}:AirtimeProvidersCodes`,
         recipentLine,
         recipentLine
       );
@@ -215,7 +226,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
       brokenDownText.length === 7 &&
       parseInt(brokenDownText[6], 10) === 1 &&
       (await redisClient.hgetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "airtimePaymentMethod"
       )) === "MyBankUSSD"
     ) {
@@ -224,16 +235,16 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
       //   recipentNumber,
       //   chosenUSSDBankCode,
       //   chosenUSSDBankName
-      // } = await redisClient.hgetallAsync(`CELDUSSD:${sessionId}`);
+      // } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
 
       let {
         airtimeAmount,
         recipentNumber,
         recipentLine,
         chosenUSSDBankCode
-      } = await redisClient.hgetallAsync(`CELDUSSD:${sessionId}`);
+      } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       let [providerCode] = await redisClient.zrangebyscoreAsync(
-        `CELDUSSD:AirtimeProvidersCodes`,
+        `${APP_PREFIX_REDIS}:AirtimeProvidersCodes`,
         recipentLine,
         recipentLine
       );
@@ -260,7 +271,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
       brokenDownText.length === 7 &&
       parseInt(brokenDownText[6], 10) === 2 &&
       (await redisClient.hgetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "airtimePaymentMethod"
       )) === "wallet"
     ) {
@@ -270,7 +281,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
       brokenDownText.length === 7 &&
       parseInt(brokenDownText[6], 10) === 2 &&
       (await redisClient.hgetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "airtimePaymentMethod"
       )) === "MyBankUSSD"
     ) {
@@ -286,7 +297,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
 function getAirtimeProviders() {
   return new Promise(resolve => {
     redisClient
-      .existsAsync(`CELDUSSD:AirtimeProvidersNames`)
+      .existsAsync(`${APP_PREFIX_REDIS}:AirtimeProvidersNames`)
       .then(async resp => {
         let response = "";
         if (resp === 0) {
@@ -294,7 +305,7 @@ function getAirtimeProviders() {
         }
 
         let providers = await redisClient.zrangeAsync(
-          `CELDUSSD:AirtimeProvidersNames`,
+          `${APP_PREFIX_REDIS}:AirtimeProvidersNames`,
           0,
           -1
         );
@@ -325,22 +336,22 @@ async function fetchAirtimeProviders() {
         for (let [index, provider] of airtimeProvidersArray.entries()) {
           let code = ++index;
           await redisClient.zaddAsync(
-            `CELDUSSD:AirtimeProvidersNames`,
+            `${APP_PREFIX_REDIS}:AirtimeProvidersNames`,
             code,
             provider.title
           );
           redisClient.expire(
-            `CELDUSSD:AirtimeProvidersNames`,
+            `${APP_PREFIX_REDIS}:AirtimeProvidersNames`,
             API_DATA_EXPIRE_TIME
           );
 
           await redisClient.zaddAsync(
-            `CELDUSSD:AirtimeProvidersCodes`,
+            `${APP_PREFIX_REDIS}:AirtimeProvidersCodes`,
             code,
             provider.code
           );
           redisClient.expire(
-            `CELDUSSD:AirtimeProvidersCodes`,
+            `${APP_PREFIX_REDIS}:AirtimeProvidersCodes`,
             API_DATA_EXPIRE_TIME
           );
         }
@@ -445,6 +456,11 @@ function processAirtimePurchase(
         case "felawallet":
           // console.log(JSON.stringify(response.data, null, 2));
           // console.log(response)
+          await redisClient.incrAsync(
+            `${APP_PREFIX_REDIS}:count:airtimePurchasesViaWallet:${moment().format(
+              "DMMYYYY"
+            )}`
+          );
           resolve(
             `CON Dear Customer, your line ${recipentNumber} has been successfully credited with ${NAIRASIGN}${airtimeAmount} Airtime\n\n0 Menu`
           );

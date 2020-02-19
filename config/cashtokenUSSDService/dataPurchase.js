@@ -1,5 +1,6 @@
 const { redisClient } = require("../redisConnectConfig");
 const { FelaMarketPlace, App } = require("../index");
+const { APP_PREFIX_REDIS } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 // const NAIRASIGN = "\u{020A6}";
@@ -39,7 +40,7 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
   return new Promise(async (resolve, reject) => {
     let response = "";
     let { walletPin: checkWalletPin } = await redisClient.hgetallAsync(
-      `CELDUSSD:${sessionId}`
+      `${APP_PREFIX_REDIS}:${sessionId}`
     );
     if (brokenDownText.length === 1) {
       response = await getDataProviders();
@@ -50,7 +51,7 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
       if (testNumber(numberToCredit)) {
         console.log("Number is valid");
         await redisClient.hsetAsync(
-          `CELDUSSD:${sessionId}`,
+          `${APP_PREFIX_REDIS}:${sessionId}`,
           "numberToCredit",
           `${numberToCredit}`
         );
@@ -103,7 +104,7 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
       resolve(response);
     } else if (brokenDownText.length === 4 && brokenDownText[3].length >= 4) {
       await redisClient.hsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "walletPin",
         `${brokenDownText[3]}`
       );
@@ -112,7 +113,7 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
       resolve(response);
     } else if (brokenDownText.length === 5 && brokenDownText[4].length >= 4) {
       await redisClient.hsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "walletPin",
         `${brokenDownText[4]}`
       );
@@ -121,7 +122,7 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
       resolve(response);
     } else if (brokenDownText.length === 6 && brokenDownText[5].length >= 4) {
       await redisClient.hsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "walletPin",
         `${brokenDownText[5]}`
       );
@@ -138,7 +139,7 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
         dataPlanCode,
         dataPlanName,
         walletPin
-      } = await redisClient.hgetallAsync(`CELDUSSD:${sessionId}`);
+      } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       let response = await processDataPurchase(
         sessionId,
         phoneNumber,
@@ -165,7 +166,7 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
         dataPlanCode,
         dataPlanName,
         walletPin
-      } = await redisClient.hgetallAsync(`CELDUSSD:${sessionId}`);
+      } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       let response = await processDataPurchase(
         sessionId,
         phoneNumber,
@@ -192,7 +193,7 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
         dataPlanCode,
         dataPlanName,
         walletPin
-      } = await redisClient.hgetallAsync(`CELDUSSD:${sessionId}`);
+      } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       let response = await processDataPurchase(
         sessionId,
         phoneNumber,
@@ -218,27 +219,29 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
 
 function getDataProviders() {
   return new Promise(resolve => {
-    redisClient.existsAsync(`CELDUSSD:DataProvidersNames`).then(async resp => {
-      let response = "";
-      if (resp === 0) {
-        await fetchDataProviders();
-      }
+    redisClient
+      .existsAsync(`${APP_PREFIX_REDIS}:DataProvidersNames`)
+      .then(async resp => {
+        let response = "";
+        if (resp === 0) {
+          await fetchDataProviders();
+        }
 
-      let providers = await redisClient.zrangeAsync(
-        `CELDUSSD:DataProvidersNames`,
-        0,
-        -1
-      );
+        let providers = await redisClient.zrangeAsync(
+          `${APP_PREFIX_REDIS}:DataProvidersNames`,
+          0,
+          -1
+        );
 
-      response = `CON Select Recipent's Network:\n`;
+        response = `CON Select Recipent's Network:\n`;
 
-      providers.forEach((provider, index) => {
-        response += `${++index} ${provider}\n`;
+        providers.forEach((provider, index) => {
+          response += `${++index} ${provider}\n`;
+        });
+        response += `# Back\n0 Main Menu`;
+
+        resolve(response);
       });
-      response += `# Back\n0 Main Menu`;
-
-      resolve(response);
-    });
   });
 }
 
@@ -257,22 +260,22 @@ async function fetchDataProviders() {
           console.log(provider);
           let code = ++index;
           await redisClient.zaddAsync(
-            `CELDUSSD:DataProvidersNames`,
+            `${APP_PREFIX_REDIS}:DataProvidersNames`,
             code,
             provider.title
           );
           redisClient.expire(
-            `CELDUSSD:DataProvidersNames`,
+            `${APP_PREFIX_REDIS}:DataProvidersNames`,
             API_DATA_EXPIRE_TIME
           );
 
           await redisClient.zaddAsync(
-            `CELDUSSD:DataProvidersCodes`,
+            `${APP_PREFIX_REDIS}:DataProvidersCodes`,
             code,
             provider.code
           );
           redisClient.expire(
-            `CELDUSSD:DataProvidersCodes`,
+            `${APP_PREFIX_REDIS}:DataProvidersCodes`,
             API_DATA_EXPIRE_TIME
           );
         }
@@ -300,21 +303,21 @@ async function getAirtelDataPlans() {
         // console.log(response.data.data);
         dataBundleArray.forEach(async bundle => {
           await redisClient.zaddAsync(
-            `CELDUSSD:AirtelDataBundleNames`,
+            `${APP_PREFIX_REDIS}:AirtelDataBundleNames`,
             bundle.price,
             bundle.title
           );
           redisClient.expire(
-            `CELDUSSD:AirtelDataBundleNames`,
+            `${APP_PREFIX_REDIS}:AirtelDataBundleNames`,
             API_DATA_EXPIRE_TIME
           );
           await redisClient.zaddAsync(
-            `CELDUSSD:AirtelDataBundleCodes`,
+            `${APP_PREFIX_REDIS}:AirtelDataBundleCodes`,
             bundle.price,
             bundle.code
           );
           redisClient.expire(
-            `CELDUSSD:AirtelDataBundleCodes`,
+            `${APP_PREFIX_REDIS}:AirtelDataBundleCodes`,
             API_DATA_EXPIRE_TIME
           );
           resolve();
@@ -330,13 +333,13 @@ async function getAirtelDataPlans() {
 function showDataDeals(dataIndexStart, dataIndexEnd) {
   return new Promise(resolve => {
     redisClient
-      .existsAsync(`CELDUSSD:AirtelDataBundleNames`)
+      .existsAsync(`${APP_PREFIX_REDIS}:AirtelDataBundleNames`)
       .then(async resp => {
         if (resp === 0) {
           await getAirtelDataPlans();
         }
         let dataBundles = await redisClient.zrangeAsync(
-          `CELDUSSD:AirtelDataBundleNames`,
+          `${APP_PREFIX_REDIS}:AirtelDataBundleNames`,
           dataIndexStart,
           dataIndexEnd,
           "withscores"
@@ -388,7 +391,7 @@ function displayDataPlanPurchaseSummary(sessionId) {
       numberToCredit,
       dataPlanName,
       dataPlanPrice
-    } = await redisClient.hgetallAsync(`CELDUSSD:${sessionId}`);
+    } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
 
     let response = `CON Confirm your DataPlan Purchase:\nRecipient's Number: ${numberToCredit}\nDataPlan: ${dataPlanName}\nPrice: ${NAIRASIGN}${formatNumber(
       dataPlanPrice
@@ -400,7 +403,7 @@ function displayDataPlanPurchaseSummary(sessionId) {
 function saveSelectedDataPlanDetails(selectedDataPlan, sessionId, iteration) {
   return new Promise(async (resolve, reject) => {
     redisClient
-      .existsAsync(`CELDUSSD:AirtelDataBundleNames`)
+      .existsAsync(`${APP_PREFIX_REDIS}:AirtelDataBundleNames`)
       .then(async resp => {
         if (resp === 0) {
           await getAirtelDataPlans();
@@ -417,12 +420,12 @@ function saveSelectedDataPlanDetails(selectedDataPlan, sessionId, iteration) {
           chosenData += 13;
         }
         let dataPlanCode = await redisClient.zrangeAsync(
-          `CELDUSSD:AirtelDataBundleCodes`,
+          `${APP_PREFIX_REDIS}:AirtelDataBundleCodes`,
           chosenData,
           chosenData
         );
         let dataPlanName = await redisClient.zrangeAsync(
-          `CELDUSSD:AirtelDataBundleNames`,
+          `${APP_PREFIX_REDIS}:AirtelDataBundleNames`,
           chosenData,
           chosenData,
           "withscores"
@@ -438,7 +441,7 @@ function saveSelectedDataPlanDetails(selectedDataPlan, sessionId, iteration) {
           extractedDataPlanPrice
         );
         await redisClient.hmsetAsync(
-          `CELDUSSD:${sessionId}`,
+          `${APP_PREFIX_REDIS}:${sessionId}`,
           "dataPlanCode",
           dataPlanCode[0],
           "dataPlanName",

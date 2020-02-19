@@ -4,6 +4,8 @@ const axios = require("axios");
 const { FelaMarketPlace } = require("../../config");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 
+const APP_PREFIX_REDIS = "CELDUSSD";
+
 const BANK_NAME_ABR = {
   "First Bank Plc": "First Bank",
   "Afribank Nigeria Plc": "Afribank",
@@ -116,7 +118,7 @@ function createValidationFor(route) {
           .exists()
           .withMessage("Parameter phoneNumber is not included in your request")
           .custom(phoneNumber => {
-            if (!testNumber(phoneNumber)) {
+            if (!testPhoneNumber(phoneNumber)) {
               return Promise.reject("Phone Number is not valid");
             } else {
               return Promise.resolve();
@@ -163,7 +165,7 @@ function checkValidationResult(req, res, next) {
   res.status(422).json({ error: result.array() });
 }
 
-function testNumber(phoneNumber) {
+function testPhoneNumber(phoneNumber) {
   let regPhone1 = /^[+]{0,1}(234){1}[0-9]{10}$/;
   let regPhone2 = /^[0-9]{11}$/;
 
@@ -208,13 +210,19 @@ async function storeInternalLog(req, response, inputedText) {
     `${responseStatus}`
   ];
 
-  redisClient.rpushAsync("CELDUSSD:InternalLogs:Keys", date_time).then(resp => {
-    redisClient
-      .hmsetAsync("CELDUSSD:InternalLogs", date_time, JSON.stringify(logs))
-      .then(resp => {
-        return Promise.resolve();
-      });
-  });
+  redisClient
+    .rpushAsync(`${APP_PREFIX_REDIS}:InternalLogs:Keys`, date_time)
+    .then(resp => {
+      redisClient
+        .hmsetAsync(
+          `${APP_PREFIX_REDIS}:InternalLogs`,
+          date_time,
+          JSON.stringify(logs)
+        )
+        .then(resp => {
+          return Promise.resolve();
+        });
+    });
 }
 
 async function getBankCharge() {
@@ -228,10 +236,10 @@ async function getBankCharge() {
       )
       .then(async response => {
         await redisClient.setAsync(
-          "CELDUSSD:BankCharge",
+          `${APP_PREFIX_REDIS}:BankCharge`,
           response.data.data.fee
         );
-        await redisClient.expireAsync("CELDUSSD:BankCharge", 360); //Cache for 1 hour
+        await redisClient.expireAsync(`${APP_PREFIX_REDIS}:BankCharge`, 360); //Cache for 1 hour
         resolve();
       })
       .catch(e => {
@@ -353,28 +361,37 @@ async function refineText(text, sessionId) {
     if (backToMainMenu) {
       if (splittedText[backToMainMenuIndex + 1] === undefined) {
         newText = "";
-        await redisClient.rpushAsync(`CELDUSSD:history:${sessionId}`, newText);
+        await redisClient.rpushAsync(
+          `${APP_PREFIX_REDIS}:history:${sessionId}`,
+          newText
+        );
       } else {
         let newSplitArray = splittedText.splice(backToMainMenuIndex + 1);
         newText = newSplitArray.join("*");
-        await redisClient.rpushAsync(`CELDUSSD:history:${sessionId}`, newText);
+        await redisClient.rpushAsync(
+          `${APP_PREFIX_REDIS}:history:${sessionId}`,
+          newText
+        );
       }
     } else if (backOneStep) {
       console.log("WORKING IN BACKSTEP");
-      await redisClient.RPOPAsync(`CELDUSSD:history:${sessionId}`);
+      await redisClient.RPOPAsync(`${APP_PREFIX_REDIS}:history:${sessionId}`);
       let [previousStage] = await redisClient.lrangeAsync(
-        `CELDUSSD:history:${sessionId}`,
+        `${APP_PREFIX_REDIS}:history:${sessionId}`,
         -1,
         -1
       );
       // console.log("previousStage", previousStage);
       newText = previousStage;
-      // await redisClient.rpushAsync(`CELDUSSD:history:${sessionId}`, newText);
+      // await redisClient.rpushAsync(`${APP_PREFIX_REDIS}:history:${sessionId}`, newText);
     } else {
       newText = formatedHashText;
 
-      await redisClient.rpushAsync(`CELDUSSD:history:${sessionId}`, newText);
-      redisClient.expire(`CELDUSSD:history:${sessionId}`, 420);
+      await redisClient.rpushAsync(
+        `${APP_PREFIX_REDIS}:history:${sessionId}`,
+        newText
+      );
+      redisClient.expire(`${APP_PREFIX_REDIS}:history:${sessionId}`, 420);
     }
 
     resolve(newText);
@@ -432,13 +449,14 @@ async function refineText(text, sessionId) {
 // }
 
 module.exports = {
+  APP_PREFIX_REDIS,
   BANK_NAME_ABR,
   WalletTypes,
   createValidationFor,
   checkValidationResult,
   storeInternalLog,
   refineText,
-  testNumber,
+  testPhoneNumber,
   checkPinForRepetition,
   formatNumber,
   DIRECTDIAL_BANK_MAP,

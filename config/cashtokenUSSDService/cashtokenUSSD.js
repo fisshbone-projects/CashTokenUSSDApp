@@ -1,4 +1,5 @@
 const { redisClient } = require("../redisConnectConfig");
+const moment = require("moment");
 const { FelaMarketPlace } = require("../index");
 const { processFundDisbursement } = require("./walletCashout");
 const { redeem_wallet } = require("./redeem_wallet");
@@ -6,7 +7,7 @@ const { processAirtime } = require("./airtimePurchase");
 const { process1KOnlyAirtime } = require("./airtime1KOnlyPurchase");
 const { processData } = require("./dataPurchase");
 const { resetPin } = require("./resetPin");
-const { checkPinForRepetition } = require("../utils");
+const { checkPinForRepetition, APP_PREFIX_REDIS } = require("../utils");
 // const { processElectricity } = require("./electricityPayment");
 const {
   getUsersCashtoken,
@@ -18,7 +19,7 @@ const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
   let response = await new Promise((resolve, reject) => {
     redisClient
-      .existsAsync(`CELDUSSD:${sessionId}`)
+      .existsAsync(`${APP_PREFIX_REDIS}:${sessionId}`)
       .then(async resp => {
         if (resp === 0) {
           console.log("Creating new user session");
@@ -41,13 +42,13 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
             walletHoldername.length > 0
           ) {
             await redisClient.hsetAsync(
-              `CELDUSSD:${sessionId}`,
+              `${APP_PREFIX_REDIS}:${sessionId}`,
               "walletHoldername",
               walletHoldername
             );
           } else {
             await redisClient.hsetAsync(
-              `CELDUSSD:${sessionId}`,
+              `${APP_PREFIX_REDIS}:${sessionId}`,
               "walletHoldername",
               "undefined"
             );
@@ -56,17 +57,25 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
 
           if (walletStatus === "inactive") {
             redisClient
-              .hsetAsync(`CELDUSSD:${sessionId}`, "walletStatus", "inactive")
+              .hsetAsync(
+                `${APP_PREFIX_REDIS}:${sessionId}`,
+                "walletStatus",
+                "inactive"
+              )
               .then(() => {
-                redisClient.expire(`CELDUSSD:${sessionId}`, 300);
+                redisClient.expire(`${APP_PREFIX_REDIS}:${sessionId}`, 300);
               });
             let response = await ActivateUser(phoneNumber, text, sessionId);
             resolve(response);
           } else if (walletStatus === "active") {
             redisClient
-              .hmsetAsync(`CELDUSSD:${sessionId}`, "walletStatus", "active")
+              .hmsetAsync(
+                `${APP_PREFIX_REDIS}:${sessionId}`,
+                "walletStatus",
+                "active"
+              )
               .then(() => {
-                redisClient.expire(`CELDUSSD:${sessionId}`, 300);
+                redisClient.expire(`${APP_PREFIX_REDIS}:${sessionId}`, 300);
               });
 
             let response = await NormalFlow(
@@ -83,7 +92,7 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
         } else if (resp === 1) {
           console.log("Continuing an established session");
           redisClient
-            .hgetallAsync(`CELDUSSD:${sessionId}`)
+            .hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`)
             .then(async ({ walletStatus, walletHoldername }) => {
               console.log(
                 `Continuing establised session with user ${walletStatus}`
@@ -119,11 +128,18 @@ async function ActivateUser(phoneNumber, text, sessionId) {
     let brokenDownText = text !== "" ? text.split("*") : [];
 
     if (text === "") {
+      await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:count:sessionHits:${moment().format("DMMYYYY")}`
+      );
+      await redisClient.saddAsync(
+        `${APP_PREFIX_REDIS}:set:visitors:${moment().format("DMMYYYY")}`,
+        phoneNumber
+      );
       response = `CON MyBankUSSD\nWelcome, your CashToken wallet is not yet activated.\nGenerate your wallet PIN (Min 4 digit):`;
       resolve(response);
     } else if (brokenDownText.length === 1) {
       await redisClient.hsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "registeredPin",
         `${brokenDownText[0]}`
       );
@@ -131,7 +147,7 @@ async function ActivateUser(phoneNumber, text, sessionId) {
       resolve(response);
     } else if (brokenDownText.length === 2) {
       let { registeredPin } = await redisClient.hgetallAsync(
-        `CELDUSSD:${sessionId}`
+        `${APP_PREFIX_REDIS}:${sessionId}`
       );
 
       if (brokenDownText[1] === registeredPin) {
@@ -179,13 +195,16 @@ async function NormalFlow(phoneNumber, text, walletHoldername, sessionId) {
     let response = "";
     if (text === "") {
       console.log("Welcome page");
+
+      await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:count:sessionHits:${moment().format("DMMYYYY")}`
+      );
+      await redisClient.saddAsync(
+        `${APP_PREFIX_REDIS}:set:visitors:${moment().format("DMMYYYY")}`,
+        phoneNumber
+      );
+
       response = `CON MyBankUSSD\nCashTokenRewards\n\n1 Redeem/Wallet\n2 Airtime\n3 Airtime (N1000)\n4 PayBills\n5 LCC\n6 GiftCashToken\n7 BorrowPower\n\nWin up to  5K-100M Weekly`;
-      // response = `CON Welcome to myBankUSSD CashToken Rewards\n1 CashToken Wallet\n2 Buy Airtime\n3 Buy Data\n4 Redeem Cash\n5 Reset Wallet PIN\n6 Gift CashToken\n\nInstant Cash-Back\nWin 5K-100M Weekly`;
-      // response = `CON Welcome ${
-      //   walletHoldername === undefined || walletHoldername === ""
-      //     ? phoneNumber
-      //     : walletHoldername
-      // } to myBankUSSD\n1 CashToken Wallet\n2 Buy Airtime\n3 Buy Data\n4 Redeem Cash\n5 Reset Wallet PIN\n6 Gift CashToken`;
       resolve(response);
     } else if (text.startsWith("1")) {
       response = await redeem_wallet(text, phoneNumber, sessionId);
@@ -250,9 +269,24 @@ async function activateWalletCall(sessionId, phoneNumber, walletPin) {
       .then(resp => {
         console.log(resp);
         redisClient
-          .hmsetAsync(`CELDUSSD:${sessionId}`, "walletStatus", "active")
-          .then(() => {
-            redisClient.expire(`CELDUSSD:${sessionId}`, 300);
+          .hmsetAsync(
+            `${APP_PREFIX_REDIS}:${sessionId}`,
+            "walletStatus",
+            "active"
+          )
+          .then(async () => {
+            await redisClient.incrAsync(
+              `${APP_PREFIX_REDIS}:count:activatedUsers:${moment().format(
+                "DMMYYYY"
+              )}`
+            );
+            await redisClient.saddAsync(
+              `${APP_PREFIX_REDIS}:set:activatedUsers:${moment().format(
+                "DMMYYYY"
+              )}`,
+              phoneNumber
+            );
+            redisClient.expire(`${APP_PREFIX_REDIS}:${sessionId}`, 300);
           });
         let feedback = `CON Wallet Activation Successful!\nInput 0 or redial *347*999# to start enjoying lifechanging CashToken opportunies`;
         resolve(feedback);

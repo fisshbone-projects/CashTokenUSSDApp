@@ -1,6 +1,11 @@
 const { redisClient } = require("../redisConnectConfig");
 const { FelaMarketPlace } = require("../index");
-const { BANK_NAME_ABR, formatNumber, getBankCharge } = require("../utils");
+const {
+  BANK_NAME_ABR,
+  formatNumber,
+  getBankCharge,
+  APP_PREFIX_REDIS
+} = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 // const NAIRASIGN = "\u{020A6}";
@@ -58,7 +63,7 @@ async function processFundDisbursement(text, phoneNumber, sessionId) {
 async function returnWithdrawalRequestData(sessionId) {
   return new Promise(async (resolve, reject) => {
     let sessionDetails = await redisClient.hgetallAsync(
-      `CELDUSSD:${sessionId}`
+      `${APP_PREFIX_REDIS}:${sessionId}`
     );
     resolve(sessionDetails);
   });
@@ -70,7 +75,7 @@ async function obtainFinalPermissionForWithdrawalHelper(
 ) {
   console.log("Inputed pin is: " + textInputted);
   await redisClient.hmsetAsync(
-    `CELDUSSD:${sessionId}`,
+    `${APP_PREFIX_REDIS}:${sessionId}`,
     "walletPin",
     textInputted,
     "menuStage",
@@ -82,10 +87,10 @@ async function obtainFinalPermissionForWithdrawalHelper(
     amountToWithdraw
   } = await returnWithdrawalRequestData(sessionId);
 
-  if ((await redisClient.existsAsync("CELDUSSD:BankCharge")) === 0) {
+  if ((await redisClient.existsAsync(`${APP_PREFIX_REDIS}:BankCharge`)) === 0) {
     await getBankCharge();
   }
-  let bankCharge = await redisClient.getAsync("CELDUSSD:BankCharge");
+  let bankCharge = await redisClient.getAsync(`${APP_PREFIX_REDIS}:BankCharge`);
 
   let response = `CON Confirm this transaction:\nBank Name: ${
     BANK_NAME_ABR[bankName]
@@ -98,7 +103,7 @@ async function obtainFinalPermissionForWithdrawalHelper(
 async function obtainFinalPermissionForWithdrawal(sessionId, brokenDownText) {
   return new Promise(async (resolve, reject) => {
     let menuStage = await redisClient.hgetAsync(
-      `CELDUSSD:${sessionId}`,
+      `${APP_PREFIX_REDIS}:${sessionId}`,
       "menuStage"
     );
     console.log(`AT OBTAIN FINAL PERM MenuStage: ${menuStage}`);
@@ -183,7 +188,7 @@ async function processWithdrawTransaction(
 ) {
   return new Promise(async (resolve, reject) => {
     let menuStage = await redisClient.hgetAsync(
-      `CELDUSSD:${sessionId}`,
+      `${APP_PREFIX_REDIS}:${sessionId}`,
       "menuStage"
     );
     console.log(`AT PROCESS WITHDRAW MenuStage: ${menuStage}`);
@@ -327,7 +332,7 @@ async function makeWalletWithdrawal(
 function helperDisplayBankList(dataIndexStart, dataIndexEnd) {
   return new Promise(async resolve => {
     let bankList = await redisClient.zrangeAsync(
-      "CELDUSSD:BankCodes",
+      `${APP_PREFIX_REDIS}:BankCodes`,
       dataIndexStart,
       dataIndexEnd
     );
@@ -362,11 +367,11 @@ async function getBankCodes() {
         let bankArray = Object.values(response.data.data);
         bankArray.forEach(async bank => {
           await redisClient.zaddAsync(
-            `CELDUSSD:BankCodes`,
+            `${APP_PREFIX_REDIS}:BankCodes`,
             bank.code,
             bank.title
           );
-          redisClient.expire(`CELDUSSD:BankCodes`, 1800);
+          redisClient.expire(`${APP_PREFIX_REDIS}:BankCodes`, 1800);
           resolve();
         });
       })
@@ -381,78 +386,88 @@ async function displayBankList(brokenDownText, sessionId) {
   return new Promise(async (resolve, reject) => {
     if (brokenDownText.length === 3) {
       await redisClient.hmsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "amountToWithdraw",
         brokenDownText[2],
         "menuStage",
         "obtainingBankInputs"
       );
-      redisClient.existsAsync(`CELDUSSD:BankCodes`).then(async resp => {
-        if (resp === 0) {
-          console.log("Fetching bank codes from API");
-          getBankCodes()
-            .then(async () => {
-              let response = await helperDisplayBankList(0, 9);
-              resolve(response);
-            })
-            .catch(error => {
-              console.log("error");
-              console.log(JSON.stringify(error.response.data, null, 2));
-            });
-        } else if (resp === 1) {
-          console.log("Fetching bank codes from Redis Cache");
-          let response = await helperDisplayBankList(0, 9);
-          resolve(response);
-        }
-      });
+      redisClient
+        .existsAsync(`${APP_PREFIX_REDIS}:BankCodes`)
+        .then(async resp => {
+          if (resp === 0) {
+            console.log("Fetching bank codes from API");
+            getBankCodes()
+              .then(async () => {
+                let response = await helperDisplayBankList(0, 9);
+                resolve(response);
+              })
+              .catch(error => {
+                console.log("error");
+                console.log(JSON.stringify(error.response.data, null, 2));
+              });
+          } else if (resp === 1) {
+            console.log("Fetching bank codes from Redis Cache");
+            let response = await helperDisplayBankList(0, 9);
+            resolve(response);
+          }
+        });
     } else if (
       brokenDownText.length === 4 &&
       parseInt(brokenDownText[3], 10) === 11
     ) {
-      redisClient.existsAsync(`CELDUSSD:BankCodes`).then(async resp => {
-        if (resp === 0) {
-          await getBankCodes();
-        }
+      redisClient
+        .existsAsync(`${APP_PREFIX_REDIS}:BankCodes`)
+        .then(async resp => {
+          if (resp === 0) {
+            await getBankCodes();
+          }
 
-        let response = await helperDisplayBankList(10, 15);
-        resolve(response);
-      });
+          let response = await helperDisplayBankList(10, 15);
+          resolve(response);
+        });
     } else if (
       brokenDownText.length === 5 &&
       parseInt(brokenDownText[4], 10) === 11
     ) {
-      redisClient.existsAsync(`CELDUSSD:BankCodes`).then(async resp => {
-        if (resp === 0) {
-          await getBankCodes();
-        }
+      redisClient
+        .existsAsync(`${APP_PREFIX_REDIS}:BankCodes`)
+        .then(async resp => {
+          if (resp === 0) {
+            await getBankCodes();
+          }
 
-        let response = await helperDisplayBankList(16, 21);
-        resolve(response);
-      });
+          let response = await helperDisplayBankList(16, 21);
+          resolve(response);
+        });
     } else if (
       brokenDownText.length === 6 &&
       parseInt(brokenDownText[5], 10) === 11
     ) {
-      redisClient.existsAsync(`CELDUSSD:BankCodes`).then(async resp => {
-        if (resp === 0) {
-          await getBankCodes();
-        }
+      redisClient
+        .existsAsync(`${APP_PREFIX_REDIS}:BankCodes`)
+        .then(async resp => {
+          if (resp === 0) {
+            await getBankCodes();
+          }
 
-        let response = await helperDisplayBankList(22, 27);
-        resolve(response);
-      });
+          let response = await helperDisplayBankList(22, 27);
+          resolve(response);
+        });
     } else if (
       brokenDownText.length === 7 &&
       parseInt(brokenDownText[6], 10) === 11
     ) {
-      redisClient.existsAsync(`CELDUSSD:BankCodes`).then(async resp => {
-        if (resp === 0) {
-          await getBankCodes();
-        }
+      redisClient
+        .existsAsync(`${APP_PREFIX_REDIS}:BankCodes`)
+        .then(async resp => {
+          if (resp === 0) {
+            await getBankCodes();
+          }
 
-        let response = await helperDisplayBankList(28, -1);
-        resolve(response);
-      });
+          let response = await helperDisplayBankList(28, -1);
+          resolve(response);
+        });
     } else {
       resolve("");
     }
@@ -462,7 +477,7 @@ async function displayBankList(brokenDownText, sessionId) {
 async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
   return new Promise(async (resolve, reject) => {
     let menuStage = await redisClient.hgetAsync(
-      `CELDUSSD:${sessionId}`,
+      `${APP_PREFIX_REDIS}:${sessionId}`,
       "menuStage"
     );
     console.log(`AT OBTAIN BANKNAME MenuStage: ${menuStage}`);
@@ -474,14 +489,14 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
       let selectedBankID = parseInt(brokenDownText[3], 10);
       console.log(selectedBankID);
       let selectedBankName = await redisClient.zrangeAsync(
-        `CELDUSSD:BankCodes`,
+        `${APP_PREFIX_REDIS}:BankCodes`,
         selectedBankID - 1,
         selectedBankID - 1,
         "withscores"
       );
       console.log(selectedBankName);
       await redisClient.hmsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "bankName",
         selectedBankName[0],
         "bankCode",
@@ -498,14 +513,14 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
       let selectedBankID = parseInt(brokenDownText[4], 10) + 10;
       console.log(selectedBankID);
       let selectedBankName = await redisClient.zrangeAsync(
-        `CELDUSSD:BankCodes`,
+        `${APP_PREFIX_REDIS}:BankCodes`,
         selectedBankID - 1,
         selectedBankID - 1,
         "withscores"
       );
       console.log(selectedBankName);
       await redisClient.hmsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "bankName",
         selectedBankName[0],
         "bankCode",
@@ -523,14 +538,14 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
       // console.log(parseInt(brokenDownText[4], 10));
       console.log(selectedBankID);
       let selectedBankName = await redisClient.zrangeAsync(
-        `CELDUSSD:BankCodes`,
+        `${APP_PREFIX_REDIS}:BankCodes`,
         selectedBankID - 1,
         selectedBankID - 1,
         "withscores"
       );
       console.log(selectedBankName);
       await redisClient.hmsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "bankName",
         selectedBankName[0],
         "bankCode",
@@ -547,14 +562,14 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
       let selectedBankID = parseInt(brokenDownText[6], 10) + 22;
       console.log(selectedBankID);
       let selectedBankName = await redisClient.zrangeAsync(
-        `CELDUSSD:BankCodes`,
+        `${APP_PREFIX_REDIS}:BankCodes`,
         selectedBankID - 1,
         selectedBankID - 1,
         "withscores"
       );
       console.log(selectedBankName);
       await redisClient.hmsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "bankName",
         selectedBankName[0],
         "bankCode",
@@ -571,14 +586,14 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
       let selectedBankID = parseInt(brokenDownText[7], 10) + 28;
       console.log(selectedBankID);
       let selectedBankName = await redisClient.zrangeAsync(
-        `CELDUSSD:BankCodes`,
+        `${APP_PREFIX_REDIS}:BankCodes`,
         selectedBankID - 1,
         selectedBankID - 1,
         "withscores"
       );
       console.log(selectedBankName);
       await redisClient.hmsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "bankName",
         selectedBankName[0],
         "bankCode",
@@ -596,7 +611,7 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
 async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
   return new Promise(async (resolve, reject) => {
     let menuStage = await redisClient.hgetAsync(
-      `CELDUSSD:${sessionId}`,
+      `${APP_PREFIX_REDIS}:${sessionId}`,
       "menuStage"
     );
     console.log(`AT OBTAIN ACCOUNT NUMBER MenuStage: ${menuStage}`);
@@ -607,7 +622,7 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
     ) {
       console.log("Account Number is: " + brokenDownText[4]);
       await redisClient.hmsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "accountNumber",
         brokenDownText[4],
         "menuStage",
@@ -621,7 +636,7 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
     ) {
       console.log("Account Number is: " + brokenDownText[5]);
       await redisClient.hmsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "accountNumber",
         brokenDownText[5],
         "menuStage",
@@ -635,7 +650,7 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
     ) {
       console.log("Account Number is: " + brokenDownText[6]);
       await redisClient.hmsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "accountNumber",
         brokenDownText[6],
         "menuStage",
@@ -649,7 +664,7 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
     ) {
       console.log("Account Number is: " + brokenDownText[7]);
       await redisClient.hmsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "accountNumber",
         brokenDownText[7],
         "menuStage",
@@ -663,7 +678,7 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
     ) {
       console.log("Account Number is: " + brokenDownText[7]);
       await redisClient.hmsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "accountNumber",
         brokenDownText[8],
         "menuStage",

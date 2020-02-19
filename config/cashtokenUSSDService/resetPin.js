@@ -1,6 +1,6 @@
 const { redisClient } = require("../redisConnectConfig");
 const { FelaMarketPlace } = require("../index");
-const { checkPinForRepetition } = require("../utils");
+const { checkPinForRepetition, APP_PREFIX_REDIS } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 
@@ -15,7 +15,7 @@ async function resetPin(text, phoneNumber, sessionId) {
       resolve(response);
     } else if (brokenDownText.length === 3) {
       await redisClient.hsetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "newPin",
         `${brokenDownText[2]}`
       );
@@ -23,7 +23,7 @@ async function resetPin(text, phoneNumber, sessionId) {
       resolve(response);
     } else if (brokenDownText.length === 4) {
       let newPin = await redisClient.hgetAsync(
-        `CELDUSSD:${sessionId}`,
+        `${APP_PREFIX_REDIS}:${sessionId}`,
         "newPin"
       );
       console.log(`This is the new Pin ${newPin}`);

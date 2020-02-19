@@ -1,5 +1,6 @@
 const { redisClient } = require("../redisConnectConfig");
 const { FelaMarketPlace } = require("../index");
+const { APP_PREFIX_REDIS } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 
@@ -31,12 +32,12 @@ async function fetchDiscoDetails() {
         for (let item of packages) {
           if (item.code === "prepaid") {
             await redisClient.zaddAsync(
-              `CELDUSSD:Discos:Prepaid:Title`,
+              `${APP_PREFIX_REDIS}:Discos:Prepaid:Title`,
               prepaidScore,
               `${discos[key].title}`
             );
             await redisClient.zaddAsync(
-              `CELDUSSD:Discos:Prepaid:Code`,
+              `${APP_PREFIX_REDIS}:Discos:Prepaid:Code`,
               prepaidScore,
               `${discos[key].code}`
             );
@@ -44,12 +45,12 @@ async function fetchDiscoDetails() {
           }
           if (item.code === "postpaid") {
             await redisClient.zaddAsync(
-              `CELDUSSD:Discos:Postpaid:Title`,
+              `${APP_PREFIX_REDIS}:Discos:Postpaid:Title`,
               postpaidScore,
               `${discos[key].title}`
             );
             await redisClient.zaddAsync(
-              `CELDUSSD:Discos:Postpaid:Code`,
+              `${APP_PREFIX_REDIS}:Discos:Postpaid:Code`,
               postpaidScore,
               `${discos[key].code}`
             );
