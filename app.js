@@ -95,7 +95,7 @@ app.post(
         response = "END Sorry, this service does not exist";
         break;
     }
-    await storeInternalLog(req, response, refinedText);
+    // await storeInternalLog(req, response, refinedText);
     return res.send(response);
   }
 );
