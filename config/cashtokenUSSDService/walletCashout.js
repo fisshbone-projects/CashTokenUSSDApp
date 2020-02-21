@@ -1,4 +1,5 @@
 const { redisClient } = require("../redisConnectConfig");
+const moment = require("moment");
 const { FelaMarketPlace } = require("../index");
 const {
   BANK_NAME_ABR,
@@ -16,6 +17,11 @@ async function processFundDisbursement(text, phoneNumber, sessionId) {
     console.log("Starting the move to bank process");
     let brokenDownText = text.split("*");
     if (brokenDownText.length === 2 && brokenDownText[1] === "1") {
+      await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:subMenu_Redeem_Spend:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
       let response = `CON Enter the amount you would like to cash-out:`;
       resolve(response);
     }
@@ -304,8 +310,13 @@ async function makeWalletWithdrawal(
       .post(`${FelaMarketPlace.BASE_URL}/offering/fulfil`, payload, {
         headers: felaHeader
       })
-      .then(response => {
+      .then(async response => {
         // console.log(JSON.stringify(response.data, null, 2));
+        await redisClient.incrAsync(
+          `${APP_PREFIX_REDIS}:reports:count:purchases_WalletCashout:${moment().format(
+            "DMMYYYY"
+          )}`
+        );
         console.log(response.data);
         let feedback = `CON Dear Customer, Your Account will be credited within 24 hours\n\n0 Menu`;
         resolve(feedback);

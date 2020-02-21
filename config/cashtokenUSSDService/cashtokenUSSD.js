@@ -131,6 +131,28 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
         console.log(err);
       });
   });
+  //Put in trackers for total users who dial
+  //Trackers for total transactions
+  //Trackers for sessions for the day
+
+  await redisClient.incrAsync(
+    `${APP_PREFIX_REDIS}:reports:count:global_totalTransactionalHits:${moment().format(
+      "DMMYYYY"
+    )}`
+  );
+  await redisClient.saddAsync(
+    `${APP_PREFIX_REDIS}:reports:set:global_totalVisitors:${moment().format(
+      "DMMYYYY"
+    )}`,
+    phoneNumber
+  );
+  await redisClient.saddAsync(
+    `${APP_PREFIX_REDIS}:reports:set:global_totalSessions:${moment().format(
+      "DMMYYYY"
+    )}`,
+    sessionId
+  );
+
   return response;
 }
 
@@ -142,11 +164,9 @@ async function ActivateUser(phoneNumber, text, sessionId) {
 
     if (text === "") {
       await redisClient.incrAsync(
-        `${APP_PREFIX_REDIS}:count:sessionHits:${moment().format("DMMYYYY")}`
-      );
-      await redisClient.saddAsync(
-        `${APP_PREFIX_REDIS}:set:visitors:${moment().format("DMMYYYY")}`,
-        phoneNumber
+        `${APP_PREFIX_REDIS}:reports:count:topMenu_ActivationScreen:${moment().format(
+          "DMMYYYY"
+        )}`
       );
       response = `CON MyBankUSSD\nWelcome, your CashToken wallet is not yet activated.\nGenerate your wallet PIN (Min 4 digit):`;
       resolve(response);
@@ -209,14 +229,6 @@ async function NormalFlow(phoneNumber, text, sessionId) {
     if (text === "") {
       console.log("Welcome page");
 
-      await redisClient.incrAsync(
-        `${APP_PREFIX_REDIS}:count:sessionHits:${moment().format("DMMYYYY")}`
-      );
-      await redisClient.saddAsync(
-        `${APP_PREFIX_REDIS}:set:visitors:${moment().format("DMMYYYY")}`,
-        phoneNumber
-      );
-
       response = `CON MyBankUSSD\nCashTokenRewards\n\n1 Redeem/Wallet\n2 Airtime\n3 Airtime (N1000)\n4 PayBills\n5 LCC\n6 GiftCashToken\n7 BorrowPower\n\nWin up to  5K-100M Weekly`;
       resolve(response);
     } else if (text.startsWith("1")) {
@@ -231,6 +243,11 @@ async function NormalFlow(phoneNumber, text, sessionId) {
     } else if (text.startsWith("4")) {
       // response = await processFundDisbursement(text, phoneNumber, sessionId);
       // resolve(response);
+      await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:topMenu_PayBills:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
       response = `CON Welcome!!!\nThis service is still under development, but please check back soon, we are always ready to serve you.\n\n0 Menu`;
       resolve(response);
       // response = await processElectricity(text, phoneNumber, sessionId);
@@ -238,12 +255,27 @@ async function NormalFlow(phoneNumber, text, sessionId) {
     } else if (text.startsWith("5")) {
       // response = await resetPin(text, phoneNumber, sessionId);
       // resolve(response);
+      await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:topMenu_LCC:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
       response = `CON Welcome!!!\nThis service is still under development, but please check back soon, we are always ready to serve you.\n\n0 Menu`;
       resolve(response);
     } else if (text === "6") {
+      await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:topMenu_GiftCashToken:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
       response = `CON Welcome!!!\nThis service is still under development, but please check back soon, we are always ready to serve you.\n\n0 Menu`;
       resolve(response);
     } else if (text === "7") {
+      await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:topMenu_BorrowPower:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
       response = `CON Welcome!!!\nThis service is still under development, but please check back soon, we are always ready to serve you.\n\n0 Menu`;
       resolve(response);
     } else {
@@ -294,12 +326,12 @@ async function activateWalletCall(sessionId, phoneNumber, walletPin) {
               `active`
             );
             await redisClient.incrAsync(
-              `${APP_PREFIX_REDIS}:count:activatedUsers:${moment().format(
+              `${APP_PREFIX_REDIS}:reports:count:global_activatedUsers:${moment().format(
                 "DMMYYYY"
               )}`
             );
             await redisClient.saddAsync(
-              `${APP_PREFIX_REDIS}:set:activatedUsers:${moment().format(
+              `${APP_PREFIX_REDIS}:reports:set:global_activatedUsers:${moment().format(
                 "DMMYYYY"
               )}`,
               phoneNumber

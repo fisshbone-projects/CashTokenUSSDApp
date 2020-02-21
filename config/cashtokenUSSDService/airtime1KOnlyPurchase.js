@@ -38,6 +38,11 @@ async function airtime1KOnlyFlow(brokenDownText, phoneNumber, sessionId) {
     let response = "";
 
     if (brokenDownText.length === 1) {
+      await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:topMenu_Airtime1K:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
       response = `CON 1K Airtime Self Service\n`;
       let listOfBundle = await generateAirtimeBundle();
       response += listOfBundle;
@@ -370,6 +375,12 @@ function processAirtimePurchase(
       console.log("Getting response from coral pay");
       let paymentToken = response.data.data.paymentToken;
       // console.log(response.data);
+
+      await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:purchases_Airtime1KBundle:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
 
       resolve(
         `CON Ur Bank is *${chosenUSSDBankCode}#\nNever 4GET *000*\nTrans Code is ${paymentToken}\nRem last 4 Digits!\n\nDial2Pay *${chosenUSSDBankCode}*000*${paymentToken}#\nExpires in 5mins\n\nCashback\nWin N5k-100m\n\n0 Menu`

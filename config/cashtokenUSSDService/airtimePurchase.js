@@ -36,6 +36,11 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
     let response = "";
 
     if (brokenDownText.length === 1) {
+      await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:topMenu_Airtime:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
       response = await getAirtimeProviders();
       // response = `CON Enter Recipient's Phone Number:`;
       resolve(response);
@@ -457,7 +462,7 @@ function processAirtimePurchase(
           // console.log(JSON.stringify(response.data, null, 2));
           // console.log(response)
           await redisClient.incrAsync(
-            `${APP_PREFIX_REDIS}:count:airtimePurchasesViaWallet:${moment().format(
+            `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithWallet:${moment().format(
               "DMMYYYY"
             )}`
           );
@@ -468,6 +473,11 @@ function processAirtimePurchase(
 
         case "coralpay":
           console.log("Getting response from coral pay");
+          await redisClient.incrAsync(
+            `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithMyBankUSSD:${moment().format(
+              "DMMYYYY"
+            )}`
+          );
           let paymentToken = response.data.data.paymentToken;
           // console.log(response.data);
 
