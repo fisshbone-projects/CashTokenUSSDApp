@@ -17,16 +17,35 @@ const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 
 async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
-  let response = await new Promise((resolve, reject) => {
+  let response = await new Promise(async (resolve, reject) => {
+    let walletStatus = await redisClient.hgetAsync(
+      `${APP_PREFIX_REDIS}:userWalletStatus`,
+      `${phoneNumber}`
+    );
+
+    if (walletStatus === null) {
+      console.log("Getting walletStatus from ESPI newly ");
+      let { status } = await checkWalletStatus(phoneNumber);
+      walletStatus = status;
+      await redisClient.hset(
+        `${APP_PREFIX_REDIS}:userWalletStatus`,
+        `${phoneNumber}`,
+        `${status}`
+      );
+    } else {
+      console.log("We got walletStatus from cached record");
+    }
+
     redisClient
       .existsAsync(`${APP_PREFIX_REDIS}:${sessionId}`)
       .then(async resp => {
         if (resp === 0) {
           console.log("Creating new user session");
-          let {
-            name: walletHoldername,
-            status: walletStatus
-          } = await checkWalletStatus(phoneNumber);
+
+          // let {
+          //   name: walletHoldername,
+          //   status: walletStatus
+          // } = await checkWalletStatus(phoneNumber);
 
           let newDate = new Date();
           console.log(
@@ -36,24 +55,24 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
           );
 
           console.log(`Wallet Status for ${phoneNumber}: ${walletStatus}`);
-          if (
-            walletHoldername !== undefined &&
-            walletHoldername !== null &&
-            walletHoldername.length > 0
-          ) {
-            await redisClient.hsetAsync(
-              `${APP_PREFIX_REDIS}:${sessionId}`,
-              "walletHoldername",
-              walletHoldername
-            );
-          } else {
-            await redisClient.hsetAsync(
-              `${APP_PREFIX_REDIS}:${sessionId}`,
-              "walletHoldername",
-              "undefined"
-            );
-            walletHoldername = undefined;
-          }
+          // if (
+          //   walletHoldername !== undefined &&
+          //   walletHoldername !== null &&
+          //   walletHoldername.length > 0
+          // ) {
+          //   await redisClient.hsetAsync(
+          //     `${APP_PREFIX_REDIS}:${sessionId}`,
+          //     "walletHoldername",
+          //     walletHoldername
+          //   );
+          // } else {
+          //   await redisClient.hsetAsync(
+          //     `${APP_PREFIX_REDIS}:${sessionId}`,
+          //     "walletHoldername",
+          //     "undefined"
+          //   );
+          //   walletHoldername = undefined;
+          // }
 
           if (walletStatus === "inactive") {
             redisClient
@@ -78,37 +97,31 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
                 redisClient.expire(`${APP_PREFIX_REDIS}:${sessionId}`, 300);
               });
 
-            let response = await NormalFlow(
-              phoneNumber,
-              text,
-              walletHoldername,
-              sessionId
-            );
+            let response = await NormalFlow(phoneNumber, text, sessionId);
             resolve(response);
           } else {
-            let response = `END Welcome to MyBankUSSD CashToken Rewards!\nSorry, our service is temporarily unavailable.\nPlease try again.`;
+            let response = `END Welcome to AirtelThanks CashToken Rewards!\nSorry, our service is temporarily unavailable.\nPlease try again.`;
+
+            await redisClient.hdel(
+              `${APP_PREFIX_REDIS}:userWalletStatus`,
+              `${phoneNumber}`
+            );
+
             resolve(response);
           }
         } else if (resp === 1) {
           console.log("Continuing an established session");
           redisClient
             .hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`)
-            .then(async ({ walletStatus, walletHoldername }) => {
+            .then(async ({ walletStatus: savedWalletStatus }) => {
               console.log(
-                `Continuing establised session with user ${walletStatus}`
+                `Continuing establised session with user ${savedWalletStatus}`
               );
-              if (walletStatus === "inactive") {
+              if (savedWalletStatus === "inactive") {
                 let response = await ActivateUser(phoneNumber, text, sessionId);
                 resolve(response);
-              } else if (walletStatus === "active") {
-                let response = await NormalFlow(
-                  phoneNumber,
-                  text,
-                  walletHoldername !== "undefined"
-                    ? walletHoldername
-                    : undefined,
-                  sessionId
-                );
+              } else if (savedWalletStatus === "active") {
+                let response = await NormalFlow(phoneNumber, text, sessionId);
                 resolve(response);
               }
             });
@@ -189,7 +202,7 @@ async function ActivateUser(phoneNumber, text, sessionId) {
   });
 }
 
-async function NormalFlow(phoneNumber, text, walletHoldername, sessionId) {
+async function NormalFlow(phoneNumber, text, sessionId) {
   console.log("Normal flow in process");
   let response = await new Promise(async (resolve, reject) => {
     let response = "";
@@ -275,6 +288,11 @@ async function activateWalletCall(sessionId, phoneNumber, walletPin) {
             "active"
           )
           .then(async () => {
+            await redisClient.hset(
+              `${APP_PREFIX_REDIS}:userWalletStatus`,
+              `${phoneNumber}`,
+              `active`
+            );
             await redisClient.incrAsync(
               `${APP_PREFIX_REDIS}:count:activatedUsers:${moment().format(
                 "DMMYYYY"
@@ -311,8 +329,7 @@ async function checkWalletStatus(phoneNumber) {
       .then(async response => {
         console.log(JSON.stringify(response.data, null, 2));
         resolve({
-          status: response.data.data.status,
-          name: response.data.data.name
+          status: response.data.data.status
         });
       })
       .catch(e => {
