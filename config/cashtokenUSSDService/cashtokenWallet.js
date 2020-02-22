@@ -1,6 +1,6 @@
 const { redisClient } = require("../redisConnectConfig");
 const { FelaMarketPlace } = require("../index");
-const { WalletTypes } = require("../utils");
+const { WalletTypes, formatNumberAsCurrency } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 // const NAIRASIGN = "\u{020A6}";
@@ -33,13 +33,13 @@ async function getUsersWalletDetails(phoneNumber) {
           continue;
         }
         totalBalance += parseFloat(value.balance);
-        response += `${index++} ${WalletTypes[value.title]} - ${NAIRASIGN}${
-          value.balance
-        }\n`;
+        response += `${index++} ${
+          WalletTypes[value.title]
+        } - ${NAIRASIGN}${formatNumberAsCurrency(value.balance)}\n`;
       }
 
-      response += `${index} Total Wallet Balance - ${NAIRASIGN}${totalBalance.toFixed(
-        2
+      response += `${index} Total Wallet Balance - ${NAIRASIGN}${formatNumberAsCurrency(
+        totalBalance
       )}\n\n0 Menu`;
     } else {
       response = walletResponse;

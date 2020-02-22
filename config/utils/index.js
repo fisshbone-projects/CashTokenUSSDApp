@@ -266,6 +266,14 @@ function formatNumber(num) {
   return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
 }
 
+function formatNumberAsCurrency(num) {
+  if (typeof num === "string") {
+    num = parseInt(num, 10);
+    // console.log(num);
+  }
+  return num.toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
+}
+
 // function removeHashes(stringMe) {
 //   let formatedMe = "";
 
@@ -459,6 +467,7 @@ module.exports = {
   testPhoneNumber,
   checkPinForRepetition,
   formatNumber,
+  formatNumberAsCurrency,
   DIRECTDIAL_BANK_MAP,
   getBankCharge,
   MYBANKUSSD_BANK_CODES,

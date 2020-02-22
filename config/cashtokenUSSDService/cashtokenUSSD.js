@@ -131,9 +131,6 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
         console.log(err);
       });
   });
-  //Put in trackers for total users who dial
-  //Trackers for total transactions
-  //Trackers for sessions for the day
 
   await redisClient.incrAsync(
     `${APP_PREFIX_REDIS}:reports:count:global_totalTransactionalHits:${moment().format(
