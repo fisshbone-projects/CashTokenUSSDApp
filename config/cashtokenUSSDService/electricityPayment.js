@@ -470,7 +470,7 @@ function processElectricityPayment(
             "DMMYYYY"
           )}`
         );
-        resolve(`CON Payment was successful!`);
+        resolve(`CON Payment was successful!\n\n0 Menu`);
       } else {
         console.log("Getting response from coral pay");
         await redisClient.incrAsync(
