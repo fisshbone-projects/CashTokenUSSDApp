@@ -126,28 +126,34 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
       )) === "wallet"
     ) {
       let walletPin = brokenDownText[5];
-      await redisClient.hsetAsync(
-        `${APP_PREFIX_REDIS}:${sessionId}`,
-        "walletPin",
-        `${walletPin}`
-      );
-      let {
-        airtimeAmount,
-        recipentNumber,
-        recipentLine
-      } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
-      let [airtimeProvider] = await redisClient.zrangebyscoreAsync(
-        `${APP_PREFIX_REDIS}:AirtimeProvidersNames`,
-        recipentLine,
-        recipentLine
-      );
+      if (/^[0-9]*$/.test(walletPin)) {
+        await redisClient.hsetAsync(
+          `${APP_PREFIX_REDIS}:${sessionId}`,
+          "walletPin",
+          `${walletPin}`
+        );
+        let {
+          airtimeAmount,
+          recipentNumber,
+          recipentLine
+        } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
+        let [airtimeProvider] = await redisClient.zrangebyscoreAsync(
+          `${APP_PREFIX_REDIS}:AirtimeProvidersNames`,
+          recipentLine,
+          recipentLine
+        );
 
-      response = `CON Confirm Airtime Purchase:\nRecipient's Line: ${
-        airtimeProvider.includes("Etisalat") ? "9mobile" : airtimeProvider
-      }\nRecipient's Number: ${recipentNumber}\nAmount: ${NAIRASIGN}${formatNumber(
-        airtimeAmount
-      )}\nPayment Method: Wallet\n\n1 Confirm\n2 Cancel`;
-      resolve(response);
+        response = `CON Confirm Airtime Purchase:\nRecipient's Line: ${
+          airtimeProvider.includes("Etisalat") ? "9mobile" : airtimeProvider
+        }\nRecipient's Number: ${recipentNumber}\nAmount: ${NAIRASIGN}${formatNumber(
+          airtimeAmount
+        )}\nPayment Method: Wallet\n\n1 Confirm\n2 Cancel`;
+        resolve(response);
+      } else {
+        console.log("PIN is invalid");
+        response = `CON Error! PIN can only be numbers\n\n0 Menu`;
+        resolve(response);
+      }
     } else if (
       brokenDownText.length === 6 &&
       parseInt(brokenDownText[5], 10) <=

@@ -414,33 +414,39 @@ async function getBankCodes() {
 async function displayBankList(brokenDownText, sessionId) {
   return new Promise(async (resolve, reject) => {
     if (brokenDownText.length === 3) {
-      await redisClient.hmsetAsync(
-        `${APP_PREFIX_REDIS}:${sessionId}`,
-        "amountToWithdraw",
-        brokenDownText[2],
-        "menuStage",
-        "obtainingBankInputs"
-      );
-      redisClient
-        .existsAsync(`${APP_PREFIX_REDIS}:BankCodes`)
-        .then(async resp => {
-          if (resp === 0) {
-            console.log("Fetching bank codes from API");
-            getBankCodes()
-              .then(async () => {
-                let response = await helperDisplayBankList(0, 9);
-                resolve(response);
-              })
-              .catch(error => {
-                console.log("error");
-                console.log(JSON.stringify(error.response.data, null, 2));
-              });
-          } else if (resp === 1) {
-            console.log("Fetching bank codes from Redis Cache");
-            let response = await helperDisplayBankList(0, 9);
-            resolve(response);
-          }
-        });
+      if (/^[0-9]*$/.test(brokenDownText[2])) {
+        await redisClient.hmsetAsync(
+          `${APP_PREFIX_REDIS}:${sessionId}`,
+          "amountToWithdraw",
+          brokenDownText[2],
+          "menuStage",
+          "obtainingBankInputs"
+        );
+        redisClient
+          .existsAsync(`${APP_PREFIX_REDIS}:BankCodes`)
+          .then(async resp => {
+            if (resp === 0) {
+              console.log("Fetching bank codes from API");
+              getBankCodes()
+                .then(async () => {
+                  let response = await helperDisplayBankList(0, 9);
+                  resolve(response);
+                })
+                .catch(error => {
+                  console.log("error");
+                  console.log(JSON.stringify(error.response.data, null, 2));
+                });
+            } else if (resp === 1) {
+              console.log("Fetching bank codes from Redis Cache");
+              let response = await helperDisplayBankList(0, 9);
+              resolve(response);
+            }
+          });
+      } else {
+        console.log("Amount is invalid");
+        response = `CON Error! Inputted amount is not a valid number\n\n0 Menu`;
+        resolve(response);
+      }
     } else if (
       brokenDownText.length === 4 &&
       parseInt(brokenDownText[3], 10) === 11
@@ -637,83 +643,90 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
   });
 }
 
+async function saveAccountNumber(accountNumber, sessionId) {
+  return new Promise(async resolve => {
+    console.log("Account Number is: " + accountNumber);
+    await redisClient.hmsetAsync(
+      `${APP_PREFIX_REDIS}:${sessionId}`,
+      "accountNumber",
+      accountNumber,
+      "menuStage",
+      "obtainingWalletPin"
+    );
+    resolve("CON Enter your wallet PIN:");
+  });
+}
+
 async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
   return new Promise(async (resolve, reject) => {
+    let response = "";
     let menuStage = await redisClient.hgetAsync(
       `${APP_PREFIX_REDIS}:${sessionId}`,
       "menuStage"
     );
     console.log(`AT OBTAIN ACCOUNT NUMBER MenuStage: ${menuStage}`);
-    if (
-      brokenDownText.length == 5 &&
-      brokenDownText[4].length == 10 &&
-      menuStage == "obtainingAccountNumber"
-    ) {
-      console.log("Account Number is: " + brokenDownText[4]);
-      await redisClient.hmsetAsync(
-        `${APP_PREFIX_REDIS}:${sessionId}`,
-        "accountNumber",
-        brokenDownText[4],
-        "menuStage",
-        "obtainingWalletPin"
-      );
-      resolve("CON Enter your wallet PIN:");
+    if (brokenDownText.length == 5 && menuStage == "obtainingAccountNumber") {
+      let accountNumber = brokenDownText[4];
+      if (accountNumber.length == 10 && /^[0-9]*$/.test(accountNumber)) {
+        response = await saveAccountNumber(accountNumber, sessionId);
+        resolve(response);
+      } else {
+        console.log("Account Number is invalid");
+        response = `CON Error! Inputed account number is invalid\n\n0 Menu`;
+        resolve(response);
+      }
     } else if (
       brokenDownText.length == 6 &&
-      brokenDownText[5].length == 10 &&
       menuStage == "obtainingAccountNumber"
     ) {
-      console.log("Account Number is: " + brokenDownText[5]);
-      await redisClient.hmsetAsync(
-        `${APP_PREFIX_REDIS}:${sessionId}`,
-        "accountNumber",
-        brokenDownText[5],
-        "menuStage",
-        "obtainingWalletPin"
-      );
-      resolve("CON Enter your wallet PIN:");
+      let accountNumber = brokenDownText[5];
+      if (accountNumber.length == 10 && /^[0-9]*$/.test(accountNumber)) {
+        response = await saveAccountNumber(accountNumber, sessionId);
+        resolve(response);
+      } else {
+        console.log("Account Number is invalid");
+        response = `CON Error! Inputed account number is invalid\n\n0 Menu`;
+        resolve(response);
+      }
     } else if (
       brokenDownText.length == 7 &&
-      brokenDownText[6].length == 10 &&
       menuStage == "obtainingAccountNumber"
     ) {
-      console.log("Account Number is: " + brokenDownText[6]);
-      await redisClient.hmsetAsync(
-        `${APP_PREFIX_REDIS}:${sessionId}`,
-        "accountNumber",
-        brokenDownText[6],
-        "menuStage",
-        "obtainingWalletPin"
-      );
-      resolve("CON Enter your wallet PIN:");
+      let accountNumber = brokenDownText[6];
+      if (accountNumber.length == 10 && /^[0-9]*$/.test(accountNumber)) {
+        response = await saveAccountNumber(accountNumber, sessionId);
+        resolve(response);
+      } else {
+        console.log("Account Number is invalid");
+        response = `CON Error! Inputed account number is invalid\n\n0 Menu`;
+        resolve(response);
+      }
     } else if (
       brokenDownText.length == 8 &&
-      brokenDownText[7].length == 10 &&
       menuStage == "obtainingAccountNumber"
     ) {
-      console.log("Account Number is: " + brokenDownText[7]);
-      await redisClient.hmsetAsync(
-        `${APP_PREFIX_REDIS}:${sessionId}`,
-        "accountNumber",
-        brokenDownText[7],
-        "menuStage",
-        "obtainingWalletPin"
-      );
-      resolve("CON Enter your wallet PIN:");
+      let accountNumber = brokenDownText[7];
+      if (accountNumber.length == 10 && /^[0-9]*$/.test(accountNumber)) {
+        response = await saveAccountNumber(accountNumber, sessionId);
+        resolve(response);
+      } else {
+        console.log("Account Number is invalid");
+        response = `CON Error! Inputed account number is invalid\n\n0 Menu`;
+        resolve(response);
+      }
     } else if (
       brokenDownText.length == 9 &&
-      brokenDownText[8].length == 10 &&
       menuStage == "obtainingAccountNumber"
     ) {
-      console.log("Account Number is: " + brokenDownText[7]);
-      await redisClient.hmsetAsync(
-        `${APP_PREFIX_REDIS}:${sessionId}`,
-        "accountNumber",
-        brokenDownText[8],
-        "menuStage",
-        "obtainingWalletPin"
-      );
-      resolve("CON Enter your wallet PIN:");
+      let accountNumber = brokenDownText[8];
+      if (accountNumber.length == 10 && /^[0-9]*$/.test(accountNumber)) {
+        response = await saveAccountNumber(accountNumber, sessionId);
+        resolve(response);
+      } else {
+        console.log("Account Number is invalid");
+        response = `CON Error! Inputed account number is invalid\n\n0 Menu`;
+        resolve(response);
+      }
     } else {
       resolve("");
     }
