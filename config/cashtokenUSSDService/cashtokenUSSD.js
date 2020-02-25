@@ -1,18 +1,12 @@
 const { redisClient } = require("../redisConnectConfig");
 const moment = require("moment");
 const { FelaMarketPlace } = require("../index");
-const { processFundDisbursement } = require("./walletCashout");
 const { redeem_wallet } = require("./redeem_wallet");
 const { processAirtime } = require("./airtimePurchase");
 const { process1KOnlyAirtime } = require("./airtime1KOnlyPurchase");
 const { processData } = require("./dataPurchase");
-const { resetPin } = require("./resetPin");
+const { servePayBillsRequest } = require("./payBills");
 const { checkPinForRepetition, APP_PREFIX_REDIS } = require("../utils");
-// const { processElectricity } = require("./electricityPayment");
-const {
-  getUsersCashtoken,
-  getUsersWalletDetails
-} = require("./cashtokenWallet");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 
@@ -240,15 +234,10 @@ async function NormalFlow(phoneNumber, text, sessionId) {
     } else if (text.startsWith("4")) {
       // response = await processFundDisbursement(text, phoneNumber, sessionId);
       // resolve(response);
-      await redisClient.incrAsync(
-        `${APP_PREFIX_REDIS}:reports:count:topMenu_PayBills:${moment().format(
-          "DMMYYYY"
-        )}`
-      );
-      response = `CON Welcome!!!\nThis service is still under development, but please check back soon, we are always ready to serve you.\n\n0 Menu`;
+
+      // response = `CON Welcome!!!\nThis service is still under development, but please check back soon, we are always ready to serve you.\n\n0 Menu`;
+      response = servePayBillsRequest(phoneNumber, text, sessionId);
       resolve(response);
-      // response = await processElectricity(text, phoneNumber, sessionId);
-      // resolve(response);
     } else if (text.startsWith("5")) {
       // response = await resetPin(text, phoneNumber, sessionId);
       // resolve(response);

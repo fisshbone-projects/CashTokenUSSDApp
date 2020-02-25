@@ -459,7 +459,7 @@ function processAirtimePurchase(
 
       switch (paymentMethod) {
         case "felawallet":
-          // console.log(JSON.stringify(response.data, null, 2));
+          console.log(JSON.stringify(response.data, null, 2));
           // console.log(response)
           await redisClient.incrAsync(
             `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithWallet:${moment().format(
