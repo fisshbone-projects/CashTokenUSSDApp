@@ -473,7 +473,9 @@ function processAirtimePurchase(
             )}`
           );
           resolve(
-            `CON Dear Customer, your line ${recipentNumber} has been successfully credited with ${NAIRASIGN}${airtimeAmount} Airtime\n\n0 Menu`
+            `CON Dear Customer, your line ${recipentNumber} has been successfully credited with ${NAIRASIGN}${formatNumber(
+              airtimeAmount
+            )} Airtime\n\n0 Menu`
           );
           break;
 

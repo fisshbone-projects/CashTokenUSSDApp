@@ -507,70 +507,75 @@ function displayMyBankUSSDBanks() {
 }
 
 async function fetchDiscoDetails() {
-  axios
-    .get(`${FelaMarketPlace.BASE_URL}/list/electricityProviders`, {
-      headers: felaHeader
-    })
-    .then(async response => {
-      let discos = response.data.data;
-      let prepaidScore = 1;
-      let postpaidScore = 1;
+  return new Promise(resolve => {
+    axios
+      .get(`${FelaMarketPlace.BASE_URL}/list/electricityProviders`, {
+        headers: felaHeader
+      })
+      .then(async response => {
+        let discos = response.data.data;
+        let prepaidScore = 1;
+        let postpaidScore = 1;
 
-      let keys = Object.keys(discos);
-      for (let key of keys) {
-        let packages = discos[key].packages;
+        let keys = Object.keys(discos);
+        for (let key of keys) {
+          let packages = discos[key].packages;
 
-        for (let item of packages) {
-          if (item.code === "prepaid") {
-            await redisClient.zaddAsync(
-              `${APP_PREFIX_REDIS}:Discos:Prepaid:Title`,
-              prepaidScore,
-              `${discos[key].title}`
-            );
-            await redisClient.zaddAsync(
-              `${APP_PREFIX_REDIS}:Discos:Prepaid:Code`,
-              prepaidScore,
-              `${discos[key].code}`
-            );
-            redisClient.expire(
-              `${APP_PREFIX_REDIS}:Discos:Prepaid:Code`,
-              API_DATA_EXPIRE_TIME
-            );
-            redisClient.expire(
-              `${APP_PREFIX_REDIS}:Discos:Prepaid:Code`,
-              API_DATA_EXPIRE_TIME
-            );
+          for (let item of packages) {
+            if (item.code === "prepaid") {
+              await redisClient.zaddAsync(
+                `${APP_PREFIX_REDIS}:Discos:Prepaid:Title`,
+                prepaidScore,
+                `${discos[key].title}`
+              );
+              await redisClient.zaddAsync(
+                `${APP_PREFIX_REDIS}:Discos:Prepaid:Code`,
+                prepaidScore,
+                `${discos[key].code}`
+              );
+              console.log(API_DATA_EXPIRE_TIME);
+              redisClient.expire(
+                `${APP_PREFIX_REDIS}:Discos:Prepaid:Code`,
+                API_DATA_EXPIRE_TIME
+              );
+              redisClient.expire(
+                `${APP_PREFIX_REDIS}:Discos:Prepaid:Code`,
+                API_DATA_EXPIRE_TIME
+              );
+            }
+
+            if (item.code === "postpaid") {
+              await redisClient.zaddAsync(
+                `${APP_PREFIX_REDIS}:Discos:Postpaid:Title`,
+                postpaidScore,
+                `${discos[key].title}`
+              );
+              await redisClient.zaddAsync(
+                `${APP_PREFIX_REDIS}:Discos:Postpaid:Code`,
+                postpaidScore,
+                `${discos[key].code}`
+              );
+              redisClient.expire(
+                `${APP_PREFIX_REDIS}:Discos:Postpaid:Title`,
+                API_DATA_EXPIRE_TIME
+              );
+              redisClient.expire(
+                `${APP_PREFIX_REDIS}:Discos:Postpaid:Code`,
+                API_DATA_EXPIRE_TIME
+              );
+            }
           }
-
-          if (item.code === "postpaid") {
-            await redisClient.zaddAsync(
-              `${APP_PREFIX_REDIS}:Discos:Postpaid:Title`,
-              postpaidScore,
-              `${discos[key].title}`
-            );
-            await redisClient.zaddAsync(
-              `${APP_PREFIX_REDIS}:Discos:Postpaid:Code`,
-              postpaidScore,
-              `${discos[key].code}`
-            );
-            redisClient.expire(
-              `${APP_PREFIX_REDIS}:Discos:Postpaid:Title`,
-              API_DATA_EXPIRE_TIME
-            );
-            redisClient.expire(
-              `${APP_PREFIX_REDIS}:Discos:Postpaid:Code`,
-              API_DATA_EXPIRE_TIME
-            );
-          }
+          prepaidScore++;
+          postpaidScore++;
         }
-        prepaidScore++;
-        postpaidScore++;
-      }
-    })
-    .catch(error => {
-      console.log("error");
-      console.log(JSON.stringify(error.response.data, null, 2));
-    });
+        resolve();
+      })
+      .catch(error => {
+        console.log("error");
+        console.log(JSON.stringify(error.response.data, null, 2));
+        resolve();
+      });
+  });
 }
 
 // (async () => {
