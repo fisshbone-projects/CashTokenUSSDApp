@@ -28,7 +28,7 @@ async function process1KOnlyAirtime(text, phoneNumber, sessionId) {
       );
       resolve(response);
     } else {
-      response = "CON An error occured, please try again\n\n0 Menu";
+      response = "CON Invalid response inputed\n\nEnter 0 Back to home menu";
       resolve(response);
     }
   });
@@ -93,7 +93,7 @@ async function airtime1KOnlyFlow(brokenDownText, phoneNumber, sessionId) {
         "confirmPurchase"
       )) == "true"
     ) {
-      response = `CON Transaction Cancelled!\n\n0 Menu`;
+      response = `CON Transaction Cancelled!\n\nEnter 0 Back to home menu`;
       resolve(response);
     } else if (
       brokenDownText.length === 3 &&
@@ -131,10 +131,10 @@ async function airtime1KOnlyFlow(brokenDownText, phoneNumber, sessionId) {
         "confirmPurchase"
       )) == "true"
     ) {
-      response = `CON Transaction Cancelled!\n\n0 Menu`;
+      response = `CON Transaction Cancelled!\n\nEnter 0 Back to home menu`;
       resolve(response);
     } else {
-      response = "CON An error occured, please try again\n\n0 Menu";
+      response = "CON Invalid response inputed\n\nEnter 0 Back to home menu";
       resolve(response);
     }
   });
@@ -394,7 +394,7 @@ function processAirtimePurchase(
       console.log("error");
       console.log(JSON.stringify(error.response.data, null, 2));
 
-      resolve(`CON Transaction Failed!\n\n0 Menu`);
+      resolve(`CON Transaction Failed!\n\nEnter 0 Back to home menu`);
     }
   });
 }

@@ -92,7 +92,7 @@ Object.freeze(MYBANKUSSD_SERVICE_CODES);
 const MYBANKUSSD_BASE_CODE = "000*111";
 
 const WalletTypes = {
-  "myFela Top-Up": "FELA Wallet",
+  "myFela Top-Up": "Fela Wallet",
   iSavings: "iSavings",
   "Guaranteed Cashback": "Instant Cash-back",
   Wins: "Draw Win Balance"

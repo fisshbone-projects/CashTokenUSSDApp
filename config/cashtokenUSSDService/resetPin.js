@@ -62,6 +62,9 @@ async function resetPin(text, phoneNumber, sessionId) {
         response = `CON Your PIN does not match\n\n0 Menu`;
         resolve(response);
       }
+    } else {
+      response = "CON Invalid response inputed\n\nEnter 0 Back to home menu";
+      resolve(response);
     }
   });
 }
@@ -95,12 +98,12 @@ async function resetPinCall(sessionId, phoneNumber, walletPin) {
       )
       .then(resp => {
         console.log(resp.data);
-        let feedback = `CON Your PIN has been reset successfully!\n\n0 Menu`;
+        let feedback = `CON Your PIN has been reset successfully!\n\nEnter 0 Back to home menu`;
         resolve(feedback);
       })
       .catch(resp => {
         console.log(resp);
-        let feedback = `CON PIN reset failed!\n\n0 Menu`;
+        let feedback = `CON PIN reset failed!\n\nEnter 0 Back to home menu`;
         resolve(feedback);
       });
   });

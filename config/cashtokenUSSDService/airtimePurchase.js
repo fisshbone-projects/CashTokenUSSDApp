@@ -25,7 +25,7 @@ async function processAirtime(text, phoneNumber, sessionId) {
       response = await airtimeFlow(brokenDownText, phoneNumber, sessionId);
       resolve(response);
     } else {
-      response = "CON An error occured, please try again\n\n0 Menu";
+      response = "CON Invalid response inputed\n\nEnter 0 Back to home menu";
       resolve(response);
     }
   });
@@ -74,7 +74,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         resolve(response);
       } else {
         console.log("Number is invalid");
-        response = `CON Error! Inputted number is not a valid phone number\n\n0 Menu`;
+        response = `CON Error! Inputted number is not a valid phone number\n\nEnter 0 to start over`;
         resolve(response);
       }
     } else if (brokenDownText.length === 4) {
@@ -91,7 +91,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         resolve(response);
       } else {
         console.log("Amount is invalid");
-        response = `CON Error! Inputted amount is not a valid number\n\n0 Menu`;
+        response = `CON Error! Inputted amount is not a valid number\n\nEnter 0 to start over`;
         resolve(response);
       }
     } else if (
@@ -151,7 +151,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         resolve(response);
       } else {
         console.log("PIN is invalid");
-        response = `CON Error! PIN can only be numbers\n\n0 Menu`;
+        response = `CON Error! PIN can only be numbers\n\nEnter 0 to start over`;
         resolve(response);
       }
     } else if (
@@ -286,7 +286,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         "airtimePaymentMethod"
       )) === "wallet"
     ) {
-      response = `CON Transaction Cancelled!\n\n0 Menu`;
+      response = `CON Transaction Cancelled!\n\nEnter 0 Back to home menu`;
       resolve(response);
     } else if (
       brokenDownText.length === 7 &&
@@ -296,10 +296,10 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         "airtimePaymentMethod"
       )) === "MyBankUSSD"
     ) {
-      response = `CON Transaction Cancelled!\n\n0 Menu`;
+      response = `CON Transaction Cancelled!\n\nEnter 0 Back to home menu`;
       resolve(response);
     } else {
-      response = "CON An error occured, please try again\n\n0 Menu";
+      response = "CON Invalid response inputed\n\nEnter 0 Back to home menu";
       resolve(response);
     }
   });
@@ -384,43 +384,6 @@ function displayMyBankUSSDBanks() {
   return response;
 }
 
-// function processAirtimeUSSDString(
-//   phoneNumber,
-//   recipentNumber,
-//   airtimeAmount,
-//   chosenUSSDBankCode
-// ) {
-//   function cleanRecipentNumber(number) {
-//     let regPhone1 = /^[+]{0,1}(234){1}[0-9]{10}$/;
-//     let cleanedRecipentNumber = "";
-//     if (regPhone1.test(number)) {
-//       if (number.includes("+")) {
-//         cleanedRecipentNumber = number.slice(4);
-//         cleanedRecipentNumber = `0${cleanedRecipentNumber}`;
-//       } else {
-//         cleanedRecipentNumber = number.slice(3);
-//         cleanedRecipentNumber = `0${cleanedRecipentNumber}`;
-//       }
-//     } else {
-//       cleanedRecipentNumber = number;
-//     }
-
-//     return cleanedRecipentNumber;
-//   }
-
-//   let prunedRecipentNumber = cleanRecipentNumber(recipentNumber);
-
-//   let ussdCode = `*${chosenUSSDBankCode}*${MYBANKUSSD_BASE_CODE}${MYBANKUSSD_SERVICE_CODES.airtime}${prunedRecipentNumber}${airtimeAmount}#`;
-
-//   response = `CON This USSD String ${ussdCode} has been sent to you via SMS. Please copy and dial to pay for your airtime.\n\n0 Menu`;
-
-//   //Send SMS to user
-//   smsMessage = `${ussdCode}`;
-
-//   // sendSMS(phoneNumber, smsMessage);
-//   return response;
-// }
-
 function processAirtimePurchase(
   sessionId,
   phoneNumber,
@@ -500,9 +463,11 @@ function processAirtimePurchase(
       console.log("error");
       console.log(JSON.stringify(error.response.data, null, 2));
       if (error.response.data.code === 422) {
-        resolve(`CON Transaction Failed!\nInsufficient user balance\n\n0 Menu`);
+        resolve(
+          `CON Transaction Failed!\nInsufficient user balance\n\nEnter 0 Back to home menu`
+        );
       } else {
-        resolve(`CON Transaction Failed!\n\n0 Menu`);
+        resolve(`CON Transaction Failed!\n\nEnter 0 Back to home menu`);
       }
     }
   });

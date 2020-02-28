@@ -32,9 +32,10 @@ function redeem_wallet(text, phoneNumber, sessionId) {
           "DMMYYYY"
         )}`
       );
-      response = `CON Threshold will be updated soon.\nPlease stay tuned\n\n0 Menu`;
+      response = `CON Threshold will be updated soon.\nPlease stay tuned\n\nEnter 0 Back to home menu`;
     } else {
-      response = "CON An error occured, please try again\n\n0 Menu";
+      response =
+        "CON Please input a valid service option\n\nEnter 0 Back to home menu";
       resolve(response);
     }
 

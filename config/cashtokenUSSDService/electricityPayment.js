@@ -45,7 +45,8 @@ async function processElectricity(phoneNumber, text, sessionId) {
           resolve(response);
         }
       } else {
-        response = "CON Error!\nSelect a valid electricity plan\n\n0 Menu";
+        response =
+          "CON Error!\nSelect a valid electricity plan\n\nEnter 0 to start over";
         resolve(response);
       }
 
@@ -61,7 +62,8 @@ async function processElectricity(phoneNumber, text, sessionId) {
           response = `CON Enter your meter number:`;
           resolve(response);
         } else {
-          response = "CON Error!\nSelect a valid disco\n\n0 Menu";
+          response =
+            "CON Error!\nSelect a valid disco\n\nEnter 0 to start over";
           resolve(response);
         }
       } else if (electricPlan === "postpaid") {
@@ -70,7 +72,8 @@ async function processElectricity(phoneNumber, text, sessionId) {
           response = `CON Enter your meter number:`;
           resolve(response);
         } else {
-          response = "CON Error!\nSelect a valid disco\n\n0 Menu";
+          response =
+            "CON Error!\nSelect a valid disco\n\nEnter 0 to start over";
           resolve(response);
         }
       }
@@ -97,7 +100,7 @@ async function processElectricity(phoneNumber, text, sessionId) {
         response = `CON Enter amount:`;
         resolve(response);
       } else {
-        response = `CON Error!\nInputed meter number cannot be verified \n\n0 Menu`;
+        response = `CON Error!\nInputed meter number cannot be verified \n\nEnter 0 to start over`;
         resolve(response);
       }
 
@@ -114,8 +117,8 @@ async function processElectricity(phoneNumber, text, sessionId) {
         response = `CON Select payment method:\n1 My Wallet\n2 MyBankUSSD`;
         resolve(response);
       } else {
-        console.log("Aomunt inputec is invalid");
-        response = `CON Error!\nAmount can only be numbers\n\n0 Menu`;
+        console.log("Amount inputed is invalid");
+        response = `CON Error!\nAmount can only be numbers\n\nEnter 0 to start over`;
         resolve(response);
       }
     } else if (brokenDownText.length === 7) {
@@ -140,7 +143,8 @@ async function processElectricity(phoneNumber, text, sessionId) {
           resolve(response);
         }
       } else {
-        response = "CON Error!\nSelect a valid payment method\n\n0 Menu";
+        response =
+          "CON Error!\nSelect a valid payment method\n\nEnter 0 to start over";
         resolve(response);
       }
 
@@ -173,7 +177,7 @@ async function processElectricity(phoneNumber, text, sessionId) {
         resolve(response);
       } else {
         console.log("PIN is invalid");
-        response = `CON Error!\nPIN can only be numbers\n\n0 Menu`;
+        response = `CON Error!\nPIN can only be numbers\n\nEnter 0 to start over`;
         resolve(response);
       }
       //Payment is wallet
@@ -297,7 +301,7 @@ async function processElectricity(phoneNumber, text, sessionId) {
       response = `CON Transaction canceled by user.\n\n0 Menu`;
       resolve(response);
     } else {
-      response = `CON Error!\nInvalid input\n\n0 Menu`;
+      response = `CON Error!\nInvalid input\n\nEnter 0 to start over`;
     }
   });
 }
@@ -491,7 +495,7 @@ function processElectricityPayment(
     } catch (error) {
       console.log("error");
       console.log(JSON.stringify(error.response.data, null, 2));
-      resolve(`CON Transaction Failed!!!\n\n0 Menu`);
+      resolve(`CON Transaction Failed!!!\n\nEnter 0 Back to home menu`);
     }
   });
 }

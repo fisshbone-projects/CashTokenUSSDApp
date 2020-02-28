@@ -56,7 +56,8 @@ async function processFundDisbursement(text, phoneNumber, sessionId) {
             if (response !== "") {
               resolve(response);
             } else {
-              response = "CON An error occured, please try again\n\n0 Menu";
+              response =
+                "CON CON Invalid response inputed\n\nEnter 0 Back to home menu";
               resolve(response);
             }
           }
@@ -210,7 +211,7 @@ async function processWithdrawTransaction(
       brokenDownText[6] === "2" &&
       menuStage == "confirmBankTransfer"
     ) {
-      let response = "CON Transaction cancelled!\n\n0 Menu";
+      let response = "CON Transaction cancelled!\n\nEnter 0 Back to home menu";
       resolve(response);
     } else if (
       brokenDownText.length === 8 &&
@@ -224,7 +225,7 @@ async function processWithdrawTransaction(
       brokenDownText[7] === "2" &&
       menuStage == "confirmBankTransfer"
     ) {
-      let response = "CON Transaction cancelled!\n\n0 Menu";
+      let response = "CON Transaction cancelled!\n\nEnter 0 Back to home menu";
       resolve(response);
     } else if (
       brokenDownText.length === 9 &&
@@ -238,7 +239,7 @@ async function processWithdrawTransaction(
       brokenDownText[8] === "2" &&
       menuStage == "confirmBankTransfer"
     ) {
-      let response = "CON Transaction cancelled!\n\n0 Menu";
+      let response = "CON Transaction cancelled!\n\nEnter 0 Back to home menu";
       resolve(response);
     } else if (
       brokenDownText.length === 10 &&
@@ -252,7 +253,7 @@ async function processWithdrawTransaction(
       brokenDownText[9] === "2" &&
       menuStage == "confirmBankTransfer"
     ) {
-      let response = "CON Transaction cancelled!\n\n0 Menu";
+      let response = "CON Transaction cancelled!\n\nEnter 0 Back to home menu";
       resolve(response);
     } else if (
       brokenDownText.length === 11 &&
@@ -266,7 +267,7 @@ async function processWithdrawTransaction(
       brokenDownText[10] === "2" &&
       menuStage == "confirmBankTransfer"
     ) {
-      let response = "CON Transaction cancelled!\n\n0 Menu";
+      let response = "CON Transaction cancelled!\n\nEnter 0 Back to home menu";
       resolve(response);
     } else {
       resolve("");
@@ -318,7 +319,7 @@ async function makeWalletWithdrawal(
           )}`
         );
         console.log(response.data);
-        let feedback = `CON Dear Customer, Your Account will be credited within 24 hours\n\n0 Menu`;
+        let feedback = `CON Dear Customer, Your Account will be credited within 24 hours\n\nEnter 0 Back to home menu`;
         resolve(feedback);
       })
       .catch(error => {
@@ -335,11 +336,11 @@ async function makeWalletWithdrawal(
           if (
             error.response.data.message.includes("Insufficient user balance")
           ) {
-            feedback += `\n${error.response.data.message}\n\n0 Menu`;
+            feedback += `\n${error.response.data.message}\n\nEnter 0 Back to home menu`;
           } else if (
             error.response.data.message.includes("authentication failed")
           ) {
-            feedback += `\n${error.response.data.message}\n\n0 Menu`;
+            feedback += `\n${error.response.data.message}\n\nEnter 0 Back to home menu`;
           }
           // else if (error.response.data.message.includes("Blocked Funds")) {
           //   // if (isUserATopWinner) {
@@ -347,10 +348,10 @@ async function makeWalletWithdrawal(
           //   // }
           // }
           else {
-            feedback += `\n\n0 Menu`;
+            feedback += `\n\nEnter 0 Back to home menu`;
           }
         } else {
-          feedback += `\n\n0 Menu`;
+          feedback += `\n\nEnter 0 Back to home menu`;
         }
 
         resolve(feedback);
@@ -444,7 +445,7 @@ async function displayBankList(brokenDownText, sessionId) {
           });
       } else {
         console.log("Amount is invalid");
-        response = `CON Error! Inputted amount is not a valid number\n\n0 Menu`;
+        response = `CON Error! Inputted amount is not a valid number\n\nEnter 0 to start over`;
         resolve(response);
       }
     } else if (
@@ -672,7 +673,7 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
         resolve(response);
       } else {
         console.log("Account Number is invalid");
-        response = `CON Error! Inputed account number is invalid\n\n0 Menu`;
+        response = `CON Error! Inputed account number is invalid\n\nEnter 0 to start over`;
         resolve(response);
       }
     } else if (
@@ -685,7 +686,7 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
         resolve(response);
       } else {
         console.log("Account Number is invalid");
-        response = `CON Error! Inputed account number is invalid\n\n0 Menu`;
+        response = `CON Error! Inputed account number is invalid\n\nEnter 0 to start over`;
         resolve(response);
       }
     } else if (
@@ -698,7 +699,7 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
         resolve(response);
       } else {
         console.log("Account Number is invalid");
-        response = `CON Error! Inputed account number is invalid\n\n0 Menu`;
+        response = `CON Error! Inputed account number is invalid\n\nEnter 0 to start over`;
         resolve(response);
       }
     } else if (
@@ -711,7 +712,7 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
         resolve(response);
       } else {
         console.log("Account Number is invalid");
-        response = `CON Error! Inputed account number is invalid\n\n0 Menu`;
+        response = `CON Error! Inputed account number is invalid\n\nEnter 0 to start over`;
         resolve(response);
       }
     } else if (
@@ -724,7 +725,7 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
         resolve(response);
       } else {
         console.log("Account Number is invalid");
-        response = `CON Error! Inputed account number is invalid\n\n0 Menu`;
+        response = `CON Error! Inputed account number is invalid\n\nEnter 0 to start over`;
         resolve(response);
       }
     } else {

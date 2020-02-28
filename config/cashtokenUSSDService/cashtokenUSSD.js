@@ -6,6 +6,7 @@ const { processAirtime } = require("./airtimePurchase");
 const { process1KOnlyAirtime } = require("./airtime1KOnlyPurchase");
 const { processData } = require("./dataPurchase");
 const { servePayBillsRequest } = require("./payBills");
+const { processLCC } = require("./LCC");
 const { checkPinForRepetition, APP_PREFIX_REDIS } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
@@ -36,11 +37,6 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
         if (resp === 0) {
           console.log("Creating new user session");
 
-          // let {
-          //   name: walletHoldername,
-          //   status: walletStatus
-          // } = await checkWalletStatus(phoneNumber);
-
           let newDate = new Date();
           console.log(
             `New Hit: ${sessionId} at ${newDate.toDateString()} ${newDate
@@ -49,24 +45,6 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
           );
 
           console.log(`Wallet Status for ${phoneNumber}: ${walletStatus}`);
-          // if (
-          //   walletHoldername !== undefined &&
-          //   walletHoldername !== null &&
-          //   walletHoldername.length > 0
-          // ) {
-          //   await redisClient.hsetAsync(
-          //     `${APP_PREFIX_REDIS}:${sessionId}`,
-          //     "walletHoldername",
-          //     walletHoldername
-          //   );
-          // } else {
-          //   await redisClient.hsetAsync(
-          //     `${APP_PREFIX_REDIS}:${sessionId}`,
-          //     "walletHoldername",
-          //     "undefined"
-          //   );
-          //   walletHoldername = undefined;
-          // }
 
           if (walletStatus === "inactive") {
             redisClient
@@ -211,7 +189,7 @@ async function ActivateUser(phoneNumber, text, sessionId) {
       }
     } else {
       console.log("User entered wrong response");
-      response = "CON Invalid response\n\nEnter 0 to start over";
+      response = "CON Invalid response inputed\n\nEnter 0 Back to home menu";
       resolve(response);
     }
   });
@@ -243,14 +221,7 @@ async function NormalFlow(phoneNumber, text, sessionId) {
       response = servePayBillsRequest(phoneNumber, text, sessionId);
       resolve(response);
     } else if (text.startsWith("5")) {
-      // response = await resetPin(text, phoneNumber, sessionId);
-      // resolve(response);
-      await redisClient.incrAsync(
-        `${APP_PREFIX_REDIS}:reports:count:topMenu_LCC:${moment().format(
-          "DMMYYYY"
-        )}`
-      );
-      response = `CON Welcome!!!\nThis service is still under development, but please check back soon, we are always ready to serve you.\n\n0 Menu`;
+      response = await processLCC(phoneNumber, text, sessionId);
       resolve(response);
     } else if (text === "6") {
       await redisClient.incrAsync(
@@ -269,7 +240,7 @@ async function NormalFlow(phoneNumber, text, sessionId) {
       response = `CON Welcome!!!\nThis service is still under development, but please check back soon, we are always ready to serve you.\n\n0 Menu`;
       resolve(response);
     } else {
-      response = "CON Input a valid service option\n0 Main Menu";
+      response = "CON Input a valid service option\nEnter 0 Back to home menu";
       resolve(response);
     }
   });

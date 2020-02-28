@@ -67,7 +67,7 @@ async function fetchWalletDetails(phoneNumber) {
       .catch(e => {
         console.log(e);
         resolve(
-          "CON There was an error retrieving your wallet details\n\n0 Menu"
+          "CON There was an error retrieving your wallet details\n\nEnter 0 Back to home menu"
         );
       });
   });

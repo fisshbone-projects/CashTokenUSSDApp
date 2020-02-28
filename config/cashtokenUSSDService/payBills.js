@@ -27,7 +27,8 @@ async function servePayBillsRequest(phoneNumber, text, sessionId) {
       response = await processCableTv(phoneNumber);
       resolve(response);
     } else {
-      response = "CON Please input a valid service option\n0 Menu";
+      response =
+        "CON Please input a valid service option\n\nEnter 0 Back to home menu";
       resolve(response);
     }
   });
