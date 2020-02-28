@@ -192,23 +192,27 @@ async function ActivateUser(phoneNumber, text, sessionId) {
             resolve(response);
           } else if (isPinRepeating) {
             console.log("PIN is repeating i.e PIN is of type 1111");
-            response = `CON Repeated digit PINs are not allowed (e.g 1111).\nUse a different pattern of PIN\n\n0 Menu`;
+            response = `CON Repeated digit PINs are not allowed (e.g 1111).\nUse a different pattern of PIN\n\nEnter 0 to start over`;
             resolve(response);
           } else {
             console.log("PIN not between 4 to 12 digits");
-            response = `CON Your PIN can only be 4 to 12 digits long\n\n0 Menu`;
+            response = `CON Your PIN can only be 4 to 12 digits long\n\nEnter 0 to start over`;
             resolve(response);
           }
         } else {
           console.log("PIN containing non-digits");
-          response = `CON Your PIN can only be numbers\n\n0 Menu`;
+          response = `CON Your PIN can only be numbers\n\nEnter 0 to start over`;
           resolve(response);
         }
       } else {
         console.log("PIN not matching");
-        response = "CON Your PIN does not match\n\n0 Menu";
+        response = "CON Your PIN does not match\n\nEnter 0 to start over";
         resolve(response);
       }
+    } else {
+      console.log("User entered wrong response");
+      response = "CON Invalid response\n\nEnter 0 to start over";
+      resolve(response);
     }
   });
 }
