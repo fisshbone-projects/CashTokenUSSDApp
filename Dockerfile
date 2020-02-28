@@ -30,6 +30,14 @@ ARG infobip_url
 ENV INFOBIP_URL=$infobip_url
 ARG infobip_api_key
 ENV INFOBIP_API_KEY=$infobip_api_key
+ARG lcc_provider_code_prod
+ENV LCC_PROVIDER_CODE_PROD=$lcc_provider_code_prod
+ARG lcc_provider_code_staging
+ENV LCC_PROVIDER_CODE_STAGING=$lcc_provider_code_staging
+ARG lcc_toll_service_code_prod
+ENV LCC_TOLL_SERVICE_CODE_PROD=$lcc_toll_service_code_prod
+ARG lcc_toll_service_code_staging
+ENV LCC_TOLL_SERVICE_CODE_STAGING=$lcc_toll_service_code_staging
 COPY ./package.json /var/cashtokenussd/
 RUN npm install
 WORKDIR /var/cashtokenussd/

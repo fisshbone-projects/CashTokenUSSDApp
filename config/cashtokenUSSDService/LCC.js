@@ -1,5 +1,9 @@
 const { redisClient } = require("../redisConnectConfig");
-const { FelaMarketPlace, App } = require("../index");
+const {
+  FelaMarketPlace,
+  App,
+  LCC: { LCC_PROVIDER_CODE, LCC_TOLL_SERVICE_CODE }
+} = require("../index");
 const {
   APP_PREFIX_REDIS,
   formatNumber,
@@ -16,7 +20,7 @@ async function processLCC(phoneNumber, text, sessionId) {
     let response = "";
     let brokenDownText = text.split("*");
     brokenDownText.unshift("dummyInsert"); //This dummy input helps the code behave as though the LCC service was a sub menu
-    console.log(brokenDownText);
+    // console.log(brokenDownText);
     if (brokenDownText.length === 2) {
       await redisClient.incrAsync(
         `${APP_PREFIX_REDIS}:reports:count:topMenu_LCC:${moment().format(
@@ -239,13 +243,11 @@ async function confirmLCCAcountNo(accountNo) {
       .then(resp => {
         console.log(resp.data);
         if (resp.status === 200) {
-          //   if (
-          //     resp.data.message.includes("Meter number resolved successfully")
-          //   ) {
-          resolve(true);
-          //   } else {
-          //     resolve(false);
-          //   }
+          if (resp.data.message.includes("Account resolved successfully")) {
+            resolve(true);
+          } else {
+            resolve(false);
+          }
         } else {
           resolve(false);
         }
@@ -277,8 +279,8 @@ function processLCCPayment(
       },
       params: {
         account_number: `${lccAccountNo}`,
-        provider_code: `85`,
-        service_code: `533`,
+        provider_code: `${LCC_PROVIDER_CODE}`,
+        service_code: `${LCC_TOLL_SERVICE_CODE}`,
         amount: `${amount}`
         // passkey: `${walletPin}`
       },

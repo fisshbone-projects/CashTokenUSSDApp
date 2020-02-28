@@ -16,6 +16,16 @@ const Config = Object.freeze({
     REDIS_AUTH: process.env.REDIS_AUTH,
     REDIS_API_DATA_EXPIRE: process.env.REDIS_EXPIRE_API_INFO
   },
+  LCC: {
+    LCC_PROVIDER_CODE:
+      ENV === "production"
+        ? process.env.LCC_PROVIDER_CODE_PROD
+        : process.env.LCC_PROVIDER_CODE_STAGING,
+    LCC_TOLL_SERVICE_CODE:
+      ENV === "production"
+        ? process.env.LCC_TOLL_SERVICE_CODE_PROD
+        : process.env.LCC_TOLL_SERVICE_CODE_STAGING
+  },
   FelaMarketPlace: {
     BASE_URL:
       ENV === "production"
