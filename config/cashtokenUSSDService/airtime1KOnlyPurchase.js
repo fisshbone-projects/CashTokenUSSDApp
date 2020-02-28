@@ -13,6 +13,7 @@ const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 // const NAIRASIGN = "\u{020A6}";
 const NAIRASIGN = "N";
 const API_DATA_EXPIRE_TIME = parseInt(App.REDIS_API_DATA_EXPIRE);
+const moment = require("moment");
 
 async function process1KOnlyAirtime(text, phoneNumber, sessionId) {
   return new Promise(async resolve => {
