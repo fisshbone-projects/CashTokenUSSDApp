@@ -95,7 +95,8 @@ const WalletTypes = {
   "myFela Top-Up": "Fela Wallet",
   iSavings: "iSavings",
   "Guaranteed Cashback": "Instant Cash-back",
-  Wins: "Draw Win Balance"
+  Wins: "Draw Win Balance",
+  "bonus-cashback": "Bonus"
 };
 
 Object.freeze(WalletTypes);

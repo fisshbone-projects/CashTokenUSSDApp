@@ -6,22 +6,27 @@ const {
 const { processWalletCashout } = require("./walletCashoutService");
 
 async function processDirectDial(sessionId, userPhone, text) {
-  let directDialService = text.substring(0, 2);
-  let serviceOffering = detectDDService(directDialService);
-  let response = "";
+  try {
+    let directDialService = text.substring(0, 2);
+    let serviceOffering = detectDDService(directDialService);
+    let response = "";
 
-  let { status: userStatus } = await checkUserActivationStatus(userPhone);
-  if (userStatus === "active") {
-    switch (serviceOffering) {
-      case "CASHOUT":
-        response = await processWalletCashout(sessionId, userPhone, text);
-        break;
+    let { status: userStatus } = await checkUserActivationStatus(userPhone);
+    if (userStatus === "active") {
+      switch (serviceOffering) {
+        case "CASHOUT":
+          response = await processWalletCashout(sessionId, userPhone, text);
+          break;
+      }
+    } else {
+      response = `END You have reached CashToken Direct Dial Service.\nYour wallet is not activated.\nDial *347*999# to activate your wallet and then you use Direct Dial.`;
     }
-  } else {
-    response = `END You have reached CashToken Direct Dial Service.\nYour wallet is not activated.\nDial *347*999# to activate your wallet and then you use Direct Dial.`;
-  }
 
-  return response;
+    return response;
+  } catch (error) {
+    console.error(error);
+    return `END A processing error has occured.\nPlease try again`;
+  }
 }
 
 function detectDDService(serviceString) {
