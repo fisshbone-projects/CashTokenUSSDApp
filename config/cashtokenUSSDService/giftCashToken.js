@@ -29,7 +29,7 @@ async function processGiftCashToken(phoneNumber, text, sessionId) {
       );
       resolve(response);
     } else {
-      response = "CON An error occured, please try again\n\n0 Menu";
+      response = "CON Error!\nInvalid input\n\nEnter 0 to start over";
       resolve(response);
     }
   });
@@ -236,7 +236,7 @@ async function giftCashTokenFlow(brokenDownText, phoneNumber, sessionId) {
       response = `CON Transaction Cancelled!\n\n0 Menu`;
       resolve(response);
     } else {
-      response = "CON An error occured, please try again\n\n0 Menu";
+      response = "CON Error!\nInvalid input\n\nEnter 0 to start over";
       resolve(response);
     }
   });
@@ -307,7 +307,7 @@ function processCashTokenPurchase(
             )}`
           );
           resolve(
-            `CON To complete your transaction, dial *${chosenUSSDBankCode}*000*${paymentToken}#\nPlease note that this USSD String will expire in the next 5 minutes.\n\n 0 Menu`
+            `CON Ur Bank is *${chosenUSSDBankCode}#\nNever 4GET *000*\nTrans Code is ${paymentToken}\nRem last 4 Digits!\n\nDial2Pay *${chosenUSSDBankCode}*000*${paymentToken}#\nExpires in 5mins\n\nCashback\nWin N5k-100m\n\n0 Menu`
           );
       }
     } catch (error) {

@@ -11,7 +11,7 @@ async function resetPin(text, phoneNumber, sessionId) {
     let response = "";
     let brokenDownText = text.split("*");
 
-    if (brokenDownText.length === 2 && brokenDownText[1] === "3") {
+    if (brokenDownText.length === 2 && brokenDownText[1] === "4") {
       await redisClient.incrAsync(
         `${APP_PREFIX_REDIS}:reports:count:subMenu_Reset_Pin:${moment().format(
           "DMMYYYY"
