@@ -13,20 +13,26 @@ const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 
 async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
   let response = await new Promise(async (resolve, reject) => {
-    let walletStatus = await redisClient.hgetAsync(
-      `${APP_PREFIX_REDIS}:userWalletStatus`,
-      `${phoneNumber}`
-    );
+    let walletStatus = await checkCachedWalletStatus(phoneNumber);
 
     if (walletStatus === null) {
       console.log("Getting walletStatus from ESPI newly ");
       let { status } = await checkWalletStatus(phoneNumber);
       walletStatus = status;
-      await redisClient.hset(
-        `${APP_PREFIX_REDIS}:userWalletStatus`,
-        `${phoneNumber}`,
-        `${status}`
-      );
+      if (status === "active") {
+        redisClient.sadd(`${APP_PREFIX_REDIS}:activeWallets`, `${phoneNumber}`);
+      } else if (status === "inactive") {
+        redisClient.setex(
+          `${APP_PREFIX_REDIS}:${phoneNumber}:inactive`,
+          600,
+          "inactive"
+        );
+      }
+      // await redisClient.hset(
+      //   `${APP_PREFIX_REDIS}:userWalletStatus`,
+      //   `${phoneNumber}`,
+      //   `${status}`
+      // );
     } else {
       console.log("We got walletStatus from cached record");
     }
@@ -54,7 +60,7 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
                 "inactive"
               )
               .then(() => {
-                redisClient.expire(`${APP_PREFIX_REDIS}:${sessionId}`, 300);
+                redisClient.expire(`${APP_PREFIX_REDIS}:${sessionId}`, 420); //Save the sessionID Temp details for 7 minutes
               });
             let response = await ActivateUser(phoneNumber, text, sessionId);
             resolve(response);
@@ -66,13 +72,13 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
                 "active"
               )
               .then(() => {
-                redisClient.expire(`${APP_PREFIX_REDIS}:${sessionId}`, 300);
+                redisClient.expire(`${APP_PREFIX_REDIS}:${sessionId}`, 420); //Save the sessionID Temp details for 7 minutes
               });
 
             let response = await NormalFlow(phoneNumber, text, sessionId);
             resolve(response);
           } else {
-            let response = `END Welcome to AirtelThanks CashToken Rewards!\nSorry, our service is temporarily unavailable.\nPlease try again.`;
+            let response = `END Welcome to MyBankUSSD\nSorry, our service is temporarily unavailable.\nPlease try again.`;
 
             await redisClient.hdel(
               `${APP_PREFIX_REDIS}:userWalletStatus`,
@@ -281,10 +287,9 @@ async function activateWalletCall(sessionId, phoneNumber, walletPin) {
             "active"
           )
           .then(async () => {
-            await redisClient.hset(
-              `${APP_PREFIX_REDIS}:userWalletStatus`,
-              `${phoneNumber}`,
-              `active`
+            await redisClient.sadd(
+              `${APP_PREFIX_REDIS}:activeWallets`,
+              `${phoneNumber}`
             );
             await redisClient.incrAsync(
               `${APP_PREFIX_REDIS}:reports:count:global_activatedUsers:${moment().format(
@@ -307,6 +312,27 @@ async function activateWalletCall(sessionId, phoneNumber, walletPin) {
         let feedback = `END Wallet Activation Failed!\nPlease try again`;
         resolve(feedback);
       });
+  });
+}
+
+async function checkCachedWalletStatus(phoneNumber) {
+  return new Promise(async resolve => {
+    let isActive = await redisClient.sismemberAsync(
+      `${APP_PREFIX_REDIS}:activeWallets`,
+      `${phoneNumber}`
+    );
+
+    let isInActive = await redisClient.existsAsync(
+      `${APP_PREFIX_REDIS}:${phoneNumber}:inactive`
+    );
+
+    if (isActive === 1) {
+      resolve("active");
+    } else if (isInActive === 1) {
+      resolve("inactive");
+    } else {
+      resolve(null);
+    }
   });
 }
 

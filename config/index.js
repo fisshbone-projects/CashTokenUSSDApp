@@ -57,6 +57,6 @@ const Config = Object.freeze({
   }
 });
 
-console.log(Config);
+// console.log(Config);
 
 module.exports = Config;
