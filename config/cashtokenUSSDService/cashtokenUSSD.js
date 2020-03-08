@@ -7,6 +7,7 @@ const { process1KOnlyAirtime } = require("./airtime1KOnlyPurchase");
 const { processData } = require("./dataPurchase");
 const { servePayBillsRequest } = require("./payBills");
 const { processLCC } = require("./LCC");
+const { processGiftCashToken } = require("./giftCashToken");
 const { checkPinForRepetition, APP_PREFIX_REDIS } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
@@ -229,13 +230,8 @@ async function NormalFlow(phoneNumber, text, sessionId) {
     } else if (text.startsWith("5")) {
       response = await processLCC(phoneNumber, text, sessionId);
       resolve(response);
-    } else if (text === "6") {
-      await redisClient.incrAsync(
-        `${APP_PREFIX_REDIS}:reports:count:topMenu_GiftCashToken:${moment().format(
-          "DMMYYYY"
-        )}`
-      );
-      response = `CON Welcome!!!\nThis service is still under development, but please check back soon, we are always ready to serve you.\n\n0 Menu`;
+    } else if (text.startsWith("6")) {
+      response = await processGiftCashToken(phoneNumber, text, sessionId);
       resolve(response);
     } else if (text === "7") {
       await redisClient.incrAsync(
