@@ -349,13 +349,21 @@ async function checkWalletStatus(phoneNumber) {
       })
       .catch(e => {
         // console.log(e);
-        if (e.response.status === 404) {
-          console.log(e.response.data);
-          console.log("Response about user: User not profiled");
-          resolve({ status: "inactive" });
+        if (e.response) {
+          if (e.response.status === 404) {
+            if (e.response.data) {
+              console.log(e.response.data);
+            }
+            console.log("Response about user: User not profiled");
+            resolve({ status: "inactive" });
+          } else {
+            console.log("Could not get response from ESPI");
+            console.log(e);
+            resolve({ status: "returnError" });
+          }
         } else {
           console.log("Could not get response from ESPI");
-          console.log(e.response.data);
+          console.log(e);
           resolve({ status: "returnError" });
         }
       });

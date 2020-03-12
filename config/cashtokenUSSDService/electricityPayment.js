@@ -448,7 +448,6 @@ function processElectricityPayment(
         provider_code: `${providerCode}`,
         service_code: `${serviceCode}`,
         amount: `${amount}`
-        // passkey: `${walletPin}`
       },
       user: {
         sessionId: `${sessionId}`,
@@ -495,7 +494,13 @@ function processElectricityPayment(
     } catch (error) {
       console.log("error");
       console.log(JSON.stringify(error.response.data, null, 2));
-      resolve(`CON Transaction Failed!!!\n\nEnter 0 Back to home menu`);
+      if (!!error.response) {
+        resolve(
+          `CON Transaction Failed!\n${error.response.data.message}\n\nEnter 0 Back to home menu`
+        );
+      } else {
+        resolve(`CON Transaction Failed!\n\nEnter 0 Back to home menu`);
+      }
     }
   });
 }

@@ -324,37 +324,14 @@ async function makeWalletWithdrawal(
       })
       .catch(error => {
         console.log("error");
-        // console.log(error);
-        console.log("Error Status: ", error.response.status);
-        console.log(
-          "Error Data: ",
-          JSON.stringify(error.response.data, null, 2)
-        );
-
-        let feedback = `CON Transaction Failed!`;
-        if (error.response.status === 424) {
-          if (
-            error.response.data.message.includes("Insufficient user balance")
-          ) {
-            feedback += `\n${error.response.data.message}\n\nEnter 0 Back to home menu`;
-          } else if (
-            error.response.data.message.includes("authentication failed")
-          ) {
-            feedback += `\n${error.response.data.message}\n\nEnter 0 Back to home menu`;
-          }
-          // else if (error.response.data.message.includes("Blocked Funds")) {
-          //   // if (isUserATopWinner) {
-          //   feedback = `CON Congrats!!! Visit the Airtel Office at Banana Island Ikoyi Lagos to claim your cash or call 111.\n\n0 Menu`;
-          //   // }
-          // }
-          else {
-            feedback += `\n\nEnter 0 Back to home menu`;
-          }
+        console.log(JSON.stringify(error.response.data, null, 2));
+        if (!!error.response) {
+          resolve(
+            `CON Transaction Failed!\n${error.response.data.message}\n\nEnter 0 Back to home menu`
+          );
         } else {
-          feedback += `\n\nEnter 0 Back to home menu`;
+          resolve(`CON Transaction Failed!\n\nEnter 0 Back to home menu`);
         }
-
-        resolve(feedback);
       });
   });
 }

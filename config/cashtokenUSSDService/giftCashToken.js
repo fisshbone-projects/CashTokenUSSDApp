@@ -263,8 +263,7 @@ function processCashTokenPurchase(
       params: {
         recipient: `${numberToCredit}`,
         qty: `${amount}`,
-        mode: "buyAndGift",
-        passkey: `${walletPin}`
+        mode: "buyAndGift"
       },
       user: {
         sessionId: `${sessionId}`,
@@ -313,12 +312,12 @@ function processCashTokenPurchase(
     } catch (error) {
       console.log("error");
       console.log(JSON.stringify(error.response.data, null, 2));
-      if (error.response.data.code === 422) {
+      if (!!error.response) {
         resolve(
-          `CON Transaction Failed!\n${error.response.data.data.message}\n\n0 Menu`
+          `CON Transaction Failed!\n${error.response.data.message}\n\nEnter 0 Back to home menu`
         );
       } else {
-        resolve(`CON Transaction Failed!\nPlease try again later\n0 Menu`);
+        resolve(`CON Transaction Failed!\n\nEnter 0 Back to home menu`);
       }
     }
   });

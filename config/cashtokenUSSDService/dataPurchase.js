@@ -474,8 +474,7 @@ function processDataPurchase(
       params: {
         account_id: `${numberToCredit}`,
         bundle_code: `${dataPlanCode}`,
-        network: "Airtel",
-        passkey: `${walletPin}`
+        network: "Airtel"
       },
       user: {
         sessionId: `${sessionId}`,
@@ -500,12 +499,12 @@ function processDataPurchase(
       .catch(error => {
         console.log("error");
         console.log(JSON.stringify(error.response.data, null, 2));
-        if (error.response.data.code === 422) {
+        if (!!error.response) {
           resolve(
-            `CON Transaction Failed!\nInsufficient user balance\n\n0 Menu`
+            `CON Transaction Failed!\n${error.response.data.message}\n\nEnter 0 Back to home menu`
           );
         } else {
-          resolve(`CON Transaction Failed!\n\n0 Menu`);
+          resolve(`CON Transaction Failed!\n\nEnter 0 Back to home menu`);
         }
       });
   });

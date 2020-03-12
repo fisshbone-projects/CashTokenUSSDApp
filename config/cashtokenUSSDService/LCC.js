@@ -282,7 +282,6 @@ function processLCCPayment(
         provider_code: `${LCC_PROVIDER_CODE}`,
         service_code: `${LCC_TOLL_SERVICE_CODE}`,
         amount: `${amount}`
-        // passkey: `${walletPin}`
       },
       user: {
         sessionId: `${sessionId}`,
@@ -327,9 +326,15 @@ function processLCCPayment(
         // );
       }
     } catch (error) {
-      console.error("error");
-      console.error(JSON.stringify(error.response.data, null, 2));
-      resolve(`CON Transaction Failed!!!\n\nEnter 0 Back to home menu`);
+      console.log("error");
+      console.log(JSON.stringify(error.response.data, null, 2));
+      if (!!error.response) {
+        resolve(
+          `CON Transaction Failed!\n${error.response.data.message}\n\nEnter 0 Back to home menu`
+        );
+      } else {
+        resolve(`CON Transaction Failed!\n\nEnter 0 Back to home menu`);
+      }
     }
   });
 }

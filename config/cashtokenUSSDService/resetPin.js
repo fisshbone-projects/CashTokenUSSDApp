@@ -101,10 +101,15 @@ async function resetPinCall(sessionId, phoneNumber, walletPin) {
         let feedback = `CON Your PIN has been reset successfully!\n\nEnter 0 Back to home menu`;
         resolve(feedback);
       })
-      .catch(resp => {
-        console.log(resp);
-        let feedback = `CON PIN reset failed!\n\nEnter 0 Back to home menu`;
-        resolve(feedback);
+      .catch(error => {
+        console.log(JSON.stringify(error.response.data, null, 2));
+        if (!!error.response) {
+          resolve(
+            `CON PIN reset failed!\n${error.response.data.message}\n\nEnter 0 Back to home menu`
+          );
+        } else {
+          resolve(`CON PIN reset failed!\n\nEnter 0 Back to home menu`);
+        }
       });
   });
 }

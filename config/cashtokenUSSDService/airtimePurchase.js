@@ -406,8 +406,7 @@ function processAirtimePurchase(
       params: {
         recipient: `${recipentNumber}`,
         amount: `${airtimeAmount}`,
-        network: `${providerCode}`,
-        passkey: `${walletPin}`
+        network: `${providerCode}`
       },
       user: {
         sessionId: `${sessionId}`,
@@ -462,9 +461,9 @@ function processAirtimePurchase(
     } catch (error) {
       console.log("error");
       console.log(JSON.stringify(error.response.data, null, 2));
-      if (error.response.data.code === 422) {
+      if (!!error.response) {
         resolve(
-          `CON Transaction Failed!\nInsufficient user balance\n\nEnter 0 Back to home menu`
+          `CON Transaction Failed!\n${error.response.data.message}\n\nEnter 0 Back to home menu`
         );
       } else {
         resolve(`CON Transaction Failed!\n\nEnter 0 Back to home menu`);

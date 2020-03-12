@@ -353,8 +353,7 @@ function processAirtimePurchase(
       params: {
         recipient: `${phoneNumber}`,
         amount: "1000",
-        network: `${providerCode}`,
-        passkey: ""
+        network: `${providerCode}`
       },
       user: {
         sessionId: `${sessionId}`,
@@ -393,8 +392,13 @@ function processAirtimePurchase(
     } catch (error) {
       console.log("error");
       console.log(JSON.stringify(error.response.data, null, 2));
-
-      resolve(`CON Transaction Failed!\n\nEnter 0 Back to home menu`);
+      if (!!error.response) {
+        resolve(
+          `CON Transaction Failed!\n${error.response.data.message}\n\nEnter 0 Back to home menu`
+        );
+      } else {
+        resolve(`CON Transaction Failed!\n\nEnter 0 Back to home menu`);
+      }
     }
   });
 }
