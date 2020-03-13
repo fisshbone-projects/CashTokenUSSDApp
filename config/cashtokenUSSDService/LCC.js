@@ -233,7 +233,7 @@ async function confirmLCCAcountNo(accountNo) {
   return new Promise(resolve => {
     axios
       .get(
-        `${FelaMarketPlace.BASE_URL}/info/tollAccountNo?provider_code=85&account_id=${accountNo}`,
+        `${FelaMarketPlace.BASE_URL}/info/tollAccountNo?provider_code=${LCC_PROVIDER_CODE}&account_id=${accountNo}`,
         {
           headers: {
             Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER} `
