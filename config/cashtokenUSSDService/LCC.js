@@ -34,7 +34,7 @@ async function processLCC(phoneNumber, text, sessionId) {
       let lccAccountNo = brokenDownText[2];
       let confirmLCCNo = await confirmLCCAcountNo(lccAccountNo);
 
-      if (confirmLCCAcountNo) {
+      if (confirmLCCNo) {
         await redisClient.hsetAsync(
           `${APP_PREFIX_REDIS}:${sessionId}`,
           "lccAccountNo",
