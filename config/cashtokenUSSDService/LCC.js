@@ -307,7 +307,9 @@ function processLCCPayment(
             "DMMYYYY"
           )}`
         );
-        resolve(`CON Payment was successful!\n\nEnter 0 Back to home menu`);
+        resolve(
+          `CON Dear Customer, your payment was successful!\n\nEnter 0 Back to home menu`
+        );
       } else {
         console.log("Getting response from coral pay");
         await redisClient.incrAsync(

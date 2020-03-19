@@ -493,7 +493,7 @@ function processDataPurchase(
         console.log(JSON.stringify(response.data, null, 2));
         // console.log(response)
         resolve(
-          `CON Dear Customer your line ${numberToCredit} has been credited with ${dataPlanName} of Data\n\n0 Menu`
+          `CON Dear Customer, your line ${numberToCredit} has been credited with ${dataPlanName} of Data\n\n0 Menu`
         );
       })
       .catch(error => {

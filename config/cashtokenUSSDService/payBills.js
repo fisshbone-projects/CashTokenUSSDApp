@@ -24,7 +24,7 @@ async function servePayBillsRequest(phoneNumber, text, sessionId) {
       response = await processElectricity(phoneNumber, text, sessionId);
       resolve(response);
     } else if (text.startsWith("4*2")) {
-      response = await processCableTv(phoneNumber);
+      response = await processCableTv(phoneNumber, text, sessionId);
       resolve(response);
     } else {
       response =
