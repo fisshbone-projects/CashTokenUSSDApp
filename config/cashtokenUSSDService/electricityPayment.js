@@ -88,7 +88,8 @@ async function processElectricity(phoneNumber, text, sessionId) {
       let checkMeterNo = await confirmMeterNo(
         meterNumber,
         electricPlan,
-        discoCode
+        discoCode,
+        sessionId
       );
       if (checkMeterNo) {
         console.log("Meter No. is valid");
@@ -107,15 +108,32 @@ async function processElectricity(phoneNumber, text, sessionId) {
       //Enter meter number
     } else if (brokenDownText.length === 6) {
       let amount = brokenDownText[5];
-      if (/^[0-9]*$/.test(amount)) {
-        await redisClient.hsetAsync(
-          `${APP_PREFIX_REDIS}:${sessionId}`,
-          "amount",
-          `${amount}`
-        );
+      let minimumAmount = await redisClient.hgetAsync(
+        `${APP_PREFIX_REDIS}:${sessionId}`,
+        "electrityMinAmount"
+      );
 
-        response = `CON Select payment method:\n1 My Wallet\n2 MyBankUSSD`;
-        resolve(response);
+      if (/^[0-9]*$/.test(amount)) {
+        if (parseInt(amount) >= parseInt(minimumAmount)) {
+          await redisClient.hsetAsync(
+            `${APP_PREFIX_REDIS}:${sessionId}`,
+            "amount",
+            `${amount}`
+          );
+
+          response = `CON Select payment method:\n1 My Wallet\n2 MyBankUSSD`;
+          resolve(response);
+        } else {
+          console.log(
+            "Amount inputted is less than the discos minimum amount that can be bought"
+          );
+          response = `CON Error!\nAmount inputted (N${parseInt(
+            amount
+          )}) is less than the minimum amount you can pay (N${parseInt(
+            minimumAmount
+          )})\n\n0 Menu`;
+          resolve(response);
+        }
       } else {
         console.log("Amount inputed is invalid");
         response = `CON Error!\nAmount can only be numbers\n\nEnter 0 to start over`;
@@ -306,7 +324,7 @@ async function processElectricity(phoneNumber, text, sessionId) {
   });
 }
 
-async function confirmMeterNo(meterNumber, electricPlan, discoCode) {
+async function confirmMeterNo(meterNumber, electricPlan, discoCode, sessionId) {
   return new Promise(resolve => {
     console.log(electricPlan, discoCode, meterNumber);
     axios
@@ -318,12 +336,19 @@ async function confirmMeterNo(meterNumber, electricPlan, discoCode) {
           }
         }
       )
-      .then(resp => {
+      .then(async resp => {
         console.log(resp.data);
         if (resp.status === 200) {
           if (
             resp.data.message.includes("Meter number resolved successfully")
           ) {
+            let minimumAmount = parseInt(resp.data.data.customer.minimumAmount);
+            await redisClient.hsetAsync(
+              `${APP_PREFIX_REDIS}:${sessionId}`,
+              "electrityMinAmount",
+              `${minimumAmount}`
+            );
+
             resolve(true);
           } else {
             resolve(false);
