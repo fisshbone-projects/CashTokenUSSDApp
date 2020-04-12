@@ -4,7 +4,7 @@ const { FelaMarketPlace } = require("../index");
 const { redeem_wallet } = require("./redeem_wallet");
 const { processAirtime } = require("./airtimePurchase");
 const { process1KOnlyAirtime } = require("./airtime1KOnlyPurchase");
-const { processData } = require("./dataPurchase");
+const { processData } = require("./dataBundlePurchase");
 const { servePayBillsRequest } = require("./payBills");
 const { processLCC } = require("./LCC");
 const { processGiftCashToken } = require("./giftCashToken");
@@ -209,7 +209,7 @@ async function NormalFlow(phoneNumber, text, sessionId) {
     if (text === "") {
       console.log("Welcome page");
 
-      response = `CON MyBankUSSD\nCashTokenRewards\n\n1 Redeem/Wallet\n2 Airtime\n3 Airtime (N1000)\n4 PayBills\n5 LCC\n6 GiftCashToken\n7 BorrowPower\n\nWin up to  5K-100M Weekly`;
+      response = `CON MyBankUSSD\nCashTokenRewards\n\n1 Redeem/Wallet\n2 Airtime\n3 Airtime (N1000)\n4 Data\n5 PayBills\n6 LCC\n7 GiftCashToken\n 8 BorrowPower\n\nBuy&Win 5K-100M`;
       resolve(response);
     } else if (text.startsWith("1")) {
       response = await redeem_wallet(text, phoneNumber, sessionId);
@@ -221,16 +221,19 @@ async function NormalFlow(phoneNumber, text, sessionId) {
       response = await process1KOnlyAirtime(text, phoneNumber, sessionId);
       resolve(response);
     } else if (text.startsWith("4")) {
-      response = servePayBillsRequest(phoneNumber, text, sessionId);
+      response = processData(text, phoneNumber, sessionId);
       resolve(response);
     } else if (text.startsWith("5")) {
+      response = servePayBillsRequest(phoneNumber, text, sessionId);
+      resolve(response);
+    } else if (text.startsWith("6")) {
       response = `CON Welcome!\nThis service is currently unavailable at the moment.\nPlease check again soon.\n\n0 Menu`;
       // response = await processLCC(phoneNumber, text, sessionId);
       resolve(response);
-    } else if (text.startsWith("6")) {
+    } else if (text.startsWith("7")) {
       response = await processGiftCashToken(phoneNumber, text, sessionId);
       resolve(response);
-    } else if (text === "7") {
+    } else if (text === "8") {
       await redisClient.incrAsync(
         `${APP_PREFIX_REDIS}:reports:count:topMenu_BorrowPower:${moment().format(
           "DMMYYYY"

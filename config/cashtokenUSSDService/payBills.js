@@ -12,7 +12,7 @@ const { APP_PREFIX_REDIS } = require("../utils");
 async function servePayBillsRequest(phoneNumber, text, sessionId) {
   return new Promise(async resolve => {
     let response = "";
-    if (text === "4") {
+    if (text === "5") {
       await redisClient.incrAsync(
         `${APP_PREFIX_REDIS}:reports:count:topMenu_PayBills:${moment().format(
           "DMMYYYY"
@@ -20,10 +20,10 @@ async function servePayBillsRequest(phoneNumber, text, sessionId) {
       );
       response = `CON 1 Pay Electricity Bills\n2 Pay CableTV Bills\n0 Main Menu`;
       resolve(response);
-    } else if (text.startsWith("4*1")) {
+    } else if (text.startsWith("5*1")) {
       response = await processElectricity(phoneNumber, text, sessionId);
       resolve(response);
-    } else if (text.startsWith("4*2")) {
+    } else if (text.startsWith("5*2")) {
       response = await processCableTv(phoneNumber, text, sessionId);
       resolve(response);
     } else {

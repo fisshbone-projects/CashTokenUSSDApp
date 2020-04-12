@@ -19,7 +19,7 @@ async function processGiftCashToken(phoneNumber, text, sessionId) {
   return new Promise(async (resolve, reject) => {
     console.log("Starting CashToken Purchase Process");
     let response = "";
-    if (text.startsWith("6")) {
+    if (text.startsWith("7")) {
       let brokenDownText = text.split("*");
       brokenDownText.unshift("dummyInsert");
       response = await giftCashTokenFlow(

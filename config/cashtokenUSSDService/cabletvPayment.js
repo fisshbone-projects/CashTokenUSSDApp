@@ -608,33 +608,39 @@ async function menuFlowDisplaySummary(brokenDownText, sessionId, providerName) {
             chosenUSSDBank = parseInt(brokenDownText[8], 10);
           }
 
-          let chosenUSSDBankName = Object.keys(MYBANKUSSD_BANK_CODES)[
-            chosenUSSDBank - 1
-          ];
-          let chosenUSSDBankCode = Object.values(MYBANKUSSD_BANK_CODES)[
-            chosenUSSDBank - 1
-          ];
-          await redisClient.hmsetAsync(
-            `${APP_PREFIX_REDIS}:${sessionId}`,
-            "chosenUSSDBankName",
-            chosenUSSDBankName,
-            "chosenUSSDBankCode",
-            chosenUSSDBankCode,
-            "ussdState",
-            "makePayment"
-          );
+          if (chosenUSSDBank <= Object.values(MYBANKUSSD_BANK_CODES).length) {
+            let chosenUSSDBankName = Object.keys(MYBANKUSSD_BANK_CODES)[
+              chosenUSSDBank - 1
+            ];
+            let chosenUSSDBankCode = Object.values(MYBANKUSSD_BANK_CODES)[
+              chosenUSSDBank - 1
+            ];
+            await redisClient.hmsetAsync(
+              `${APP_PREFIX_REDIS}:${sessionId}`,
+              "chosenUSSDBankName",
+              chosenUSSDBankName,
+              "chosenUSSDBankCode",
+              chosenUSSDBankCode,
+              "ussdState",
+              "makePayment"
+            );
 
-          response = `CON Confirm CableTV Payment:\nProvider: ${cableProviderName}\nBouquet: ${cableBouquetName}\nCardNo: ${cableCardNo}\nPrice: ${formatNumber(
-            bouquetPrice
-          )}\nPayMethod: ${
-            chosenUSSDBankName.includes("bank") ||
-            chosenUSSDBankName == "GTB" ||
-            chosenUSSDBankName == "FBN" ||
-            chosenUSSDBankName == "UBA"
-              ? chosenUSSDBankName
-              : `${chosenUSSDBankName}`
-          }\n\n1 Confirm\n2 Cancel`;
-          resolve(response);
+            response = `CON Confirm CableTV Payment:\nProvider: ${cableProviderName}\nBouquet: ${cableBouquetName}\nCardNo: ${cableCardNo}\nPrice: ${formatNumber(
+              bouquetPrice
+            )}\nPayMethod: ${
+              chosenUSSDBankName.includes("bank") ||
+              chosenUSSDBankName == "GTB" ||
+              chosenUSSDBankName == "FBN" ||
+              chosenUSSDBankName == "UBA"
+                ? chosenUSSDBankName
+                : `${chosenUSSDBankName}`
+            }\n\n1 Confirm\n2 Cancel`;
+            resolve(response);
+          } else {
+            console.log("Invalid myBankUSSD bank inputted");
+            response = `CON Error!\nSelect a valid bank\n\nEnter 0 to start over`;
+            resolve(response);
+          }
         }
         break;
 
@@ -686,33 +692,40 @@ async function menuFlowDisplaySummary(brokenDownText, sessionId, providerName) {
           );
 
           let chosenUSSDBank = parseInt(brokenDownText[6], 10);
-          let chosenUSSDBankName = Object.keys(MYBANKUSSD_BANK_CODES)[
-            chosenUSSDBank - 1
-          ];
-          let chosenUSSDBankCode = Object.values(MYBANKUSSD_BANK_CODES)[
-            chosenUSSDBank - 1
-          ];
-          await redisClient.hmsetAsync(
-            `${APP_PREFIX_REDIS}:${sessionId}`,
-            "chosenUSSDBankName",
-            chosenUSSDBankName,
-            "chosenUSSDBankCode",
-            chosenUSSDBankCode,
-            "ussdState",
-            "makePayment"
-          );
 
-          response = `CON Confirm CableTV Payment:\nProvider: ${cableProviderName}\nBouquet: ${cableBouquetName}\nCardNo: ${cableCardNo}\nPrice: ${formatNumber(
-            bouquetPrice
-          )}\nPayMethod: ${
-            chosenUSSDBankName.includes("bank") ||
-            chosenUSSDBankName == "GTB" ||
-            chosenUSSDBankName == "FBN" ||
-            chosenUSSDBankName == "UBA"
-              ? chosenUSSDBankName
-              : `${chosenUSSDBankName}`
-          }\n\n1 Confirm\n2 Cancel`;
-          resolve(response);
+          if (chosenUSSDBank <= Object.values(MYBANKUSSD_BANK_CODES).length) {
+            let chosenUSSDBankName = Object.keys(MYBANKUSSD_BANK_CODES)[
+              chosenUSSDBank - 1
+            ];
+            let chosenUSSDBankCode = Object.values(MYBANKUSSD_BANK_CODES)[
+              chosenUSSDBank - 1
+            ];
+            await redisClient.hmsetAsync(
+              `${APP_PREFIX_REDIS}:${sessionId}`,
+              "chosenUSSDBankName",
+              chosenUSSDBankName,
+              "chosenUSSDBankCode",
+              chosenUSSDBankCode,
+              "ussdState",
+              "makePayment"
+            );
+
+            response = `CON Confirm CableTV Payment:\nProvider: ${cableProviderName}\nBouquet: ${cableBouquetName}\nCardNo: ${cableCardNo}\nPrice: ${formatNumber(
+              bouquetPrice
+            )}\nPayMethod: ${
+              chosenUSSDBankName.includes("bank") ||
+              chosenUSSDBankName == "GTB" ||
+              chosenUSSDBankName == "FBN" ||
+              chosenUSSDBankName == "UBA"
+                ? chosenUSSDBankName
+                : `${chosenUSSDBankName}`
+            }\n\n1 Confirm\n2 Cancel`;
+            resolve(response);
+          } else {
+            console.log("Invalid myBankUSSD bank inputted");
+            response = `CON Error!\nSelect a valid bank\n\nEnter 0 to start over`;
+            resolve(response);
+          }
         }
         break;
     }
@@ -1176,12 +1189,12 @@ function processCableTVPayment(
         let paymentToken = response.data.data.paymentToken;
         // console.log(response.data);
 
-        resolve(
-          `CON Ur Bank is *${chosenUSSDBankCode}#\nNever 4GET *000*\nTrans Code is ${paymentToken}\nRem last 4 Digits!\n\nDial2Pay *${chosenUSSDBankCode}*000*${paymentToken}#\nExpires in 5mins\n\nCashback\nWin N5k-100m\n\n0 Menu`
-        );
         // resolve(
-        //   `CON To complete your transaction, dial *${chosenUSSDBankCode}*000*${paymentToken}#\nPlease note that this USSD String will expire in the next 5 minutes.\n\n 0 Menu`
+        //   `CON Ur Bank is *${chosenUSSDBankCode}#\nNever 4GET *000*\nTrans Code is ${paymentToken}\nRem last 4 Digits!\n\nDial2Pay *${chosenUSSDBankCode}*000*${paymentToken}#\nExpires in 5mins\n\nCashback\nWin N5k-100m\n\n0 Menu`
         // );
+        resolve(
+          `CON To complete your transaction, dial *${chosenUSSDBankCode}*000*${paymentToken}#\nPlease note that this USSD String will expire in the next 5 minutes.\n\n 0 Menu`
+        );
       }
     } catch (error) {
       console.log("error");
