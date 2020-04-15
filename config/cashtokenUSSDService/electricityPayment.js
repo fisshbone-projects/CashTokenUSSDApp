@@ -3,7 +3,8 @@ const { FelaMarketPlace, App } = require("../index");
 const {
   APP_PREFIX_REDIS,
   formatNumber,
-  MYBANKUSSD_BANK_CODES
+  MYBANKUSSD_BANK_CODES,
+  expireReportsInRedis
 } = require("../utils");
 const moment = require("moment");
 const axios = require("axios");
@@ -17,6 +18,11 @@ async function processElectricity(phoneNumber, text, sessionId) {
     let brokenDownText = text.split("*");
     if (brokenDownText.length === 2) {
       await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:subMenu_PurchaseElectricity:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
+      expireReportsInRedis(
         `${APP_PREFIX_REDIS}:reports:count:subMenu_PurchaseElectricity:${moment().format(
           "DMMYYYY"
         )}`
@@ -498,11 +504,43 @@ function processElectricityPayment(
             "DMMYYYY"
           )}`
         );
+        expireReportsInRedis(
+          `${APP_PREFIX_REDIS}:reports:count:purchases_ElectricityWithWallet:${moment().format(
+            "DMMYYYY"
+          )}`
+        );
+        await redisClient.incrbyAsync(
+          `${APP_PREFIX_REDIS}:reports:count:totalValue_ElectricityWithWallet:${moment().format(
+            "DMMYYYY"
+          )}`,
+          parseInt(amount)
+        );
+        expireReportsInRedis(
+          `${APP_PREFIX_REDIS}:reports:count:totalValue_ElectricityWithWallet:${moment().format(
+            "DMMYYYY"
+          )}`
+        );
         resolve(`CON Dear Customer, your payment was successful!\n\n0 Menu`);
       } else {
         console.log("Getting response from coral pay");
         await redisClient.incrAsync(
           `${APP_PREFIX_REDIS}:reports:count:purchases_ElectricityWithMyBankUSSD:${moment().format(
+            "DMMYYYY"
+          )}`
+        );
+        expireReportsInRedis(
+          `${APP_PREFIX_REDIS}:reports:count:purchases_ElectricityWithMyBankUSSD:${moment().format(
+            "DMMYYYY"
+          )}`
+        );
+        await redisClient.incrbyAsync(
+          `${APP_PREFIX_REDIS}:reports:count:totalValue_ElectricityWithMyBankUSSD:${moment().format(
+            "DMMYYYY"
+          )}`,
+          parseInt(amount)
+        );
+        expireReportsInRedis(
+          `${APP_PREFIX_REDIS}:reports:count:totalValue_ElectricityWithMyBankUSSD:${moment().format(
             "DMMYYYY"
           )}`
         );

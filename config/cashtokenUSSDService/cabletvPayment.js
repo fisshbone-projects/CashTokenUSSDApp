@@ -3,7 +3,8 @@ const { FelaMarketPlace, App } = require("../index");
 const {
   APP_PREFIX_REDIS,
   formatNumber,
-  MYBANKUSSD_BANK_CODES
+  MYBANKUSSD_BANK_CODES,
+  expireReportsInRedis
 } = require("../utils");
 const moment = require("moment");
 const axios = require("axios");
@@ -98,6 +99,11 @@ async function menuFlowDisplayProviders(brokenDownText) {
     let response = "";
     if (brokenDownText.length === 2) {
       await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:subMenu_PayForCableTV:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
+      expireReportsInRedis(
         `${APP_PREFIX_REDIS}:reports:count:subMenu_PayForCableTV:${moment().format(
           "DMMYYYY"
         )}`
@@ -761,7 +767,8 @@ async function menuFlowMakePayment(
             cableCardNo,
             cableBouquetCode,
             paymentMethod,
-            walletPin
+            walletPin,
+            bouquetPrice
           } = await redisClient.hgetallAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`
           );
@@ -773,6 +780,7 @@ async function menuFlowMakePayment(
             cableProviderCode,
             cableBouquetCode,
             paymentMethod,
+            bouquetPrice,
             walletPin
           );
 
@@ -789,7 +797,8 @@ async function menuFlowMakePayment(
             cableCardNo,
             cableBouquetCode,
             paymentMethod,
-            chosenUSSDBankCode
+            chosenUSSDBankCode,
+            bouquetPrice
           } = await redisClient.hgetallAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`
           );
@@ -801,6 +810,7 @@ async function menuFlowMakePayment(
             cableProviderCode,
             cableBouquetCode,
             paymentMethod,
+            bouquetPrice,
             undefined,
             chosenUSSDBankCode
           );
@@ -830,7 +840,8 @@ async function menuFlowMakePayment(
             cableCardNo,
             cableBouquetCode,
             paymentMethod,
-            walletPin
+            walletPin,
+            bouquetPrice
           } = await redisClient.hgetallAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`
           );
@@ -842,6 +853,7 @@ async function menuFlowMakePayment(
             cableProviderCode,
             cableBouquetCode,
             paymentMethod,
+            bouquetPrice,
             walletPin
           );
 
@@ -857,7 +869,8 @@ async function menuFlowMakePayment(
             cableCardNo,
             cableBouquetCode,
             paymentMethod,
-            chosenUSSDBankCode
+            chosenUSSDBankCode,
+            bouquetPrice
           } = await redisClient.hgetallAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`
           );
@@ -869,6 +882,7 @@ async function menuFlowMakePayment(
             cableProviderCode,
             cableBouquetCode,
             paymentMethod,
+            bouquetPrice,
             undefined,
             chosenUSSDBankCode
           );
@@ -1137,6 +1151,7 @@ function processCableTVPayment(
   providerCode,
   bouquetCode,
   paymentMethod,
+  price,
   walletPin = "",
   chosenUSSDBankCode = ""
 ) {
@@ -1178,11 +1193,43 @@ function processCableTVPayment(
             "DMMYYYY"
           )}`
         );
+        expireReportsInRedis(
+          `${APP_PREFIX_REDIS}:reports:count:purchases_CableTVWithWallet:${moment().format(
+            "DMMYYYY"
+          )}`
+        );
+        await redisClient.incrbyAsync(
+          `${APP_PREFIX_REDIS}:reports:count:totalValue_CableTVWithWallet:${moment().format(
+            "DMMYYYY"
+          )}`,
+          parseInt(price)
+        );
+        expireReportsInRedis(
+          `${APP_PREFIX_REDIS}:reports:count:totalValue_CableTVWithWallet:${moment().format(
+            "DMMYYYY"
+          )}`
+        );
         resolve(`CON Dear Customer, your payment was successful!\n\n0 Menu`);
       } else {
         console.log("Getting response from coral pay");
         await redisClient.incrAsync(
           `${APP_PREFIX_REDIS}:reports:count:purchases_CableTVWithMyBankUSSD:${moment().format(
+            "DMMYYYY"
+          )}`
+        );
+        expireReportsInRedis(
+          `${APP_PREFIX_REDIS}:reports:count:purchases_CableTVWithMyBankUSSD:${moment().format(
+            "DMMYYYY"
+          )}`
+        );
+        await redisClient.incrbyAsync(
+          `${APP_PREFIX_REDIS}:reports:count:totalValue_CableTVWithMyBankUSSD:${moment().format(
+            "DMMYYYY"
+          )}`,
+          parseInt(price)
+        );
+        expireReportsInRedis(
+          `${APP_PREFIX_REDIS}:reports:count:totalValue_CableTVWithMyBankUSSD:${moment().format(
             "DMMYYYY"
           )}`
         );

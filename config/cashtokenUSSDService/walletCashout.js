@@ -5,7 +5,8 @@ const {
   BANK_NAME_ABR,
   formatNumber,
   getBankCharge,
-  APP_PREFIX_REDIS
+  APP_PREFIX_REDIS,
+  expireReportsInRedis
 } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
@@ -18,6 +19,11 @@ async function processFundDisbursement(text, phoneNumber, sessionId) {
     let brokenDownText = text.split("*");
     if (brokenDownText.length === 2 && brokenDownText[1] === "1") {
       await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:subMenu_Redeem_Spend:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
+      expireReportsInRedis(
         `${APP_PREFIX_REDIS}:reports:count:subMenu_Redeem_Spend:${moment().format(
           "DMMYYYY"
         )}`
@@ -315,6 +321,22 @@ async function makeWalletWithdrawal(
         // console.log(JSON.stringify(response.data, null, 2));
         await redisClient.incrAsync(
           `${APP_PREFIX_REDIS}:reports:count:purchases_WalletCashout:${moment().format(
+            "DMMYYYY"
+          )}`
+        );
+        expireReportsInRedis(
+          `${APP_PREFIX_REDIS}:reports:count:purchases_WalletCashout:${moment().format(
+            "DMMYYYY"
+          )}`
+        );
+        await redisClient.incrbyAsync(
+          `${APP_PREFIX_REDIS}:reports:count:totalValue_WalletCashout:${moment().format(
+            "DMMYYYY"
+          )}`,
+          parseInt(amount)
+        );
+        expireReportsInRedis(
+          `${APP_PREFIX_REDIS}:reports:count:totalValue_WalletCashout:${moment().format(
             "DMMYYYY"
           )}`
         );

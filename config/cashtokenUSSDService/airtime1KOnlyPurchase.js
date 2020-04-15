@@ -2,11 +2,9 @@ const { redisClient } = require("../redisConnectConfig");
 const { FelaMarketPlace, App } = require("../index");
 const {
   APP_PREFIX_REDIS,
-  testPhoneNumber,
+  expireReportsInRedis,
   formatNumber,
-  MYBANKUSSD_BANK_CODES,
-  MYBANKUSSD_BASE_CODE,
-  MYBANKUSSD_SERVICE_CODES
+  MYBANKUSSD_BANK_CODES
 } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
@@ -40,6 +38,11 @@ async function airtime1KOnlyFlow(brokenDownText, phoneNumber, sessionId) {
 
     if (brokenDownText.length === 1) {
       await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:topMenu_Airtime1K:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
+      expireReportsInRedis(
         `${APP_PREFIX_REDIS}:reports:count:topMenu_Airtime1K:${moment().format(
           "DMMYYYY"
         )}`
@@ -378,6 +381,23 @@ function processAirtimePurchase(
 
       await redisClient.incrAsync(
         `${APP_PREFIX_REDIS}:reports:count:purchases_Airtime1KBundle:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
+      expireReportsInRedis(
+        `${APP_PREFIX_REDIS}:reports:count:purchases_Airtime1KBundle:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
+
+      await redisClient.incrbyAsync(
+        `${APP_PREFIX_REDIS}:reports:count:totalValue_Airtime1KBundle:${moment().format(
+          "DMMYYYY"
+        )}`,
+        parseInt(1000)
+      );
+      expireReportsInRedis(
+        `${APP_PREFIX_REDIS}:reports:count:totalValue_Airtime1KBundle:${moment().format(
           "DMMYYYY"
         )}`
       );

@@ -8,8 +8,7 @@ const {
   testPhoneNumber,
   formatNumber,
   MYBANKUSSD_BANK_CODES,
-  MYBANKUSSD_SERVICE_CODES,
-  MYBANKUSSD_BASE_CODE
+  expireReportsInRedis
 } = require("../utils");
 const { sendSMS } = require("../infoBipConfig");
 // const NAIRASIGN = "\u{020A6}";
@@ -40,6 +39,11 @@ async function giftCashTokenFlow(brokenDownText, phoneNumber, sessionId) {
     let response = "";
     if (brokenDownText.length === 2) {
       await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:topMenu_GiftCashToken:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
+      expireReportsInRedis(
         `${APP_PREFIX_REDIS}:reports:count:topMenu_GiftCashToken:${moment().format(
           "DMMYYYY"
         )}`
@@ -290,7 +294,22 @@ function processCashTokenPurchase(
               "DMMYYYY"
             )}`
           );
-
+          expireReportsInRedis(
+            `${APP_PREFIX_REDIS}:reports:count:purchases_GiftCashTokenWithWallet:${moment().format(
+              "DMMYYYY"
+            )}`
+          );
+          await redisClient.incrbyAsync(
+            `${APP_PREFIX_REDIS}:reports:count:totalValue_GiftCashTokenWithWallet:${moment().format(
+              "DMMYYYY"
+            )}`,
+            parseInt(amount) * 35
+          );
+          expireReportsInRedis(
+            `${APP_PREFIX_REDIS}:reports:count:totalValue_GiftCashTokenWithWallet:${moment().format(
+              "DMMYYYY"
+            )}`
+          );
           resolve(
             `CON Dear Customer, this number ${numberToCredit} has been successfully gifted with ${amount} CashTokens\n\n0 Menu`
           );
@@ -302,6 +321,22 @@ function processCashTokenPurchase(
           // console.log(response.data);
           await redisClient.incrAsync(
             `${APP_PREFIX_REDIS}:reports:count:purchases_GiftCashTokenWithMyBankUSSD:${moment().format(
+              "DMMYYYY"
+            )}`
+          );
+          expireReportsInRedis(
+            `${APP_PREFIX_REDIS}:reports:count:purchases_GiftCashTokenWithMyBankUSSD:${moment().format(
+              "DMMYYYY"
+            )}`
+          );
+          await redisClient.incrbyAsync(
+            `${APP_PREFIX_REDIS}:reports:count:totalValue_GiftCashTokenWithMyBankUSSD:${moment().format(
+              "DMMYYYY"
+            )}`,
+            parseInt(amount) * 35
+          );
+          expireReportsInRedis(
+            `${APP_PREFIX_REDIS}:reports:count:totalValue_GiftCashTokenWithMyBankUSSD:${moment().format(
               "DMMYYYY"
             )}`
           );

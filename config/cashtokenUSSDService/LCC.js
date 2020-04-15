@@ -7,7 +7,8 @@ const {
 const {
   APP_PREFIX_REDIS,
   formatNumber,
-  MYBANKUSSD_BANK_CODES
+  MYBANKUSSD_BANK_CODES,
+  expireReportsInRedis
 } = require("../utils");
 const moment = require("moment");
 const axios = require("axios");
@@ -23,6 +24,11 @@ async function processLCC(phoneNumber, text, sessionId) {
     // console.log(brokenDownText);
     if (brokenDownText.length === 2) {
       await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:topMenu_LCC:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
+      expireReportsInRedis(
         `${APP_PREFIX_REDIS}:reports:count:topMenu_LCC:${moment().format(
           "DMMYYYY"
         )}`
@@ -307,6 +313,22 @@ function processLCCPayment(
             "DMMYYYY"
           )}`
         );
+        expireReportsInRedis(
+          `${APP_PREFIX_REDIS}:reports:count:purchases_LCCWithWallet:${moment().format(
+            "DMMYYYY"
+          )}`
+        );
+        await redisClient.incrbyAsync(
+          `${APP_PREFIX_REDIS}:reports:count:totalValue_LCCWithWallet:${moment().format(
+            "DMMYYYY"
+          )}`,
+          parseInt(amount)
+        );
+        expireReportsInRedis(
+          `${APP_PREFIX_REDIS}:reports:count:totalValue_LCCWithWallet:${moment().format(
+            "DMMYYYY"
+          )}`
+        );
         resolve(
           `CON Dear Customer, your payment was successful!\n\nEnter 0 Back to home menu`
         );
@@ -314,6 +336,22 @@ function processLCCPayment(
         console.log("Getting response from coral pay");
         await redisClient.incrAsync(
           `${APP_PREFIX_REDIS}:reports:count:purchases_LCCWithMyBankUSSD:${moment().format(
+            "DMMYYYY"
+          )}`
+        );
+        expireReportsInRedis(
+          `${APP_PREFIX_REDIS}:reports:count:purchases_LCCWithMyBankUSSD:${moment().format(
+            "DMMYYYY"
+          )}`
+        );
+        await redisClient.incrbyAsync(
+          `${APP_PREFIX_REDIS}:reports:count:totalValue_LCCWithMyBankUSSD:${moment().format(
+            "DMMYYYY"
+          )}`,
+          parseInt(amount)
+        );
+        expireReportsInRedis(
+          `${APP_PREFIX_REDIS}:reports:count:totalValue_LCCWithMyBankUSSD:${moment().format(
             "DMMYYYY"
           )}`
         );

@@ -3,7 +3,7 @@ const moment = require("moment");
 const { processElectricity } = require("./electricityPayment");
 const { processCableTv } = require("./cabletvPayment");
 // const { getUserStat } = require("../utils/cashTokenApi");
-const { APP_PREFIX_REDIS } = require("../utils");
+const { APP_PREFIX_REDIS, expireReportsInRedis } = require("../utils");
 // const { FelaMarketPlace } = require("../index");
 // const axios = require("axios");
 
@@ -14,6 +14,11 @@ async function servePayBillsRequest(phoneNumber, text, sessionId) {
     let response = "";
     if (text === "5") {
       await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:topMenu_PayBills:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
+      expireReportsInRedis(
         `${APP_PREFIX_REDIS}:reports:count:topMenu_PayBills:${moment().format(
           "DMMYYYY"
         )}`

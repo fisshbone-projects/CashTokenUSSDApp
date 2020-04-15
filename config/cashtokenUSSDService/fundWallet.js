@@ -7,7 +7,8 @@ const {
   APP_PREFIX_REDIS,
   testPhoneNumber,
   formatNumber,
-  MYBANKUSSD_BANK_CODES
+  MYBANKUSSD_BANK_CODES,
+  expireReportsInRedis
 } = require("../utils");
 const NAIRASIGN = "N";
 
@@ -32,6 +33,11 @@ async function fundWalletFlow(brokenDownText, phoneNumber, sessionId) {
     let response = "";
     if (brokenDownText.length === 2) {
       await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:subMenu_FundWallet:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
+      expireReportsInRedis(
         `${APP_PREFIX_REDIS}:reports:count:subMenu_FundWallet:${moment().format(
           "DMMYYYY"
         )}`
@@ -160,7 +166,23 @@ function processCashTokenPurchase(
           let paymentToken = response.data.data.paymentToken;
           // console.log(response.data);
           await redisClient.incrAsync(
-            `${APP_PREFIX_REDIS}:reports:count:purchases_GiftCashTokenWithMyBankUSSD:${moment().format(
+            `${APP_PREFIX_REDIS}:reports:count:purchases_FundWallet:${moment().format(
+              "DMMYYYY"
+            )}`
+          );
+          expireReportsInRedis(
+            `${APP_PREFIX_REDIS}:reports:count:purchases_FundWallet:${moment().format(
+              "DMMYYYY"
+            )}`
+          );
+          await redisClient.incrbyAsync(
+            `${APP_PREFIX_REDIS}:reports:count:totalValue_FundWallet:${moment().format(
+              "DMMYYYY"
+            )}`,
+            parseInt(amount)
+          );
+          expireReportsInRedis(
+            `${APP_PREFIX_REDIS}:reports:count:totalValue_FundWallet:${moment().format(
               "DMMYYYY"
             )}`
           );

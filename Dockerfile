@@ -14,6 +14,8 @@ ARG redis_host
 ENV REDIS_HOST=$redis_host
 ARG redis_auth
 ENV REDIS_AUTH=$redis_auth
+ARG mongo_db_connection_string
+ENV MONGO_DB_CONNECTION_STRING=$mongo_db_connection_string
 ARG fela_base_url_prod
 ENV FELA_BASE_URL_PROD=$fela_base_url_prod
 ARG fela_base_url_staging

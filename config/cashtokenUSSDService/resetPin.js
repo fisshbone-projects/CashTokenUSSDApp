@@ -1,7 +1,11 @@
 const { redisClient } = require("../redisConnectConfig");
 const { FelaMarketPlace } = require("../index");
 const moment = require("moment");
-const { checkPinForRepetition, APP_PREFIX_REDIS } = require("../utils");
+const {
+  checkPinForRepetition,
+  APP_PREFIX_REDIS,
+  expireReportsInRedis
+} = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 
@@ -13,6 +17,11 @@ async function resetPin(text, phoneNumber, sessionId) {
 
     if (brokenDownText.length === 2 && brokenDownText[1] === "4") {
       await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:subMenu_Reset_Pin:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
+      expireReportsInRedis(
         `${APP_PREFIX_REDIS}:reports:count:subMenu_Reset_Pin:${moment().format(
           "DMMYYYY"
         )}`

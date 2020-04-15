@@ -6,8 +6,7 @@ const {
   testPhoneNumber,
   formatNumber,
   MYBANKUSSD_BANK_CODES,
-  MYBANKUSSD_BASE_CODE,
-  MYBANKUSSD_SERVICE_CODES
+  expireReportsInRedis
 } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
@@ -30,6 +29,11 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
 
     if (brokenDownText.length === 1) {
       await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:topMenu_Data:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
+      expireReportsInRedis(
         `${APP_PREFIX_REDIS}:reports:count:topMenu_Data:${moment().format(
           "DMMYYYY"
         )}`
@@ -2089,7 +2093,8 @@ function makePayment(paymentMethod, sessionId, phoneNumber) {
         recipentNumber,
         chosenBundleCode,
         chosenBundleName,
-        walletPin
+        walletPin,
+        dataPrice
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       response = await processDataPurchase(
         sessionId,
@@ -2099,6 +2104,7 @@ function makePayment(paymentMethod, sessionId, phoneNumber) {
         chosenBundleCode,
         chosenBundleName,
         paymentMethod,
+        dataPrice,
         walletPin
       );
     } else if (paymentMethod === "coralpay") {
@@ -2107,7 +2113,8 @@ function makePayment(paymentMethod, sessionId, phoneNumber) {
         recipentNumber,
         chosenBundleCode,
         chosenBundleName,
-        chosenUSSDBankCode
+        chosenUSSDBankCode,
+        dataPrice
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       response = await processDataPurchase(
         sessionId,
@@ -2117,6 +2124,7 @@ function makePayment(paymentMethod, sessionId, phoneNumber) {
         chosenBundleCode,
         chosenBundleName,
         paymentMethod,
+        dataPrice,
         undefined,
         chosenUSSDBankCode
       );
@@ -2134,6 +2142,7 @@ function processDataPurchase(
   dataPlanCode,
   dataPlanName,
   paymentMethod,
+  price,
   walletPin = "",
   chosenUSSDBankCode = ""
 ) {
@@ -2179,6 +2188,20 @@ function processDataPurchase(
               "DMMYYYY"
             )}`
           );
+          `${APP_PREFIX_REDIS}:reports:count:purchases_DataWithWallet:${moment().format(
+            "DMMYYYY"
+          )}`;
+          await redisClient.incrbyAsync(
+            `${APP_PREFIX_REDIS}:reports:count:totalValue_DataWithWallet:${moment().format(
+              "DMMYYYY"
+            )}`,
+            parseInt(price)
+          );
+          expireReportsInRedis(
+            `${APP_PREFIX_REDIS}:reports:count:totalValue_DataWithWallet:${moment().format(
+              "DMMYYYY"
+            )}`
+          );
           resolve(
             `CON Dear Customer your line ${recipentNumber} has been credited with ${dataPlanName} of Data\n\n0 Menu`
           );
@@ -2188,6 +2211,22 @@ function processDataPurchase(
           console.log("Getting response from coral pay");
           await redisClient.incrAsync(
             `${APP_PREFIX_REDIS}:reports:count:purchases_DataWithMyBankUSSD:${moment().format(
+              "DMMYYYY"
+            )}`
+          );
+          expireReportsInRedis(
+            `${APP_PREFIX_REDIS}:reports:count:purchases_DataWithMyBankUSSD:${moment().format(
+              "DMMYYYY"
+            )}`
+          );
+          await redisClient.incrbyAsync(
+            `${APP_PREFIX_REDIS}:reports:count:totalValue_DataWithMyBankUSSD:${moment().format(
+              "DMMYYYY"
+            )}`,
+            parseInt(price)
+          );
+          expireReportsInRedis(
+            `${APP_PREFIX_REDIS}:reports:count:totalValue_DataWithMyBankUSSD:${moment().format(
               "DMMYYYY"
             )}`
           );

@@ -8,7 +8,11 @@ const { processData } = require("./dataBundlePurchase");
 const { servePayBillsRequest } = require("./payBills");
 const { processLCC } = require("./LCC");
 const { processGiftCashToken } = require("./giftCashToken");
-const { checkPinForRepetition, APP_PREFIX_REDIS } = require("../utils");
+const {
+  checkPinForRepetition,
+  APP_PREFIX_REDIS,
+  expireReportsInRedis
+} = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 
@@ -116,17 +120,32 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
       "DMMYYYY"
     )}`
   );
+  expireReportsInRedis(
+    `${APP_PREFIX_REDIS}:reports:count:global_totalTransactionalHits:${moment().format(
+      "DMMYYYY"
+    )}`
+  );
   await redisClient.saddAsync(
     `${APP_PREFIX_REDIS}:reports:set:global_totalVisitors:${moment().format(
       "DMMYYYY"
     )}`,
     phoneNumber
   );
+  expireReportsInRedis(
+    `${APP_PREFIX_REDIS}:reports:set:global_totalVisitors:${moment().format(
+      "DMMYYYY"
+    )}`
+  );
   await redisClient.saddAsync(
     `${APP_PREFIX_REDIS}:reports:set:global_totalSessions:${moment().format(
       "DMMYYYY"
     )}`,
     sessionId
+  );
+  expireReportsInRedis(
+    `${APP_PREFIX_REDIS}:reports:set:global_totalSessions:${moment().format(
+      "DMMYYYY"
+    )}`
   );
 
   return response;
@@ -140,6 +159,11 @@ async function ActivateUser(phoneNumber, text, sessionId) {
 
     if (text === "") {
       await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:topMenu_ActivationScreen:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
+      expireReportsInRedis(
         `${APP_PREFIX_REDIS}:reports:count:topMenu_ActivationScreen:${moment().format(
           "DMMYYYY"
         )}`
@@ -209,7 +233,7 @@ async function NormalFlow(phoneNumber, text, sessionId) {
     if (text === "") {
       console.log("Welcome page");
 
-      response = `CON MyBankUSSD\nCashTokenRewards\n\n1 Redeem/Wallet\n2 Airtime\n3 Airtime (N1000)\n4 Data\n5 PayBills\n6 LCC\n7 GiftCashToken\n 8 BorrowPower\n\nBuy&Win 5K-100M`;
+      response = `CON MyBankUSSD\nCashTokenRewards\n\n1 Redeem/Wallet\n2 Airtime\n3 Airtime (N1000)\n4 Data\n5 PayBills\n6 LCC\n7 GiftCashToken\n8 BorrowPower\n\nBuy&Win 5K-100M`;
       resolve(response);
     } else if (text.startsWith("1")) {
       response = await redeem_wallet(text, phoneNumber, sessionId);
@@ -235,6 +259,11 @@ async function NormalFlow(phoneNumber, text, sessionId) {
       resolve(response);
     } else if (text === "8") {
       await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:topMenu_BorrowPower:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
+      expireReportsInRedis(
         `${APP_PREFIX_REDIS}:reports:count:topMenu_BorrowPower:${moment().format(
           "DMMYYYY"
         )}`
@@ -292,11 +321,21 @@ async function activateWalletCall(sessionId, phoneNumber, walletPin) {
                 "DMMYYYY"
               )}`
             );
+            expireReportsInRedis(
+              `${APP_PREFIX_REDIS}:reports:count:global_activatedUsers:${moment().format(
+                "DMMYYYY"
+              )}`
+            );
             await redisClient.saddAsync(
               `${APP_PREFIX_REDIS}:reports:set:global_activatedUsers:${moment().format(
                 "DMMYYYY"
               )}`,
               phoneNumber
+            );
+            expireReportsInRedis(
+              `${APP_PREFIX_REDIS}:reports:set:global_activatedUsers:${moment().format(
+                "DMMYYYY"
+              )}`
             );
             redisClient.expire(`${APP_PREFIX_REDIS}:${sessionId}`, 300);
           });

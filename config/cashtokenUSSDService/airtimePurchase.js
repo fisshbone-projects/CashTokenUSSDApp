@@ -7,8 +7,7 @@ const {
   testPhoneNumber,
   formatNumber,
   MYBANKUSSD_BANK_CODES,
-  MYBANKUSSD_BASE_CODE,
-  MYBANKUSSD_SERVICE_CODES
+  expireReportsInRedis
 } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
@@ -37,6 +36,11 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
 
     if (brokenDownText.length === 1) {
       await redisClient.incrAsync(
+        `${APP_PREFIX_REDIS}:reports:count:topMenu_Airtime:${moment().format(
+          "DMMYYYY"
+        )}`
+      );
+      expireReportsInRedis(
         `${APP_PREFIX_REDIS}:reports:count:topMenu_Airtime:${moment().format(
           "DMMYYYY"
         )}`
@@ -434,6 +438,22 @@ function processAirtimePurchase(
               "DMMYYYY"
             )}`
           );
+          expireReportsInRedis(
+            `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithWallet:${moment().format(
+              "DMMYYYY"
+            )}`
+          );
+          await redisClient.incrbyAsync(
+            `${APP_PREFIX_REDIS}:reports:count:totalValue_AirtimeWithWallet:${moment().format(
+              "DMMYYYY"
+            )}`,
+            parseInt(airtimeAmount)
+          );
+          expireReportsInRedis(
+            `${APP_PREFIX_REDIS}:reports:count:totalValue_AirtimeWithWallet:${moment().format(
+              "DMMYYYY"
+            )}`
+          );
           resolve(
             `CON Dear Customer, your line ${recipentNumber} has been successfully credited with ${NAIRASIGN}${formatNumber(
               airtimeAmount
@@ -445,6 +465,22 @@ function processAirtimePurchase(
           console.log("Getting response from coral pay");
           await redisClient.incrAsync(
             `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithMyBankUSSD:${moment().format(
+              "DMMYYYY"
+            )}`
+          );
+          expireReportsInRedis(
+            `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithMyBankUSSD:${moment().format(
+              "DMMYYYY"
+            )}`
+          );
+          await redisClient.incrbyAsync(
+            `${APP_PREFIX_REDIS}:reports:count:totalValue_AirtimeWithMyBankUSSD:${moment().format(
+              "DMMYYYY"
+            )}`,
+            parseInt(airtimeAmount)
+          );
+          expireReportsInRedis(
+            `${APP_PREFIX_REDIS}:reports:count:totalValue_AirtimeWithMyBankUSSD:${moment().format(
               "DMMYYYY"
             )}`
           );

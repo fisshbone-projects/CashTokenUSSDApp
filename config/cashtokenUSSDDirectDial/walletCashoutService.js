@@ -8,7 +8,7 @@ const {
 } = require("../utils");
 const moment = require("moment");
 const { FelaMarketPlace } = require("../../config");
-const { APP_PREFIX_REDIS } = require("../utils");
+const { APP_PREFIX_REDIS, expireReportsInRedis } = require("../utils");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 
 async function processWalletCashout(sessionId, userPhone, text) {
@@ -276,6 +276,23 @@ async function makeWalletWithdrawal(
         // console.log(JSON.stringify(response.data, null, 2));
         await redisClient.incrAsync(
           `${APP_PREFIX_REDIS}:reports:count:purchases_DirectDial_WalletCashout:${moment().format(
+            "DMMYYYY"
+          )}`
+        );
+        expireReportsInRedis(
+          `${APP_PREFIX_REDIS}:reports:count:purchases_DirectDial_WalletCashout:${moment().format(
+            "DMMYYYY"
+          )}`
+        );
+
+        await redisClient.incrbyAsync(
+          `${APP_PREFIX_REDIS}:reports:count:totalValue_DirectDial_WalletCashout:${moment().format(
+            "DMMYYYY"
+          )}`,
+          parseInt(amount)
+        );
+        expireReportsInRedis(
+          `${APP_PREFIX_REDIS}:reports:count:totalValue_DirectDial_WalletCashout:${moment().format(
             "DMMYYYY"
           )}`
         );

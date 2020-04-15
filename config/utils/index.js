@@ -101,6 +101,74 @@ const WalletTypes = {
 
 Object.freeze(WalletTypes);
 
+const globalKeyMap = {
+  global_totalSessions: "Total Sessions invoked",
+  global_activatedUsers: "Total Activated subscribers",
+  global_totalTransactionalHits: "Transactions",
+  global_totalVisitors: "Total Unique hits"
+};
+
+const topMenuKeyMap = {
+  topMenu_Airtime1K: "Airtime Self 1K",
+  topMenu_Airtime: "Airtime",
+  topMenu_BorrowPower: "Borrow Power",
+  topMenu_Data: "Data",
+  topMenu_ActivationScreen: "Activation Screen",
+  topMenu_GiftCashToken: "Gift Cashtoken",
+  topMenu_LCC: "LCC",
+  topMenu_PayBills: "Pay Bills",
+  topMenu_Redeem_Wallet: "Redeem/Wallet"
+};
+
+const subMenuKeyMap = {
+  subMenu_PayForCableTV: "Pay For CableTV",
+  subMenu_PurchaseElectricity: "Pay For Electricity",
+  subMenu_FundWallet: "Fund Wallet",
+  subMenu_Redeem_Spend: "Redeem",
+  subMenu_Wallet_Info: "Wallet Info",
+  subMenu_Gifting_Threshold: "Gifting Threshold",
+  subMenu_PurchaseData: "Purchase Data",
+  subMenu_Reset_Pin: "Reset Pin"
+};
+
+const purchasesKeyMap = {
+  purchases_DirectDial_WalletCashout: "Wallet Cashout via Direct Dial",
+  purchases_Airtime1KBundle: "Airtime1K Bundle",
+  purchases_AirtimeWithMyBankUSSD: "Airtime bought with MyBankUSSD",
+  purchases_AirtimeWithWallet: "Airtime bought with Wallet",
+  purchases_CableTVWithWallet: "CableTv Purchase with Wallet",
+  purchases_CableTVWithMyBankUSSD: "CableTv Purchase with MyBankUSSD",
+  purchases_DataWithWallet: "Data bought with Wallet",
+  purchases_DataWithMyBankUSSD: "Data bought with MyBankUSSD",
+  purchases_ElectricityWithMyBankUSSD: "Electricity bought with MyBankUSSD",
+  purchases_ElectricityWithWallet: "Electricity bought with Wallet",
+  purchases_FundWallet: "Deposit into Wallet",
+  purchases_GiftCashTokenWithWallet: "CashTokens Bought with Wallet",
+  purchases_GiftCashTokenWithMyBankUSSD: "CashTokens Bought with MyBankUSSD",
+  purchases_LCCWithWallet: "LCC Purchase with Wallet",
+  purchases_LCCWithMyBankUSSD: "LCC Purchase with MyBankUSSD",
+  purchases_WalletCashout: "Wallet Cashout"
+};
+
+const purchasesTotalValueKeyMap = {
+  totalValue_DirectDial_WalletCashout: "Wallet Cashout via Direct Dial",
+  totalValue_Airtime1KBundle: "Airtime1K Bundle",
+  totalValue_AirtimeWithMyBankUSSD: "Airtime bought with MyBankUSSD",
+  totalValue_AirtimeWithWallet: "Airtime bought with Wallet",
+  totalValue_CableTVWithWallet: "CableTv Purchase with Wallet",
+  totalValue_CableTVWithMyBankUSSD: "CableTv Purchase with MyBankUSSD",
+  totalValue_DataWithWallet: "Data bought with Wallet",
+  totalValue_DataWithMyBankUSSD: "Data bought with MyBankUSSD",
+  totalValue_ElectricityWithMyBankUSSD: "Electricity bought with MyBankUSSD",
+  totalValue_ElectricityWithWallet: "Electricity bought with Wallet",
+  totalValue_FundWallet: "Deposit into Wallet",
+  totalValue_GiftCashTokenWithWallet: "CashTokens Bought with Wallet",
+  totalValue_GiftCashTokenWithMyBankUSSD: "CashTokens Bought with MyBankUSSD",
+  totalValue_LCCWithWallet: "LCC Purchase with Wallet",
+  totalValue_LCCWithMyBankUSSD: "LCC Purchase with MyBankUSSD",
+  totalValue_WalletCashout: "Wallet Cashout"
+};
+
 function createValidationFor(route) {
   switch (route) {
     case "ussd":
@@ -345,6 +413,13 @@ function removeHashes(stringMe) {
   return formatedMe.join("*");
 }
 
+async function expireReportsInRedis(key) {
+  return new Promise(async resolve => {
+    await redisClient.expire(key, 172800); //Expire report after 2 days
+    resolve();
+  });
+}
+
 async function refineText(text, sessionId) {
   return new Promise(async resolve => {
     let backOneStep = false;
@@ -469,9 +544,15 @@ module.exports = {
   checkPinForRepetition,
   formatNumber,
   formatNumberAsCurrency,
+  expireReportsInRedis,
   DIRECTDIAL_BANK_MAP,
   getBankCharge,
   MYBANKUSSD_BANK_CODES,
   MYBANKUSSD_SERVICE_CODES,
-  MYBANKUSSD_BASE_CODE
+  MYBANKUSSD_BASE_CODE,
+  globalKeyMap,
+  topMenuKeyMap,
+  subMenuKeyMap,
+  purchasesKeyMap,
+  purchasesTotalValueKeyMap
 };

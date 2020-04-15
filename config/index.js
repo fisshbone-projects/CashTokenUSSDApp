@@ -14,7 +14,8 @@ const Config = Object.freeze({
     REDIS_PORT: process.env.REDIS_PORT,
     REDIS_HOST: process.env.REDIS_HOST,
     REDIS_AUTH: process.env.REDIS_AUTH,
-    REDIS_API_DATA_EXPIRE: process.env.REDIS_EXPIRE_API_INFO
+    REDIS_API_DATA_EXPIRE: process.env.REDIS_EXPIRE_API_INFO,
+    MONGO_CONNECT: process.env.MONGO_DB_CONNECTION_STRING
   },
   LCC: {
     LCC_PROVIDER_CODE:
