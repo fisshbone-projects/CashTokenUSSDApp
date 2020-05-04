@@ -4,7 +4,7 @@ const {
   APP_PREFIX_REDIS,
   formatNumber,
   MYBANKUSSD_BANK_CODES,
-  expireReportsInRedis
+  expireReportsInRedis,
 } = require("../utils");
 const moment = require("moment");
 const axios = require("axios");
@@ -22,11 +22,11 @@ async function processElectricity(phoneNumber, text, sessionId) {
           "DMMYYYY"
         )}`
       );
-      expireReportsInRedis(
-        `${APP_PREFIX_REDIS}:reports:count:subMenu_PurchaseElectricity:${moment().format(
-          "DMMYYYY"
-        )}`
-      );
+      // expireReportsInRedis(
+      //   `${APP_PREFIX_REDIS}:reports:count:subMenu_PurchaseElectricity:${moment().format(
+      //     "DMMYYYY"
+      //   )}`
+      // );
       response = `CON Choose your electricity plan:\n1 Prepaid\n2 Postpaid`;
       resolve(response);
       //Return list of services.. Prepaid or Postpaid
@@ -191,11 +191,12 @@ async function processElectricity(phoneNumber, text, sessionId) {
           electricPlan,
           discoCode,
           meterNumber,
-          amount
+          amount,
         } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
 
-        response = `CON Confirm Electricity Bill Payment:\nMeterNo: ${meterNumber}\nElectric Plan: ${electricPlan[0].toUpperCase() +
-          electricPlan.substr(1)}\nDisco: ${discoCode}\nAmount: ${formatNumber(
+        response = `CON Confirm Electricity Bill Payment:\nMeterNo: ${meterNumber}\nElectric Plan: ${
+          electricPlan[0].toUpperCase() + electricPlan.substr(1)
+        }\nDisco: ${discoCode}\nAmount: ${formatNumber(
           amount
         )}\nPayMethod: Wallet\n\n1 Confirm\n2 Cancel`;
         resolve(response);
@@ -218,7 +219,7 @@ async function processElectricity(phoneNumber, text, sessionId) {
         electricPlan,
         discoCode,
         meterNumber,
-        amount
+        amount,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
 
       let chosenUSSDBank = parseInt(brokenDownText[7], 10);
@@ -236,10 +237,9 @@ async function processElectricity(phoneNumber, text, sessionId) {
         chosenUSSDBankCode
       );
 
-      response = `CON Confirm Electricity Bill Payment:\nMeterNo: ${meterNumber}\nElectric Plan: ${electricPlan[0].toUpperCase() +
-        electricPlan.substr(1)}\nDisco: ${discoCode}\nAmount: ${formatNumber(
-        amount
-      )}\nPayMethod: ${
+      response = `CON Confirm Electricity Bill Payment:\nMeterNo: ${meterNumber}\nElectric Plan: ${
+        electricPlan[0].toUpperCase() + electricPlan.substr(1)
+      }\nDisco: ${discoCode}\nAmount: ${formatNumber(amount)}\nPayMethod: ${
         chosenUSSDBankName.includes("bank") ||
         chosenUSSDBankName == "GTB" ||
         chosenUSSDBankName == "FBN" ||
@@ -263,7 +263,7 @@ async function processElectricity(phoneNumber, text, sessionId) {
         amount,
         meterNumber,
         paymentMethod,
-        walletPin
+        walletPin,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       response = await processElectricityPayment(
         sessionId,
@@ -300,7 +300,7 @@ async function processElectricity(phoneNumber, text, sessionId) {
         amount,
         meterNumber,
         paymentMethod,
-        chosenUSSDBankCode
+        chosenUSSDBankCode,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       response = await processElectricityPayment(
         sessionId,
@@ -331,18 +331,18 @@ async function processElectricity(phoneNumber, text, sessionId) {
 }
 
 async function confirmMeterNo(meterNumber, electricPlan, discoCode, sessionId) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     console.log(electricPlan, discoCode, meterNumber);
     axios
       .get(
         `${FelaMarketPlace.BASE_URL}/info/meterNo?number=${meterNumber}&provider_code=${discoCode}&service_code=${electricPlan}`,
         {
           headers: {
-            Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER} `
-          }
+            Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER} `,
+          },
         }
       )
-      .then(async resp => {
+      .then(async (resp) => {
         console.log(resp.data);
         if (resp.status === 200) {
           if (
@@ -363,7 +363,7 @@ async function confirmMeterNo(meterNumber, electricPlan, discoCode, sessionId) {
           resolve(false);
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.log(error);
         resolve(false);
       });
@@ -371,7 +371,7 @@ async function confirmMeterNo(meterNumber, electricPlan, discoCode, sessionId) {
 }
 
 async function saveDisco(electricPlan, selectedDisco, sessionId) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     if (electricPlan === "prepaid") {
       let [planCode] = await redisClient.zrangebyscoreAsync(
         `${APP_PREFIX_REDIS}:Discos:Prepaid:Code`,
@@ -408,7 +408,7 @@ async function saveDisco(electricPlan, selectedDisco, sessionId) {
 }
 
 async function displayListOfDiscos(plan) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let response = "CON Select Disco:\n";
     if (plan === "prepaid") {
       response += await displayDisco("Prepaid");
@@ -419,7 +419,7 @@ async function displayListOfDiscos(plan) {
     }
 
     function displayDisco(planType) {
-      return new Promise(async resolve => {
+      return new Promise(async (resolve) => {
         let response = "";
         let index = 1;
         let infoExists = await redisClient.existsAsync(
@@ -472,20 +472,20 @@ function processElectricityPayment(
       method: `${paymentMethod}`,
       auth: {
         source: `${FelaMarketPlace.THIS_SOURCE}`,
-        passkey: `${walletPin}`
+        passkey: `${walletPin}`,
       },
       params: {
         meter_number: `${meterNumber}`,
         provider_code: `${providerCode}`,
         service_code: `${serviceCode}`,
-        amount: `${amount}`
+        amount: `${amount}`,
       },
       user: {
         sessionId: `${sessionId}`,
         source: `${FelaMarketPlace.THIS_SOURCE}`,
         sourceId: `${phoneNumber}`,
-        phoneNumber: `${phoneNumber}`
-      }
+        phoneNumber: `${phoneNumber}`,
+      },
     };
 
     try {
@@ -493,7 +493,7 @@ function processElectricityPayment(
         `${FelaMarketPlace.BASE_URL}/payment/request`,
         payload,
         {
-          headers: felaHeader
+          headers: felaHeader,
         }
       );
       if (paymentMethod === "felawallet") {
@@ -504,22 +504,22 @@ function processElectricityPayment(
             "DMMYYYY"
           )}`
         );
-        expireReportsInRedis(
-          `${APP_PREFIX_REDIS}:reports:count:purchases_ElectricityWithWallet:${moment().format(
-            "DMMYYYY"
-          )}`
-        );
+        // expireReportsInRedis(
+        //   `${APP_PREFIX_REDIS}:reports:count:purchases_ElectricityWithWallet:${moment().format(
+        //     "DMMYYYY"
+        //   )}`
+        // );
         await redisClient.incrbyAsync(
           `${APP_PREFIX_REDIS}:reports:count:totalValue_ElectricityWithWallet:${moment().format(
             "DMMYYYY"
           )}`,
           parseInt(amount)
         );
-        expireReportsInRedis(
-          `${APP_PREFIX_REDIS}:reports:count:totalValue_ElectricityWithWallet:${moment().format(
-            "DMMYYYY"
-          )}`
-        );
+        // expireReportsInRedis(
+        //   `${APP_PREFIX_REDIS}:reports:count:totalValue_ElectricityWithWallet:${moment().format(
+        //     "DMMYYYY"
+        //   )}`
+        // );
         resolve(`CON Dear Customer, your payment was successful!\n\n0 Menu`);
       } else {
         console.log("Getting response from coral pay");
@@ -528,22 +528,22 @@ function processElectricityPayment(
             "DMMYYYY"
           )}`
         );
-        expireReportsInRedis(
-          `${APP_PREFIX_REDIS}:reports:count:purchases_ElectricityWithMyBankUSSD:${moment().format(
-            "DMMYYYY"
-          )}`
-        );
+        // expireReportsInRedis(
+        //   `${APP_PREFIX_REDIS}:reports:count:purchases_ElectricityWithMyBankUSSD:${moment().format(
+        //     "DMMYYYY"
+        //   )}`
+        // );
         await redisClient.incrbyAsync(
           `${APP_PREFIX_REDIS}:reports:count:totalValue_ElectricityWithMyBankUSSD:${moment().format(
             "DMMYYYY"
           )}`,
           parseInt(amount)
         );
-        expireReportsInRedis(
-          `${APP_PREFIX_REDIS}:reports:count:totalValue_ElectricityWithMyBankUSSD:${moment().format(
-            "DMMYYYY"
-          )}`
-        );
+        // expireReportsInRedis(
+        //   `${APP_PREFIX_REDIS}:reports:count:totalValue_ElectricityWithMyBankUSSD:${moment().format(
+        //     "DMMYYYY"
+        //   )}`
+        // );
         let paymentToken = response.data.data.paymentToken;
         // console.log(response.data);
 
@@ -579,12 +579,12 @@ function displayMyBankUSSDBanks() {
 }
 
 async function fetchDiscoDetails() {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     axios
       .get(`${FelaMarketPlace.BASE_URL}/list/electricityProviders`, {
-        headers: felaHeader
+        headers: felaHeader,
       })
-      .then(async response => {
+      .then(async (response) => {
         let discos = response.data.data;
         let prepaidScore = 1;
         let postpaidScore = 1;
@@ -642,7 +642,7 @@ async function fetchDiscoDetails() {
         }
         resolve();
       })
-      .catch(error => {
+      .catch((error) => {
         console.log("error");
         console.log(JSON.stringify(error.response.data, null, 2));
         resolve();
@@ -667,5 +667,5 @@ async function fetchDiscoDetails() {
 // })();
 
 module.exports = {
-  processElectricity
+  processElectricity,
 };

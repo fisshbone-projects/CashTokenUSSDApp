@@ -4,7 +4,7 @@ const {
   APP_PREFIX_REDIS,
   expireReportsInRedis,
   formatNumber,
-  MYBANKUSSD_BANK_CODES
+  MYBANKUSSD_BANK_CODES,
 } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
@@ -14,7 +14,7 @@ const API_DATA_EXPIRE_TIME = parseInt(App.REDIS_API_DATA_EXPIRE);
 const moment = require("moment");
 
 async function process1KOnlyAirtime(text, phoneNumber, sessionId) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     console.log("Starting 1K only Airtime purchase Process");
     let response = "";
     if (text.startsWith("3")) {
@@ -33,7 +33,7 @@ async function process1KOnlyAirtime(text, phoneNumber, sessionId) {
 }
 
 async function airtime1KOnlyFlow(brokenDownText, phoneNumber, sessionId) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let response = "";
 
     if (brokenDownText.length === 1) {
@@ -42,11 +42,11 @@ async function airtime1KOnlyFlow(brokenDownText, phoneNumber, sessionId) {
           "DMMYYYY"
         )}`
       );
-      expireReportsInRedis(
-        `${APP_PREFIX_REDIS}:reports:count:topMenu_Airtime1K:${moment().format(
-          "DMMYYYY"
-        )}`
-      );
+      // expireReportsInRedis(
+      //   `${APP_PREFIX_REDIS}:reports:count:topMenu_Airtime1K:${moment().format(
+      //     "DMMYYYY"
+      //   )}`
+      // );
       response = `CON 1K Airtime Self Service\n`;
       let listOfBundle = await generateAirtimeBundle();
       response += listOfBundle;
@@ -144,10 +144,10 @@ async function airtime1KOnlyFlow(brokenDownText, phoneNumber, sessionId) {
 }
 
 async function generateAirtimeBundle(nextPage = false) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     redisClient
       .existsAsync(`${APP_PREFIX_REDIS}:AirtimeProvidersNames`)
-      .then(async resp => {
+      .then(async (resp) => {
         let response = "";
         if (resp === 0) {
           await fetchAirtimeProviders();
@@ -162,19 +162,19 @@ async function generateAirtimeBundle(nextPage = false) {
         let topBanksName;
 
         if (!nextPage) {
-          topBanksName = Object.keys(MYBANKUSSD_BANK_CODES).filter(value => {
+          topBanksName = Object.keys(MYBANKUSSD_BANK_CODES).filter((value) => {
             return value.includes("GTB") || value.includes("Access");
           });
         } else {
-          topBanksName = Object.keys(MYBANKUSSD_BANK_CODES).filter(value => {
+          topBanksName = Object.keys(MYBANKUSSD_BANK_CODES).filter((value) => {
             return value.includes("UBA") || value.includes("Zenith");
           });
         }
 
         let index = 0;
 
-        topBanksName.sort().forEach(bank => {
-          providers.forEach(provider => {
+        topBanksName.sort().forEach((bank) => {
+          providers.forEach((provider) => {
             response += `${++index} ${
               provider.includes("9mobile") ? "9mobile" : provider
             }/${bank}\n`;
@@ -191,7 +191,7 @@ async function generateAirtimeBundle(nextPage = false) {
 }
 
 async function getPurchaseConfirmation(brokenDownText, phoneNumber, sessionId) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let providerCode;
     let providerName;
     let chosenBankName;
@@ -298,14 +298,14 @@ async function getPurchaseConfirmation(brokenDownText, phoneNumber, sessionId) {
 }
 
 async function fetchAirtimeProviders() {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     axios
       .get(`${FelaMarketPlace.BASE_URL}/list/airtimeProviders`, {
         headers: {
-          Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER} `
-        }
+          Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER} `,
+        },
       })
-      .then(async response => {
+      .then(async (response) => {
         let airtimeProvidersArray = Object.values(response.data.data);
 
         for (let [index, provider] of airtimeProvidersArray.entries()) {
@@ -351,19 +351,19 @@ function processAirtimePurchase(
       method: "coralpay",
       auth: {
         source: `${FelaMarketPlace.THIS_SOURCE}`,
-        passkey: ""
+        passkey: "",
       },
       params: {
         recipient: `${phoneNumber}`,
         amount: "1000",
-        network: `${providerCode}`
+        network: `${providerCode}`,
       },
       user: {
         sessionId: `${sessionId}`,
         source: `${FelaMarketPlace.THIS_SOURCE}`,
         sourceId: `${phoneNumber}`,
-        phoneNumber: `${phoneNumber}`
-      }
+        phoneNumber: `${phoneNumber}`,
+      },
     };
 
     try {
@@ -371,7 +371,7 @@ function processAirtimePurchase(
         `${FelaMarketPlace.BASE_URL}/payment/request`,
         payload,
         {
-          headers: felaHeader
+          headers: felaHeader,
         }
       );
 
@@ -384,11 +384,11 @@ function processAirtimePurchase(
           "DMMYYYY"
         )}`
       );
-      expireReportsInRedis(
-        `${APP_PREFIX_REDIS}:reports:count:purchases_Airtime1KBundle:${moment().format(
-          "DMMYYYY"
-        )}`
-      );
+      // expireReportsInRedis(
+      //   `${APP_PREFIX_REDIS}:reports:count:purchases_Airtime1KBundle:${moment().format(
+      //     "DMMYYYY"
+      //   )}`
+      // );
 
       await redisClient.incrbyAsync(
         `${APP_PREFIX_REDIS}:reports:count:totalValue_Airtime1KBundle:${moment().format(
@@ -396,11 +396,11 @@ function processAirtimePurchase(
         )}`,
         parseInt(1000)
       );
-      expireReportsInRedis(
-        `${APP_PREFIX_REDIS}:reports:count:totalValue_Airtime1KBundle:${moment().format(
-          "DMMYYYY"
-        )}`
-      );
+      // expireReportsInRedis(
+      //   `${APP_PREFIX_REDIS}:reports:count:totalValue_Airtime1KBundle:${moment().format(
+      //     "DMMYYYY"
+      //   )}`
+      // );
 
       // resolve(
       //   `CON Ur Bank is *${chosenUSSDBankCode}#\nNever 4GET *000*\nTrans Code is ${paymentToken}\nRem last 4 Digits!\n\nDial2Pay *${chosenUSSDBankCode}*000*${paymentToken}#\nExpires in 5mins\n\nCashback\nWin N5k-100m\n\n0 Menu`
@@ -424,5 +424,5 @@ function processAirtimePurchase(
 }
 
 module.exports = {
-  process1KOnlyAirtime
+  process1KOnlyAirtime,
 };

@@ -2,13 +2,13 @@ const { redisClient } = require("../redisConnectConfig");
 const {
   FelaMarketPlace,
   App,
-  LCC: { LCC_PROVIDER_CODE, LCC_TOLL_SERVICE_CODE }
+  LCC: { LCC_PROVIDER_CODE, LCC_TOLL_SERVICE_CODE },
 } = require("../index");
 const {
   APP_PREFIX_REDIS,
   formatNumber,
   MYBANKUSSD_BANK_CODES,
-  expireReportsInRedis
+  expireReportsInRedis,
 } = require("../utils");
 const moment = require("moment");
 const axios = require("axios");
@@ -28,11 +28,11 @@ async function processLCC(phoneNumber, text, sessionId) {
           "DMMYYYY"
         )}`
       );
-      expireReportsInRedis(
-        `${APP_PREFIX_REDIS}:reports:count:topMenu_LCC:${moment().format(
-          "DMMYYYY"
-        )}`
-      );
+      // expireReportsInRedis(
+      //   `${APP_PREFIX_REDIS}:reports:count:topMenu_LCC:${moment().format(
+      //     "DMMYYYY"
+      //   )}`
+      // );
       response = `CON Enter your LCC account number:`;
       resolve(response);
     } else if (brokenDownText.length === 3) {
@@ -174,7 +174,7 @@ async function processLCC(phoneNumber, text, sessionId) {
         amount,
         lccAccountNo,
         paymentMethod,
-        walletPin
+        walletPin,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       response = await processLCCPayment(
         sessionId,
@@ -207,7 +207,7 @@ async function processLCC(phoneNumber, text, sessionId) {
         amount,
         lccAccountNo,
         paymentMethod,
-        chosenUSSDBankCode
+        chosenUSSDBankCode,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       response = await processLCCPayment(
         sessionId,
@@ -236,17 +236,17 @@ async function processLCC(phoneNumber, text, sessionId) {
 }
 
 async function confirmLCCAcountNo(accountNo) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     axios
       .get(
         `${FelaMarketPlace.BASE_URL}/info/tollAccountNo?provider_code=${LCC_PROVIDER_CODE}&account_id=${accountNo}`,
         {
           headers: {
-            Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER} `
-          }
+            Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER} `,
+          },
         }
       )
-      .then(resp => {
+      .then((resp) => {
         console.log(resp.data);
         if (resp.status === 200) {
           if (resp.data.message.includes("Account resolved successfully")) {
@@ -258,7 +258,7 @@ async function confirmLCCAcountNo(accountNo) {
           resolve(false);
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.log(error);
         resolve(false);
       });
@@ -281,20 +281,20 @@ function processLCCPayment(
       method: `${paymentMethod}`,
       auth: {
         source: `${FelaMarketPlace.THIS_SOURCE}`,
-        passkey: `${walletPin}`
+        passkey: `${walletPin}`,
       },
       params: {
         account_number: `${lccAccountNo}`,
         provider_code: `${LCC_PROVIDER_CODE}`,
         service_code: `${LCC_TOLL_SERVICE_CODE}`,
-        amount: `${amount}`
+        amount: `${amount}`,
       },
       user: {
         sessionId: `${sessionId}`,
         source: `${FelaMarketPlace.THIS_SOURCE}`,
         sourceId: `${phoneNumber}`,
-        phoneNumber: `${phoneNumber}`
-      }
+        phoneNumber: `${phoneNumber}`,
+      },
     };
 
     try {
@@ -302,7 +302,7 @@ function processLCCPayment(
         `${FelaMarketPlace.BASE_URL}/payment/request`,
         payload,
         {
-          headers: felaHeader
+          headers: felaHeader,
         }
       );
       if (paymentMethod === "felawallet") {
@@ -313,22 +313,22 @@ function processLCCPayment(
             "DMMYYYY"
           )}`
         );
-        expireReportsInRedis(
-          `${APP_PREFIX_REDIS}:reports:count:purchases_LCCWithWallet:${moment().format(
-            "DMMYYYY"
-          )}`
-        );
+        // expireReportsInRedis(
+        //   `${APP_PREFIX_REDIS}:reports:count:purchases_LCCWithWallet:${moment().format(
+        //     "DMMYYYY"
+        //   )}`
+        // );
         await redisClient.incrbyAsync(
           `${APP_PREFIX_REDIS}:reports:count:totalValue_LCCWithWallet:${moment().format(
             "DMMYYYY"
           )}`,
           parseInt(amount)
         );
-        expireReportsInRedis(
-          `${APP_PREFIX_REDIS}:reports:count:totalValue_LCCWithWallet:${moment().format(
-            "DMMYYYY"
-          )}`
-        );
+        // expireReportsInRedis(
+        //   `${APP_PREFIX_REDIS}:reports:count:totalValue_LCCWithWallet:${moment().format(
+        //     "DMMYYYY"
+        //   )}`
+        // );
         resolve(
           `CON Dear Customer, your payment was successful!\n\nEnter 0 Back to home menu`
         );
@@ -339,22 +339,22 @@ function processLCCPayment(
             "DMMYYYY"
           )}`
         );
-        expireReportsInRedis(
-          `${APP_PREFIX_REDIS}:reports:count:purchases_LCCWithMyBankUSSD:${moment().format(
-            "DMMYYYY"
-          )}`
-        );
+        // expireReportsInRedis(
+        //   `${APP_PREFIX_REDIS}:reports:count:purchases_LCCWithMyBankUSSD:${moment().format(
+        //     "DMMYYYY"
+        //   )}`
+        // );
         await redisClient.incrbyAsync(
           `${APP_PREFIX_REDIS}:reports:count:totalValue_LCCWithMyBankUSSD:${moment().format(
             "DMMYYYY"
           )}`,
           parseInt(amount)
         );
-        expireReportsInRedis(
-          `${APP_PREFIX_REDIS}:reports:count:totalValue_LCCWithMyBankUSSD:${moment().format(
-            "DMMYYYY"
-          )}`
-        );
+        // expireReportsInRedis(
+        //   `${APP_PREFIX_REDIS}:reports:count:totalValue_LCCWithMyBankUSSD:${moment().format(
+        //     "DMMYYYY"
+        //   )}`
+        // );
         let paymentToken = response.data.data.paymentToken;
         // console.log(response.data);
 
@@ -391,5 +391,5 @@ function displayMyBankUSSDBanks() {
 }
 
 module.exports = {
-  processLCC
+  processLCC,
 };

@@ -4,7 +4,7 @@ const {
   APP_PREFIX_REDIS,
   formatNumber,
   MYBANKUSSD_BANK_CODES,
-  expireReportsInRedis
+  expireReportsInRedis,
 } = require("../utils");
 const moment = require("moment");
 const axios = require("axios");
@@ -95,7 +95,7 @@ async function processCableTv(phoneNumber, text, sessionId) {
 }
 
 async function menuFlowDisplayProviders(brokenDownText) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let response = "";
     if (brokenDownText.length === 2) {
       await redisClient.incrAsync(
@@ -103,11 +103,11 @@ async function menuFlowDisplayProviders(brokenDownText) {
           "DMMYYYY"
         )}`
       );
-      expireReportsInRedis(
-        `${APP_PREFIX_REDIS}:reports:count:subMenu_PayForCableTV:${moment().format(
-          "DMMYYYY"
-        )}`
-      );
+      // expireReportsInRedis(
+      //   `${APP_PREFIX_REDIS}:reports:count:subMenu_PayForCableTV:${moment().format(
+      //     "DMMYYYY"
+      //   )}`
+      // );
       response = await displayCableProviders();
       resolve(response);
     } else {
@@ -117,7 +117,7 @@ async function menuFlowDisplayProviders(brokenDownText) {
 }
 
 async function menuFlowDisplayBouquets(brokenDownText, sessionId) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let response = "";
 
     if (brokenDownText.length === 3) {
@@ -183,7 +183,7 @@ async function menuFlowDisplayOverFlowBouquets(
   providerCode,
   providerName
 ) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let response = "";
 
     switch (providerName) {
@@ -218,7 +218,7 @@ async function menuFlowGetSmartCardNo(
   providerCode,
   providerName
 ) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let response = "";
     let currentState = await redisClient.hgetAsync(
       `${APP_PREFIX_REDIS}:${sessionId}`,
@@ -302,7 +302,7 @@ async function menuFlowGetPaymentMethod(
   providerCode,
   providerName
 ) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let response = "";
     let currentState = await redisClient.hgetAsync(
       `${APP_PREFIX_REDIS}:${sessionId}`,
@@ -317,7 +317,7 @@ async function menuFlowGetPaymentMethod(
           currentState === "getPaymentMethod"
         ) {
           let {
-            cableBouquetCode: bouquetCode
+            cableBouquetCode: bouquetCode,
           } = await redisClient.hgetallAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`
           );
@@ -345,7 +345,7 @@ async function menuFlowGetPaymentMethod(
           currentState === "getPaymentMethod"
         ) {
           let {
-            cableBouquetCode: bouquetCode
+            cableBouquetCode: bouquetCode,
           } = await redisClient.hgetallAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`
           );
@@ -373,7 +373,7 @@ async function menuFlowGetPaymentMethod(
           currentState === "getPaymentMethod"
         ) {
           let {
-            cableBouquetCode: bouquetCode
+            cableBouquetCode: bouquetCode,
           } = await redisClient.hgetallAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`
           );
@@ -403,7 +403,7 @@ async function menuFlowGetPaymentMethod(
           currentState === "getPaymentMethod"
         ) {
           let {
-            cableBouquetCode: bouquetCode
+            cableBouquetCode: bouquetCode,
           } = await redisClient.hgetallAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`
           );
@@ -437,7 +437,7 @@ async function menuFlowGetPaymentDetails(
   sessionId,
   providerName
 ) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let response = "";
     let currentState = await redisClient.hgetAsync(
       `${APP_PREFIX_REDIS}:${sessionId}`,
@@ -536,11 +536,11 @@ async function menuFlowGetPaymentDetails(
 }
 
 async function menuFlowDisplaySummary(brokenDownText, sessionId, providerName) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let response = "";
     let {
       ussdState: currentState,
-      paymentMethod
+      paymentMethod,
     } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
 
     switch (providerName) {
@@ -575,7 +575,7 @@ async function menuFlowDisplaySummary(brokenDownText, sessionId, providerName) {
               cableProviderName,
               cableBouquetName,
               cableCardNo,
-              bouquetPrice
+              bouquetPrice,
             } = await redisClient.hgetallAsync(
               `${APP_PREFIX_REDIS}:${sessionId}`
             );
@@ -599,7 +599,7 @@ async function menuFlowDisplaySummary(brokenDownText, sessionId, providerName) {
             cableProviderName,
             cableBouquetName,
             cableCardNo,
-            bouquetPrice
+            bouquetPrice,
           } = await redisClient.hgetallAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`
           );
@@ -670,7 +670,7 @@ async function menuFlowDisplaySummary(brokenDownText, sessionId, providerName) {
               cableProviderName,
               cableBouquetName,
               cableCardNo,
-              bouquetPrice
+              bouquetPrice,
             } = await redisClient.hgetallAsync(
               `${APP_PREFIX_REDIS}:${sessionId}`
             );
@@ -692,7 +692,7 @@ async function menuFlowDisplaySummary(brokenDownText, sessionId, providerName) {
             cableProviderName,
             cableBouquetName,
             cableCardNo,
-            bouquetPrice
+            bouquetPrice,
           } = await redisClient.hgetallAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`
           );
@@ -746,11 +746,11 @@ async function menuFlowMakePayment(
   sessionId,
   providerName
 ) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let response = "";
     let {
       ussdState: currentState,
-      paymentMethod
+      paymentMethod,
     } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
 
     switch (providerName) {
@@ -768,7 +768,7 @@ async function menuFlowMakePayment(
             cableBouquetCode,
             paymentMethod,
             walletPin,
-            bouquetPrice
+            bouquetPrice,
           } = await redisClient.hgetallAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`
           );
@@ -798,7 +798,7 @@ async function menuFlowMakePayment(
             cableBouquetCode,
             paymentMethod,
             chosenUSSDBankCode,
-            bouquetPrice
+            bouquetPrice,
           } = await redisClient.hgetallAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`
           );
@@ -841,7 +841,7 @@ async function menuFlowMakePayment(
             cableBouquetCode,
             paymentMethod,
             walletPin,
-            bouquetPrice
+            bouquetPrice,
           } = await redisClient.hgetallAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`
           );
@@ -870,7 +870,7 @@ async function menuFlowMakePayment(
             cableBouquetCode,
             paymentMethod,
             chosenUSSDBankCode,
-            bouquetPrice
+            bouquetPrice,
           } = await redisClient.hgetallAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`
           );
@@ -906,7 +906,7 @@ async function menuFlowMakePayment(
 }
 
 async function saveSelectedBouquet(providerCode, selectedBouquet, sessionId) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let [selectedBouquetName, bouquetPrice] = await redisClient.zrevrangeAsync(
       `${APP_PREFIX_REDIS}:CableTVBouquet:${providerCode}:Name`,
       selectedBouquet,
@@ -940,7 +940,7 @@ async function saveSelectedBouquet(providerCode, selectedBouquet, sessionId) {
 }
 
 async function confirmSmartCardNo(smartCardNo, providerCode, bouquetCode) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     console.log(smartCardNo, providerCode, bouquetCode);
     axios
       .get(
@@ -948,11 +948,11 @@ async function confirmSmartCardNo(smartCardNo, providerCode, bouquetCode) {
         `,
         {
           headers: {
-            Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER} `
-          }
+            Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER} `,
+          },
         }
       )
-      .then(resp => {
+      .then((resp) => {
         console.log(resp.data);
         if (resp.status === 200) {
           if (resp.data.message.includes("Smart card resolved successfully")) {
@@ -964,7 +964,7 @@ async function confirmSmartCardNo(smartCardNo, providerCode, bouquetCode) {
           resolve(false);
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.log(error);
         resolve(false);
       });
@@ -972,7 +972,7 @@ async function confirmSmartCardNo(smartCardNo, providerCode, bouquetCode) {
 }
 
 async function fetchCableProviders() {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let cachedProviders = await redisClient.existsAsync(
       `${APP_PREFIX_REDIS}:CableTVProviders`
     );
@@ -982,7 +982,7 @@ async function fetchCableProviders() {
       let callResponse = await axios.get(
         `${FelaMarketPlace.BASE_URL}/list/cableProviders`,
         {
-          headers: felaHeader
+          headers: felaHeader,
         }
       );
 
@@ -1011,7 +1011,7 @@ async function fetchCableProviders() {
 }
 
 async function fetchBouquets(providerCode, providerName, start, end) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let cachedBouquets = await redisClient.existsAsync(
       `${APP_PREFIX_REDIS}:CableTVBouquet:${providerCode}:Name`
     );
@@ -1021,7 +1021,7 @@ async function fetchBouquets(providerCode, providerName, start, end) {
       let callResponse = await axios.get(
         `${FelaMarketPlace.BASE_URL}/list/cableBouquets?provider_code=${providerCode}`,
         {
-          headers: felaHeader
+          headers: felaHeader,
         }
       );
 
@@ -1107,7 +1107,7 @@ function refineGOTVBouquetName(name) {
 }
 
 async function displayCableProviders() {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let providers = await fetchCableProviders();
 
     let response = "CON Select Cable Provider:\n";
@@ -1120,12 +1120,12 @@ async function displayCableProviders() {
 }
 
 async function displayBouquets(providerCode, providerName, start, end) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let bouquets = await fetchBouquets(providerCode, providerName, start, end);
 
     let response = `CON Select your Bouquet:\n`;
     let index = 0;
-    bouquets.forEach(value => {
+    bouquets.forEach((value) => {
       response += `${++index} ${value}\n`;
     });
 
@@ -1162,19 +1162,19 @@ function processCableTVPayment(
       method: `${paymentMethod}`,
       auth: {
         source: `${FelaMarketPlace.THIS_SOURCE}`,
-        passkey: `${walletPin}`
+        passkey: `${walletPin}`,
       },
       params: {
         smartcard_number: `${cardNo}`,
         provider_code: `${providerCode}`,
-        service_code: `${bouquetCode}`
+        service_code: `${bouquetCode}`,
       },
       user: {
         sessionId: `${sessionId}`,
         source: `${FelaMarketPlace.THIS_SOURCE}`,
         sourceId: `${phoneNumber}`,
-        phoneNumber: `${phoneNumber}`
-      }
+        phoneNumber: `${phoneNumber}`,
+      },
     };
 
     try {
@@ -1182,7 +1182,7 @@ function processCableTVPayment(
         `${FelaMarketPlace.BASE_URL}/payment/request`,
         payload,
         {
-          headers: felaHeader
+          headers: felaHeader,
         }
       );
       if (paymentMethod === "felawallet") {
@@ -1193,22 +1193,22 @@ function processCableTVPayment(
             "DMMYYYY"
           )}`
         );
-        expireReportsInRedis(
-          `${APP_PREFIX_REDIS}:reports:count:purchases_CableTVWithWallet:${moment().format(
-            "DMMYYYY"
-          )}`
-        );
+        // expireReportsInRedis(
+        //   `${APP_PREFIX_REDIS}:reports:count:purchases_CableTVWithWallet:${moment().format(
+        //     "DMMYYYY"
+        //   )}`
+        // );
         await redisClient.incrbyAsync(
           `${APP_PREFIX_REDIS}:reports:count:totalValue_CableTVWithWallet:${moment().format(
             "DMMYYYY"
           )}`,
           parseInt(price)
         );
-        expireReportsInRedis(
-          `${APP_PREFIX_REDIS}:reports:count:totalValue_CableTVWithWallet:${moment().format(
-            "DMMYYYY"
-          )}`
-        );
+        // expireReportsInRedis(
+        //   `${APP_PREFIX_REDIS}:reports:count:totalValue_CableTVWithWallet:${moment().format(
+        //     "DMMYYYY"
+        //   )}`
+        // );
         resolve(`CON Dear Customer, your payment was successful!\n\n0 Menu`);
       } else {
         console.log("Getting response from coral pay");
@@ -1217,22 +1217,22 @@ function processCableTVPayment(
             "DMMYYYY"
           )}`
         );
-        expireReportsInRedis(
-          `${APP_PREFIX_REDIS}:reports:count:purchases_CableTVWithMyBankUSSD:${moment().format(
-            "DMMYYYY"
-          )}`
-        );
+        // expireReportsInRedis(
+        //   `${APP_PREFIX_REDIS}:reports:count:purchases_CableTVWithMyBankUSSD:${moment().format(
+        //     "DMMYYYY"
+        //   )}`
+        // );
         await redisClient.incrbyAsync(
           `${APP_PREFIX_REDIS}:reports:count:totalValue_CableTVWithMyBankUSSD:${moment().format(
             "DMMYYYY"
           )}`,
           parseInt(price)
         );
-        expireReportsInRedis(
-          `${APP_PREFIX_REDIS}:reports:count:totalValue_CableTVWithMyBankUSSD:${moment().format(
-            "DMMYYYY"
-          )}`
-        );
+        // expireReportsInRedis(
+        //   `${APP_PREFIX_REDIS}:reports:count:totalValue_CableTVWithMyBankUSSD:${moment().format(
+        //     "DMMYYYY"
+        //   )}`
+        // );
         let paymentToken = response.data.data.paymentToken;
         // console.log(response.data);
 
@@ -1268,5 +1268,5 @@ function displayMyBankUSSDBanks() {
 }
 
 module.exports = {
-  processCableTv
+  processCableTv,
 };

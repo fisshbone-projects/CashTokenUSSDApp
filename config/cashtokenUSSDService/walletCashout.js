@@ -6,7 +6,7 @@ const {
   formatNumber,
   getBankCharge,
   APP_PREFIX_REDIS,
-  expireReportsInRedis
+  expireReportsInRedis,
 } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
@@ -23,11 +23,11 @@ async function processFundDisbursement(text, phoneNumber, sessionId) {
           "DMMYYYY"
         )}`
       );
-      expireReportsInRedis(
-        `${APP_PREFIX_REDIS}:reports:count:subMenu_Redeem_Spend:${moment().format(
-          "DMMYYYY"
-        )}`
-      );
+      // expireReportsInRedis(
+      //   `${APP_PREFIX_REDIS}:reports:count:subMenu_Redeem_Spend:${moment().format(
+      //     "DMMYYYY"
+      //   )}`
+      // );
       let response = `CON Enter the amount you would like to cash-out:`;
       resolve(response);
     }
@@ -97,7 +97,7 @@ async function obtainFinalPermissionForWithdrawalHelper(
   let {
     bankName,
     accountNumber,
-    amountToWithdraw
+    amountToWithdraw,
   } = await returnWithdrawalRequestData(sessionId);
 
   if ((await redisClient.existsAsync(`${APP_PREFIX_REDIS}:BankCharge`)) === 0) {
@@ -181,7 +181,7 @@ async function processWithdrawTransactionHelper(sessionId, phoneNumber) {
     bankCode,
     accountNumber,
     amountToWithdraw,
-    walletPin
+    walletPin,
   } = await returnWithdrawalRequestData(sessionId);
   let response = await makeWalletWithdrawal(
     amountToWithdraw,
@@ -295,56 +295,56 @@ async function makeWalletWithdrawal(
       offeringName: "withdraw",
       auth: {
         source: `${FelaMarketPlace.THIS_SOURCE}`,
-        passkey: `${walletPin}`
+        passkey: `${walletPin}`,
       },
       params: {
         amount: `${amount}`,
         bankCode: `${bankCode.length == 2 ? "0" + bankCode : bankCode}`,
         accountNo: `${accountNo}`,
-        walletType: "fela"
+        walletType: "fela",
       },
       user: {
         sessionId: `${sessionId}`,
         source: `${FelaMarketPlace.THIS_SOURCE}`,
         sourceId: `${phoneNumber}`,
         phoneNumber: `${phoneNumber}`,
-        passkey: `${walletPin}`
-      }
+        passkey: `${walletPin}`,
+      },
     };
 
     console.log("Wallet Cashout Payload", payload);
     axios
       .post(`${FelaMarketPlace.BASE_URL}/offering/fulfil`, payload, {
-        headers: felaHeader
+        headers: felaHeader,
       })
-      .then(async response => {
+      .then(async (response) => {
         // console.log(JSON.stringify(response.data, null, 2));
         await redisClient.incrAsync(
           `${APP_PREFIX_REDIS}:reports:count:purchases_WalletCashout:${moment().format(
             "DMMYYYY"
           )}`
         );
-        expireReportsInRedis(
-          `${APP_PREFIX_REDIS}:reports:count:purchases_WalletCashout:${moment().format(
-            "DMMYYYY"
-          )}`
-        );
+        // expireReportsInRedis(
+        //   `${APP_PREFIX_REDIS}:reports:count:purchases_WalletCashout:${moment().format(
+        //     "DMMYYYY"
+        //   )}`
+        // );
         await redisClient.incrbyAsync(
           `${APP_PREFIX_REDIS}:reports:count:totalValue_WalletCashout:${moment().format(
             "DMMYYYY"
           )}`,
           parseInt(amount)
         );
-        expireReportsInRedis(
-          `${APP_PREFIX_REDIS}:reports:count:totalValue_WalletCashout:${moment().format(
-            "DMMYYYY"
-          )}`
-        );
+        // expireReportsInRedis(
+        //   `${APP_PREFIX_REDIS}:reports:count:totalValue_WalletCashout:${moment().format(
+        //     "DMMYYYY"
+        //   )}`
+        // );
         console.log(response.data);
         let feedback = `CON Dear Customer, Your Account will be credited within 24 hours\n\nEnter 0 Back to home menu`;
         resolve(feedback);
       })
-      .catch(error => {
+      .catch((error) => {
         console.log("error");
         console.log(JSON.stringify(error.response.data, null, 2));
         if (!!error.response) {
@@ -359,14 +359,14 @@ async function makeWalletWithdrawal(
 }
 
 function helperDisplayBankList(dataIndexStart, dataIndexEnd) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let bankList = await redisClient.zrangeAsync(
       `${APP_PREFIX_REDIS}:BankCodes`,
       dataIndexStart,
       dataIndexEnd
     );
     console.log(bankList);
-    let newBankNames = bankList.map(value => {
+    let newBankNames = bankList.map((value) => {
       return BANK_NAME_ABR[value];
     });
 
@@ -389,12 +389,12 @@ async function getBankCodes() {
   return new Promise((resolve, reject) => {
     axios
       .get(`${FelaMarketPlace.BASE_URL}/list/banks`, {
-        headers: felaHeader
+        headers: felaHeader,
       })
-      .then(response => {
+      .then((response) => {
         // console.log(JSON.stringify(response.data, null, 2));
         let bankArray = Object.values(response.data.data);
-        bankArray.forEach(async bank => {
+        bankArray.forEach(async (bank) => {
           await redisClient.zaddAsync(
             `${APP_PREFIX_REDIS}:BankCodes`,
             bank.code,
@@ -404,7 +404,7 @@ async function getBankCodes() {
           resolve();
         });
       })
-      .catch(error => {
+      .catch((error) => {
         console.log("error");
         console.log(JSON.stringify(error.response.data, null, 2));
       });
@@ -424,7 +424,7 @@ async function displayBankList(brokenDownText, sessionId) {
         );
         redisClient
           .existsAsync(`${APP_PREFIX_REDIS}:BankCodes`)
-          .then(async resp => {
+          .then(async (resp) => {
             if (resp === 0) {
               console.log("Fetching bank codes from API");
               getBankCodes()
@@ -432,7 +432,7 @@ async function displayBankList(brokenDownText, sessionId) {
                   let response = await helperDisplayBankList(0, 9);
                   resolve(response);
                 })
-                .catch(error => {
+                .catch((error) => {
                   console.log("error");
                   console.log(JSON.stringify(error.response.data, null, 2));
                 });
@@ -453,7 +453,7 @@ async function displayBankList(brokenDownText, sessionId) {
     ) {
       redisClient
         .existsAsync(`${APP_PREFIX_REDIS}:BankCodes`)
-        .then(async resp => {
+        .then(async (resp) => {
           if (resp === 0) {
             await getBankCodes();
           }
@@ -467,7 +467,7 @@ async function displayBankList(brokenDownText, sessionId) {
     ) {
       redisClient
         .existsAsync(`${APP_PREFIX_REDIS}:BankCodes`)
-        .then(async resp => {
+        .then(async (resp) => {
           if (resp === 0) {
             await getBankCodes();
           }
@@ -481,7 +481,7 @@ async function displayBankList(brokenDownText, sessionId) {
     ) {
       redisClient
         .existsAsync(`${APP_PREFIX_REDIS}:BankCodes`)
-        .then(async resp => {
+        .then(async (resp) => {
           if (resp === 0) {
             await getBankCodes();
           }
@@ -495,7 +495,7 @@ async function displayBankList(brokenDownText, sessionId) {
     ) {
       redisClient
         .existsAsync(`${APP_PREFIX_REDIS}:BankCodes`)
-        .then(async resp => {
+        .then(async (resp) => {
           if (resp === 0) {
             await getBankCodes();
           }
@@ -644,7 +644,7 @@ async function obtainBankNameForDisbuseMent(brokenDownText, sessionId) {
 }
 
 async function saveAccountNumber(accountNumber, sessionId) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     console.log("Account Number is: " + accountNumber);
     await redisClient.hmsetAsync(
       `${APP_PREFIX_REDIS}:${sessionId}`,
@@ -734,5 +734,5 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
 }
 
 module.exports = {
-  processFundDisbursement
+  processFundDisbursement,
 };

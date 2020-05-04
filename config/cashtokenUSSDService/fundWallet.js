@@ -8,7 +8,7 @@ const {
   testPhoneNumber,
   formatNumber,
   MYBANKUSSD_BANK_CODES,
-  expireReportsInRedis
+  expireReportsInRedis,
 } = require("../utils");
 const NAIRASIGN = "N";
 
@@ -37,11 +37,11 @@ async function fundWalletFlow(brokenDownText, phoneNumber, sessionId) {
           "DMMYYYY"
         )}`
       );
-      expireReportsInRedis(
-        `${APP_PREFIX_REDIS}:reports:count:subMenu_FundWallet:${moment().format(
-          "DMMYYYY"
-        )}`
-      );
+      // expireReportsInRedis(
+      //   `${APP_PREFIX_REDIS}:reports:count:subMenu_FundWallet:${moment().format(
+      //     "DMMYYYY"
+      //   )}`
+      // );
 
       response = `CON Insert Amount:`;
       resolve(response);
@@ -140,24 +140,24 @@ function processCashTokenPurchase(
       method: paymentMethod,
       auth: {
         source: `${FelaMarketPlace.THIS_SOURCE}`,
-        passkey: ""
+        passkey: "",
       },
       params: {
-        amount: `${amount}`
+        amount: `${amount}`,
       },
       user: {
         sessionId: `${sessionId}`,
         source: `${FelaMarketPlace.THIS_SOURCE}`,
         sourceId: `${phoneNumber}`,
-        phoneNumber: `${phoneNumber}`
-      }
+        phoneNumber: `${phoneNumber}`,
+      },
     };
     try {
       let response = await axios.post(
         `${FelaMarketPlace.BASE_URL}/payment/request`,
         payload,
         {
-          headers: felaHeader
+          headers: felaHeader,
         }
       );
       switch (paymentMethod) {
@@ -170,22 +170,22 @@ function processCashTokenPurchase(
               "DMMYYYY"
             )}`
           );
-          expireReportsInRedis(
-            `${APP_PREFIX_REDIS}:reports:count:purchases_FundWallet:${moment().format(
-              "DMMYYYY"
-            )}`
-          );
+          // expireReportsInRedis(
+          //   `${APP_PREFIX_REDIS}:reports:count:purchases_FundWallet:${moment().format(
+          //     "DMMYYYY"
+          //   )}`
+          // );
           await redisClient.incrbyAsync(
             `${APP_PREFIX_REDIS}:reports:count:totalValue_FundWallet:${moment().format(
               "DMMYYYY"
             )}`,
             parseInt(amount)
           );
-          expireReportsInRedis(
-            `${APP_PREFIX_REDIS}:reports:count:totalValue_FundWallet:${moment().format(
-              "DMMYYYY"
-            )}`
-          );
+          // expireReportsInRedis(
+          //   `${APP_PREFIX_REDIS}:reports:count:totalValue_FundWallet:${moment().format(
+          //     "DMMYYYY"
+          //   )}`
+          // );
           // resolve(
           //   `CON Ur Bank is *${chosenUSSDBankCode}#\nNever 4GET *000*\nTrans Code is ${paymentToken}\nRem last 4 Digits!\n\nDial2Pay *${chosenUSSDBankCode}*000*${paymentToken}#\nExpires in 5mins\n\nCashback\nWin N5k-100m\n\n0 Menu`
           // );
@@ -219,5 +219,5 @@ function displayMyBankUSSDBanks() {
 }
 
 module.exports = {
-  processFundWallet
+  processFundWallet,
 };

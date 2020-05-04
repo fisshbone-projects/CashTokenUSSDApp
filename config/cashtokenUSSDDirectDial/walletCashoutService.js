@@ -4,7 +4,7 @@ const { getBankCodes } = require("./directDialUtils");
 const {
   formatNumber,
   DIRECTDIAL_BANK_MAP,
-  getBankCharge
+  getBankCharge,
 } = require("../utils");
 const moment = require("moment");
 const { FelaMarketPlace } = require("../../config");
@@ -83,7 +83,7 @@ async function processWalletCashout(sessionId, userPhone, text) {
       let {
         amount,
         accountNumber,
-        chosenBankCode
+        chosenBankCode,
       } = await redisClient.hgetallAsync(`CELDUSSD:DIRECTDIAL:${sessionId}`);
 
       response = await makeWalletWithdrawal(
@@ -119,7 +119,7 @@ async function verifyInput(amount, accountNumber, bankCode) {
   let response = {
     checkAmount: { amountStatus, amountVerificationResp },
     checkAccountNumber: { accountNoStatus, accountNoVerificationResp },
-    checkBankCode: { bankCodeStatus, bankCodeVerificationResp }
+    checkBankCode: { bankCodeStatus, bankCodeVerificationResp },
   };
 
   return Promise.resolve(response);
@@ -181,7 +181,7 @@ function verifyPin(pin) {
 }
 
 async function verifyBankCode(bankCode) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let { bankNames, bankCodes } = await getBankCodeDetails();
     // console.log("Checking", bankNames, bankCodes);
     let bankCodeStatus = "";
@@ -220,15 +220,15 @@ async function getBankCodeDetails() {
     "withscores"
   );
 
-  let bankNames = listOfBankCodes.filter(bank => {
+  let bankNames = listOfBankCodes.filter((bank) => {
     return !/^[0-9]*$/.test(bank);
   });
 
-  let bankCodes = listOfBankCodes.filter(bank => {
+  let bankCodes = listOfBankCodes.filter((bank) => {
     return /^[0-9]*$/.test(bank);
   });
 
-  let sanitizedBankCodes = bankCodes.map(bank => {
+  let sanitizedBankCodes = bankCodes.map((bank) => {
     let newCode = bank.length === 2 ? `0${bank}` : bank;
     return newCode;
   });
@@ -250,40 +250,40 @@ async function makeWalletWithdrawal(
       offeringName: "withdraw",
       auth: {
         source: `${FelaMarketPlace.THIS_SOURCE}`,
-        passkey: `${walletPin}`
+        passkey: `${walletPin}`,
       },
       params: {
         amount: `${amount}`,
         bankCode: `${bankCode.length == 2 ? "0" + bankCode : bankCode}`,
         accountNo: `${accountNo}`,
-        walletType: "fela"
+        walletType: "fela",
       },
       user: {
         sessionId: `${sessionId}`,
         source: `${FelaMarketPlace.THIS_SOURCE}`,
         sourceId: `${phoneNumber}`,
         phoneNumber: `${phoneNumber}`,
-        passkey: `${walletPin}`
-      }
+        passkey: `${walletPin}`,
+      },
     };
 
     console.log("Wallet Cashout Payload", payload);
     axios
       .post(`${FelaMarketPlace.BASE_URL}/offering/fulfil`, payload, {
-        headers: felaHeader
+        headers: felaHeader,
       })
-      .then(async response => {
+      .then(async (response) => {
         // console.log(JSON.stringify(response.data, null, 2));
         await redisClient.incrAsync(
           `${APP_PREFIX_REDIS}:reports:count:purchases_DirectDial_WalletCashout:${moment().format(
             "DMMYYYY"
           )}`
         );
-        expireReportsInRedis(
-          `${APP_PREFIX_REDIS}:reports:count:purchases_DirectDial_WalletCashout:${moment().format(
-            "DMMYYYY"
-          )}`
-        );
+        // expireReportsInRedis(
+        //   `${APP_PREFIX_REDIS}:reports:count:purchases_DirectDial_WalletCashout:${moment().format(
+        //     "DMMYYYY"
+        //   )}`
+        // );
 
         await redisClient.incrbyAsync(
           `${APP_PREFIX_REDIS}:reports:count:totalValue_DirectDial_WalletCashout:${moment().format(
@@ -291,16 +291,16 @@ async function makeWalletWithdrawal(
           )}`,
           parseInt(amount)
         );
-        expireReportsInRedis(
-          `${APP_PREFIX_REDIS}:reports:count:totalValue_DirectDial_WalletCashout:${moment().format(
-            "DMMYYYY"
-          )}`
-        );
+        // expireReportsInRedis(
+        //   `${APP_PREFIX_REDIS}:reports:count:totalValue_DirectDial_WalletCashout:${moment().format(
+        //     "DMMYYYY"
+        //   )}`
+        // );
         console.log(response.data);
         let feedback = `END Dear Customer, Your Account will be credited within 24 hours`;
         resolve(feedback);
       })
-      .catch(error => {
+      .catch((error) => {
         console.log("error");
         // console.log(error);
         console.log(JSON.stringify(error.response.data, null, 2));
@@ -318,5 +318,5 @@ async function makeWalletWithdrawal(
 }
 
 module.exports = {
-  processWalletCashout
+  processWalletCashout,
 };

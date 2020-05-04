@@ -6,7 +6,7 @@ const {
   testPhoneNumber,
   formatNumber,
   MYBANKUSSD_BANK_CODES,
-  expireReportsInRedis
+  expireReportsInRedis,
 } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
@@ -14,7 +14,7 @@ const NAIRASIGN = "N";
 const API_DATA_EXPIRE_TIME = parseInt(App.REDIS_API_DATA_EXPIRE);
 
 async function processData(text, phoneNumber, sessionId) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     console.log("Starting Data Purchase Process");
     let response = "";
     let brokenDownText = text.split("*");
@@ -24,7 +24,7 @@ async function processData(text, phoneNumber, sessionId) {
 }
 
 async function dataFlow(brokenDownText, phoneNumber, sessionId) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let response = "";
 
     if (brokenDownText.length === 1) {
@@ -33,11 +33,11 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
           "DMMYYYY"
         )}`
       );
-      expireReportsInRedis(
-        `${APP_PREFIX_REDIS}:reports:count:topMenu_Data:${moment().format(
-          "DMMYYYY"
-        )}`
-      );
+      // expireReportsInRedis(
+      //   `${APP_PREFIX_REDIS}:reports:count:topMenu_Data:${moment().format(
+      //     "DMMYYYY"
+      //   )}`
+      // );
       response = await getDataProviders();
       resolve(response);
     } else if (brokenDownText.length >= 2) {
@@ -137,10 +137,10 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
 }
 
 function getDataProviders() {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     redisClient
       .existsAsync(`${APP_PREFIX_REDIS}:DataProvidersNames`)
-      .then(async resp => {
+      .then(async (resp) => {
         let response = "";
         if (resp === 0) {
           await fetchDataProviders();
@@ -165,14 +165,14 @@ function getDataProviders() {
 }
 
 async function fetchDataProviders() {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     axios
       .get(`${FelaMarketPlace.BASE_URL}/list/dataProviders`, {
         headers: {
-          Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER} `
-        }
+          Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER} `,
+        },
       })
-      .then(async response => {
+      .then(async (response) => {
         let dataProvidersArray = Object.values(response.data.data);
 
         for (let [index, provider] of dataProvidersArray.entries()) {
@@ -206,7 +206,7 @@ async function fetchDataProviders() {
 }
 
 async function handleMTN(brokenDownText, phoneNumber, sessionId, dataHandler) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let response = "";
     if (brokenDownText.length === 2) {
       response = await displayBundles(dataHandler, 0, 6);
@@ -442,10 +442,10 @@ async function handleMTN(brokenDownText, phoneNumber, sessionId, dataHandler) {
   });
 
   function displayBundles(codeName, start, end) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       redisClient
         .existsAsync(`${APP_PREFIX_REDIS}:${codeName}BundleNames`)
-        .then(async resp => {
+        .then(async (resp) => {
           if (resp === 0) {
             let bundles = await fetchDataBundle(codeName);
             await storeBundle(codeName, bundles);
@@ -460,7 +460,7 @@ async function handleMTN(brokenDownText, phoneNumber, sessionId, dataHandler) {
           console.log(providers);
           response = `CON Select Data Bundle:\n`;
           let index = 0;
-          providers.forEach(value => {
+          providers.forEach((value) => {
             response += `${++index} ${value}\n`;
           });
 
@@ -489,7 +489,7 @@ async function handleMTN(brokenDownText, phoneNumber, sessionId, dataHandler) {
   }
 
   function storeBundle(codeName, bundles) {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve) => {
       for (let bundle of Object.values(bundles)) {
         let refinedName = refineName(bundle.title);
         await redisClient.zaddAsync(
@@ -523,7 +523,7 @@ async function handleMTN(brokenDownText, phoneNumber, sessionId, dataHandler) {
   }
 
   function saveUserBundleData(sessionId, chosenBundle, codeName) {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve) => {
       let [chosenBundleName, dataPrice] = await redisClient.zrangeAsync(
         `${APP_PREFIX_REDIS}:${codeName}BundleNames`,
         chosenBundle,
@@ -562,7 +562,7 @@ async function handleAirtel(
   sessionId,
   dataHandler
 ) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let response = "";
     if (brokenDownText.length === 2) {
       response = await displayBundles(dataHandler, 0, 7);
@@ -764,10 +764,10 @@ async function handleAirtel(
   });
 
   function displayBundles(codeName, start, end) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       redisClient
         .existsAsync(`${APP_PREFIX_REDIS}:${codeName}BundleNames`)
-        .then(async resp => {
+        .then(async (resp) => {
           if (resp === 0) {
             let bundles = await fetchDataBundle(codeName);
             await storeBundle(codeName, bundles);
@@ -782,7 +782,7 @@ async function handleAirtel(
           console.log(providers);
           response = `CON Select Data Bundle:\n`;
           let index = 0;
-          providers.forEach(value => {
+          providers.forEach((value) => {
             response += `${++index} ${value}\n`;
           });
 
@@ -811,7 +811,7 @@ async function handleAirtel(
   }
 
   function storeBundle(codeName, bundles) {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve) => {
       for (let bundle of Object.values(bundles)) {
         let refinedName = refineName(bundle.title);
         await redisClient.zaddAsync(
@@ -845,7 +845,7 @@ async function handleAirtel(
   }
 
   function saveUserBundleData(sessionId, chosenBundle, codeName) {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve) => {
       let [chosenBundleName, dataPrice] = await redisClient.zrangeAsync(
         `${APP_PREFIX_REDIS}:${codeName}BundleNames`,
         chosenBundle,
@@ -884,7 +884,7 @@ async function handleEtisalat(
   sessionId,
   dataHandler
 ) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let response = "";
     if (brokenDownText.length === 2) {
       response = await displayBundles(dataHandler, 0, 7);
@@ -1086,10 +1086,10 @@ async function handleEtisalat(
   });
 
   function displayBundles(codeName, start, end) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       redisClient
         .existsAsync(`${APP_PREFIX_REDIS}:${codeName}BundleNames`)
-        .then(async resp => {
+        .then(async (resp) => {
           if (resp === 0) {
             let bundles = await fetchDataBundle(codeName);
             await storeBundle(codeName, bundles);
@@ -1104,7 +1104,7 @@ async function handleEtisalat(
           console.log(providers);
           response = `CON Select Data Bundle:\n`;
           let index = 0;
-          providers.forEach(value => {
+          providers.forEach((value) => {
             response += `${++index} ${value}\n`;
           });
 
@@ -1133,7 +1133,7 @@ async function handleEtisalat(
   }
 
   function storeBundle(codeName, bundles) {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve) => {
       for (let bundle of Object.values(bundles)) {
         let refinedName = refineName(bundle.title);
         await redisClient.zaddAsync(
@@ -1167,7 +1167,7 @@ async function handleEtisalat(
   }
 
   function saveUserBundleData(sessionId, chosenBundle, codeName) {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve) => {
       let [chosenBundleName, dataPrice] = await redisClient.zrangeAsync(
         `${APP_PREFIX_REDIS}:${codeName}BundleNames`,
         chosenBundle,
@@ -1206,7 +1206,7 @@ async function handleSmile(
   sessionId,
   dataHandler
 ) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let response = "";
     if (brokenDownText.length === 2) {
       response = await displayBundles(dataHandler, 0, 5);
@@ -1597,10 +1597,10 @@ async function handleSmile(
   });
 
   function displayBundles(codeName, start, end) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       redisClient
         .existsAsync(`${APP_PREFIX_REDIS}:${codeName}BundleNames`)
-        .then(async resp => {
+        .then(async (resp) => {
           if (resp === 0) {
             let bundles = await fetchDataBundle(codeName);
             await storeBundle(codeName, bundles);
@@ -1615,7 +1615,7 @@ async function handleSmile(
           console.log(providers);
           response = `CON Select Data Bundle:\n`;
           let index = 0;
-          providers.forEach(value => {
+          providers.forEach((value) => {
             response += `${++index} ${value}\n`;
           });
 
@@ -1634,7 +1634,7 @@ async function handleSmile(
   }
 
   function storeBundle(codeName, bundles) {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve) => {
       for (let bundle of Object.values(bundles)) {
         if (!Number.isInteger(bundle.price)) {
           //Excluding plans with float or unfixed prices
@@ -1683,7 +1683,7 @@ async function handleSmile(
   }
 
   function saveUserBundleData(sessionId, chosenBundle, codeName) {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve) => {
       let [chosenBundleName] = await redisClient.lrangeAsync(
         `${APP_PREFIX_REDIS}:${codeName}BundleNames`,
         chosenBundle,
@@ -1727,7 +1727,7 @@ async function handleSpectranet(
   sessionId,
   dataHandler
 ) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let response = "";
     if (brokenDownText.length === 2) {
       response = await displayBundles(dataHandler, 0, -1);
@@ -1897,10 +1897,10 @@ async function handleSpectranet(
   });
 
   function displayBundles(codeName, start, end) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       redisClient
         .existsAsync(`${APP_PREFIX_REDIS}:${codeName}BundleNames`)
-        .then(async resp => {
+        .then(async (resp) => {
           if (resp === 0) {
             let bundles = await fetchDataBundle(codeName);
             await storeBundle(codeName, bundles);
@@ -1915,7 +1915,7 @@ async function handleSpectranet(
           console.log(providers);
           response = `CON Select Data Bundle:\n`;
           let index = 0;
-          providers.forEach(value => {
+          providers.forEach((value) => {
             response += `${++index} ${value}\n`;
           });
 
@@ -1944,7 +1944,7 @@ async function handleSpectranet(
   }
 
   function storeBundle(codeName, bundles) {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve) => {
       for (let bundle of Object.values(bundles)) {
         let refinedName = refineName(bundle.title);
         await redisClient.zaddAsync(
@@ -1978,7 +1978,7 @@ async function handleSpectranet(
   }
 
   function saveUserBundleData(sessionId, chosenBundle, codeName) {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve) => {
       let [chosenBundleName, dataPrice] = await redisClient.zrangeAsync(
         `${APP_PREFIX_REDIS}:${codeName}BundleNames`,
         chosenBundle,
@@ -2012,17 +2012,17 @@ async function handleSpectranet(
 }
 
 async function fetchDataBundle(code) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     axios
       .get(
         `${FelaMarketPlace.BASE_URL}/list/dataBundles?provider_code=${code}`,
         {
           headers: {
-            Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}`
-          }
+            Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}`,
+          },
         }
       )
-      .then(async response => {
+      .then(async (response) => {
         resolve(response.data.data);
       });
   });
@@ -2039,13 +2039,13 @@ function displayMyBankUSSDBanks() {
 }
 
 function displayPurchaseSummary(paymentMethod, sessionId) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     if (paymentMethod === "felawallet") {
       let {
         recipentNumber,
         chosenDataProvider,
         dataPrice,
-        chosenBundleName
+        chosenBundleName,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
 
       if (chosenDataProvider === "9mobile (Etisalat)") {
@@ -2062,7 +2062,7 @@ function displayPurchaseSummary(paymentMethod, sessionId) {
         chosenDataProvider,
         dataPrice,
         chosenBundleName,
-        chosenUSSDBankName
+        chosenUSSDBankName,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
 
       if (chosenDataProvider === "9mobile (Etisalat)") {
@@ -2085,7 +2085,7 @@ function displayPurchaseSummary(paymentMethod, sessionId) {
 }
 
 function makePayment(paymentMethod, sessionId, phoneNumber) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let response = "";
     if (paymentMethod === "felawallet") {
       let {
@@ -2094,7 +2094,7 @@ function makePayment(paymentMethod, sessionId, phoneNumber) {
         chosenBundleCode,
         chosenBundleName,
         walletPin,
-        dataPrice
+        dataPrice,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       response = await processDataPurchase(
         sessionId,
@@ -2114,7 +2114,7 @@ function makePayment(paymentMethod, sessionId, phoneNumber) {
         chosenBundleCode,
         chosenBundleName,
         chosenUSSDBankCode,
-        dataPrice
+        dataPrice,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       response = await processDataPurchase(
         sessionId,
@@ -2153,19 +2153,19 @@ function processDataPurchase(
       method: paymentMethod,
       auth: {
         source: `${FelaMarketPlace.THIS_SOURCE}`,
-        passkey: `${walletPin}`
+        passkey: `${walletPin}`,
       },
       params: {
         account_id: `${recipentNumber}`,
         bundle_code: `${dataPlanCode}`,
-        network: `${providerCode}`
+        network: `${providerCode}`,
       },
       user: {
         sessionId: `${sessionId}`,
         source: `${FelaMarketPlace.THIS_SOURCE}`,
         sourceId: `${phoneNumber}`,
-        phoneNumber: `${phoneNumber}`
-      }
+        phoneNumber: `${phoneNumber}`,
+      },
     };
 
     console.log(payload);
@@ -2175,7 +2175,7 @@ function processDataPurchase(
         `${FelaMarketPlace.BASE_URL}/payment/request`,
         payload,
         {
-          headers: felaHeader
+          headers: felaHeader,
         }
       );
 
@@ -2197,11 +2197,11 @@ function processDataPurchase(
             )}`,
             parseInt(price)
           );
-          expireReportsInRedis(
-            `${APP_PREFIX_REDIS}:reports:count:totalValue_DataWithWallet:${moment().format(
-              "DMMYYYY"
-            )}`
-          );
+          // expireReportsInRedis(
+          //   `${APP_PREFIX_REDIS}:reports:count:totalValue_DataWithWallet:${moment().format(
+          //     "DMMYYYY"
+          //   )}`
+          // );
           resolve(
             `CON Dear Customer your line ${recipentNumber} has been credited with ${dataPlanName} of Data\n\n0 Menu`
           );
@@ -2214,22 +2214,22 @@ function processDataPurchase(
               "DMMYYYY"
             )}`
           );
-          expireReportsInRedis(
-            `${APP_PREFIX_REDIS}:reports:count:purchases_DataWithMyBankUSSD:${moment().format(
-              "DMMYYYY"
-            )}`
-          );
+          // expireReportsInRedis(
+          //   `${APP_PREFIX_REDIS}:reports:count:purchases_DataWithMyBankUSSD:${moment().format(
+          //     "DMMYYYY"
+          //   )}`
+          // );
           await redisClient.incrbyAsync(
             `${APP_PREFIX_REDIS}:reports:count:totalValue_DataWithMyBankUSSD:${moment().format(
               "DMMYYYY"
             )}`,
             parseInt(price)
           );
-          expireReportsInRedis(
-            `${APP_PREFIX_REDIS}:reports:count:totalValue_DataWithMyBankUSSD:${moment().format(
-              "DMMYYYY"
-            )}`
-          );
+          // expireReportsInRedis(
+          //   `${APP_PREFIX_REDIS}:reports:count:totalValue_DataWithMyBankUSSD:${moment().format(
+          //     "DMMYYYY"
+          //   )}`
+          // );
           let paymentToken = response.data.data.paymentToken;
           // console.log(response.data);
 

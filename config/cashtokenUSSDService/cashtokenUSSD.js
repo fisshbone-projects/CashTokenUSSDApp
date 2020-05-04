@@ -11,7 +11,7 @@ const { processGiftCashToken } = require("./giftCashToken");
 const {
   checkPinForRepetition,
   APP_PREFIX_REDIS,
-  expireReportsInRedis
+  expireReportsInRedis,
 } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
@@ -44,7 +44,7 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
 
     redisClient
       .existsAsync(`${APP_PREFIX_REDIS}:${sessionId}`)
-      .then(async resp => {
+      .then(async (resp) => {
         if (resp === 0) {
           console.log("Creating new user session");
 
@@ -110,7 +110,7 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
             });
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err);
       });
   });
@@ -120,33 +120,33 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
       "DMMYYYY"
     )}`
   );
-  expireReportsInRedis(
-    `${APP_PREFIX_REDIS}:reports:count:global_totalTransactionalHits:${moment().format(
-      "DMMYYYY"
-    )}`
-  );
+  // expireReportsInRedis(
+  //   `${APP_PREFIX_REDIS}:reports:count:global_totalTransactionalHits:${moment().format(
+  //     "DMMYYYY"
+  //   )}`
+  // );
   await redisClient.saddAsync(
     `${APP_PREFIX_REDIS}:reports:set:global_totalVisitors:${moment().format(
       "DMMYYYY"
     )}`,
     phoneNumber
   );
-  expireReportsInRedis(
-    `${APP_PREFIX_REDIS}:reports:set:global_totalVisitors:${moment().format(
-      "DMMYYYY"
-    )}`
-  );
+  // expireReportsInRedis(
+  //   `${APP_PREFIX_REDIS}:reports:set:global_totalVisitors:${moment().format(
+  //     "DMMYYYY"
+  //   )}`
+  // );
   await redisClient.saddAsync(
     `${APP_PREFIX_REDIS}:reports:set:global_totalSessions:${moment().format(
       "DMMYYYY"
     )}`,
     sessionId
   );
-  expireReportsInRedis(
-    `${APP_PREFIX_REDIS}:reports:set:global_totalSessions:${moment().format(
-      "DMMYYYY"
-    )}`
-  );
+  // expireReportsInRedis(
+  //   `${APP_PREFIX_REDIS}:reports:set:global_totalSessions:${moment().format(
+  //     "DMMYYYY"
+  //   )}`
+  // );
 
   return response;
 }
@@ -163,11 +163,11 @@ async function ActivateUser(phoneNumber, text, sessionId) {
           "DMMYYYY"
         )}`
       );
-      expireReportsInRedis(
-        `${APP_PREFIX_REDIS}:reports:count:topMenu_ActivationScreen:${moment().format(
-          "DMMYYYY"
-        )}`
-      );
+      // expireReportsInRedis(
+      //   `${APP_PREFIX_REDIS}:reports:count:topMenu_ActivationScreen:${moment().format(
+      //     "DMMYYYY"
+      //   )}`
+      // );
       response = `CON MyBankUSSD\nWelcome, your CashToken wallet is not yet activated.\nGenerate your wallet PIN (Min 4 digit):`;
       resolve(response);
     } else if (brokenDownText.length === 1) {
@@ -263,11 +263,11 @@ async function NormalFlow(phoneNumber, text, sessionId) {
           "DMMYYYY"
         )}`
       );
-      expireReportsInRedis(
-        `${APP_PREFIX_REDIS}:reports:count:topMenu_BorrowPower:${moment().format(
-          "DMMYYYY"
-        )}`
-      );
+      // expireReportsInRedis(
+      //   `${APP_PREFIX_REDIS}:reports:count:topMenu_BorrowPower:${moment().format(
+      //     "DMMYYYY"
+      //   )}`
+      // );
       response = `CON Welcome!!!\nThis service is still under development, but please check back soon, we are always ready to serve you.\n\n0 Menu`;
       resolve(response);
     } else {
@@ -285,25 +285,25 @@ async function activateWalletCall(sessionId, phoneNumber, walletPin) {
       offeringName: "profile",
       auth: {
         source: `${FelaMarketPlace.THIS_SOURCE}`,
-        passkey: `${walletPin}`
+        passkey: `${walletPin}`,
       },
       params: {
-        operation: "approve"
+        operation: "approve",
         // name: `${userName}`
       },
       user: {
         sessionId: `${sessionId}`,
         source: `${FelaMarketPlace.THIS_SOURCE}`,
         sourceId: `${phoneNumber}`,
-        phoneNumber: `${phoneNumber}`
-      }
+        phoneNumber: `${phoneNumber}`,
+      },
     };
     console.log(payload);
     axios
       .post(`${FelaMarketPlace.BASE_URL}/offering/fulfil`, payload, {
-        headers: felaHeader
+        headers: felaHeader,
       })
-      .then(resp => {
+      .then((resp) => {
         console.log(resp);
         redisClient
           .hmsetAsync(
@@ -321,28 +321,28 @@ async function activateWalletCall(sessionId, phoneNumber, walletPin) {
                 "DMMYYYY"
               )}`
             );
-            expireReportsInRedis(
-              `${APP_PREFIX_REDIS}:reports:count:global_activatedUsers:${moment().format(
-                "DMMYYYY"
-              )}`
-            );
+            // expireReportsInRedis(
+            //   `${APP_PREFIX_REDIS}:reports:count:global_activatedUsers:${moment().format(
+            //     "DMMYYYY"
+            //   )}`
+            // );
             await redisClient.saddAsync(
               `${APP_PREFIX_REDIS}:reports:set:global_activatedUsers:${moment().format(
                 "DMMYYYY"
               )}`,
               phoneNumber
             );
-            expireReportsInRedis(
-              `${APP_PREFIX_REDIS}:reports:set:global_activatedUsers:${moment().format(
-                "DMMYYYY"
-              )}`
-            );
+            // expireReportsInRedis(
+            //   `${APP_PREFIX_REDIS}:reports:set:global_activatedUsers:${moment().format(
+            //     "DMMYYYY"
+            //   )}`
+            // );
             redisClient.expire(`${APP_PREFIX_REDIS}:${sessionId}`, 300);
           });
         let feedback = `CON Wallet Activation Successful!\nInput 0 or redial *347*999# to start enjoying lifechanging CashToken opportunies`;
         resolve(feedback);
       })
-      .catch(resp => {
+      .catch((resp) => {
         console.log(resp);
         let feedback = `END Wallet Activation Failed!\nPlease try again`;
         resolve(feedback);
@@ -351,7 +351,7 @@ async function activateWalletCall(sessionId, phoneNumber, walletPin) {
 }
 
 async function checkCachedWalletStatus(phoneNumber) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let isActive = await redisClient.sismemberAsync(
       `${APP_PREFIX_REDIS}:activeWallets`,
       `${phoneNumber}`
@@ -377,16 +377,16 @@ async function checkWalletStatus(phoneNumber) {
       .get(
         `${FelaMarketPlace.BASE_URL}/info/felaWallet?accountId=${phoneNumber}`,
         {
-          headers: felaHeader
+          headers: felaHeader,
         }
       )
-      .then(async response => {
+      .then(async (response) => {
         console.log(JSON.stringify(response.data, null, 2));
         resolve({
-          status: response.data.data.status
+          status: response.data.data.status,
         });
       })
-      .catch(e => {
+      .catch((e) => {
         // console.log(e);
         if (e.response) {
           if (e.response.status === 404) {
@@ -410,5 +410,5 @@ async function checkWalletStatus(phoneNumber) {
 }
 
 module.exports = {
-  CELDUSSD
+  CELDUSSD,
 };

@@ -7,7 +7,7 @@ const {
   testPhoneNumber,
   formatNumber,
   MYBANKUSSD_BANK_CODES,
-  expireReportsInRedis
+  expireReportsInRedis,
 } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
@@ -40,11 +40,11 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
           "DMMYYYY"
         )}`
       );
-      expireReportsInRedis(
-        `${APP_PREFIX_REDIS}:reports:count:topMenu_Airtime:${moment().format(
-          "DMMYYYY"
-        )}`
-      );
+      // expireReportsInRedis(
+      //   `${APP_PREFIX_REDIS}:reports:count:topMenu_Airtime:${moment().format(
+      //     "DMMYYYY"
+      //   )}`
+      // );
       response = await getAirtimeProviders();
       // response = `CON Enter Recipient's Phone Number:`;
       resolve(response);
@@ -139,7 +139,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         let {
           airtimeAmount,
           recipentNumber,
-          recipentLine
+          recipentLine,
         } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
         let [airtimeProvider] = await redisClient.zrangebyscoreAsync(
           `${APP_PREFIX_REDIS}:AirtimeProvidersNames`,
@@ -185,7 +185,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
       let {
         airtimeAmount,
         recipentNumber,
-        recipentLine
+        recipentLine,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       let [airtimeProvider] = await redisClient.zrangebyscoreAsync(
         `${APP_PREFIX_REDIS}:AirtimeProvidersNames`,
@@ -219,7 +219,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         airtimeAmount,
         recipentNumber,
         recipentLine,
-        walletPin
+        walletPin,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       let [providerCode] = await redisClient.zrangebyscoreAsync(
         `${APP_PREFIX_REDIS}:AirtimeProvidersCodes`,
@@ -256,7 +256,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         airtimeAmount,
         recipentNumber,
         recipentLine,
-        chosenUSSDBankCode
+        chosenUSSDBankCode,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       let [providerCode] = await redisClient.zrangebyscoreAsync(
         `${APP_PREFIX_REDIS}:AirtimeProvidersCodes`,
@@ -310,10 +310,10 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
 }
 
 function getAirtimeProviders() {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     redisClient
       .existsAsync(`${APP_PREFIX_REDIS}:AirtimeProvidersNames`)
-      .then(async resp => {
+      .then(async (resp) => {
         let response = "";
         if (resp === 0) {
           await fetchAirtimeProviders();
@@ -338,14 +338,14 @@ function getAirtimeProviders() {
 }
 
 async function fetchAirtimeProviders() {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     axios
       .get(`${FelaMarketPlace.BASE_URL}/list/airtimeProviders`, {
         headers: {
-          Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}`
-        }
+          Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}`,
+        },
       })
-      .then(async response => {
+      .then(async (response) => {
         let airtimeProvidersArray = Object.values(response.data.data);
 
         for (let [index, provider] of airtimeProvidersArray.entries()) {
@@ -405,19 +405,19 @@ function processAirtimePurchase(
       method: paymentMethod,
       auth: {
         source: `${FelaMarketPlace.THIS_SOURCE}`,
-        passkey: `${walletPin}`
+        passkey: `${walletPin}`,
       },
       params: {
         recipient: `${recipentNumber}`,
         amount: `${airtimeAmount}`,
-        network: `${providerCode}`
+        network: `${providerCode}`,
       },
       user: {
         sessionId: `${sessionId}`,
         source: `${FelaMarketPlace.THIS_SOURCE}`,
         sourceId: `${phoneNumber}`,
-        phoneNumber: `${phoneNumber}`
-      }
+        phoneNumber: `${phoneNumber}`,
+      },
     };
 
     try {
@@ -425,7 +425,7 @@ function processAirtimePurchase(
         `${FelaMarketPlace.BASE_URL}/payment/request`,
         payload,
         {
-          headers: felaHeader
+          headers: felaHeader,
         }
       );
 
@@ -438,22 +438,22 @@ function processAirtimePurchase(
               "DMMYYYY"
             )}`
           );
-          expireReportsInRedis(
-            `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithWallet:${moment().format(
-              "DMMYYYY"
-            )}`
-          );
+          // expireReportsInRedis(
+          //   `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithWallet:${moment().format(
+          //     "DMMYYYY"
+          //   )}`
+          // );
           await redisClient.incrbyAsync(
             `${APP_PREFIX_REDIS}:reports:count:totalValue_AirtimeWithWallet:${moment().format(
               "DMMYYYY"
             )}`,
             parseInt(airtimeAmount)
           );
-          expireReportsInRedis(
-            `${APP_PREFIX_REDIS}:reports:count:totalValue_AirtimeWithWallet:${moment().format(
-              "DMMYYYY"
-            )}`
-          );
+          // expireReportsInRedis(
+          //   `${APP_PREFIX_REDIS}:reports:count:totalValue_AirtimeWithWallet:${moment().format(
+          //     "DMMYYYY"
+          //   )}`
+          // );
           resolve(
             `CON Dear Customer, your line ${recipentNumber} has been successfully credited with ${NAIRASIGN}${formatNumber(
               airtimeAmount
@@ -468,22 +468,22 @@ function processAirtimePurchase(
               "DMMYYYY"
             )}`
           );
-          expireReportsInRedis(
-            `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithMyBankUSSD:${moment().format(
-              "DMMYYYY"
-            )}`
-          );
+          // expireReportsInRedis(
+          //   `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithMyBankUSSD:${moment().format(
+          //     "DMMYYYY"
+          //   )}`
+          // );
           await redisClient.incrbyAsync(
             `${APP_PREFIX_REDIS}:reports:count:totalValue_AirtimeWithMyBankUSSD:${moment().format(
               "DMMYYYY"
             )}`,
             parseInt(airtimeAmount)
           );
-          expireReportsInRedis(
-            `${APP_PREFIX_REDIS}:reports:count:totalValue_AirtimeWithMyBankUSSD:${moment().format(
-              "DMMYYYY"
-            )}`
-          );
+          // expireReportsInRedis(
+          //   `${APP_PREFIX_REDIS}:reports:count:totalValue_AirtimeWithMyBankUSSD:${moment().format(
+          //     "DMMYYYY"
+          //   )}`
+          // );
           let paymentToken = response.data.data.paymentToken;
           // console.log(response.data);
 
@@ -509,5 +509,5 @@ function processAirtimePurchase(
 }
 
 module.exports = {
-  processAirtime
+  processAirtime,
 };

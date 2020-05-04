@@ -4,7 +4,7 @@ const moment = require("moment");
 const {
   checkPinForRepetition,
   APP_PREFIX_REDIS,
-  expireReportsInRedis
+  expireReportsInRedis,
 } = require("../utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
@@ -21,11 +21,11 @@ async function resetPin(text, phoneNumber, sessionId) {
           "DMMYYYY"
         )}`
       );
-      expireReportsInRedis(
-        `${APP_PREFIX_REDIS}:reports:count:subMenu_Reset_Pin:${moment().format(
-          "DMMYYYY"
-        )}`
-      );
+      // expireReportsInRedis(
+      //   `${APP_PREFIX_REDIS}:reports:count:subMenu_Reset_Pin:${moment().format(
+      //     "DMMYYYY"
+      //   )}`
+      // );
       response = "CON Enter a desired PIN (MIN 4 digit)";
       resolve(response);
     } else if (brokenDownText.length === 3) {
@@ -88,29 +88,29 @@ async function resetPinCall(sessionId, phoneNumber, walletPin) {
           offeringName: "profile",
           auth: {
             source: `${FelaMarketPlace.THIS_SOURCE}`,
-            passkey: `${walletPin}`
+            passkey: `${walletPin}`,
           },
           params: {
-            operation: "reset"
+            operation: "reset",
             // name: `${userName}`
           },
           user: {
             sessionId: `${sessionId}`,
             source: `${FelaMarketPlace.THIS_SOURCE}`,
             sourceId: `${phoneNumber}`,
-            phoneNumber: `${phoneNumber}`
-          }
+            phoneNumber: `${phoneNumber}`,
+          },
         },
         {
-          headers: felaHeader
+          headers: felaHeader,
         }
       )
-      .then(resp => {
+      .then((resp) => {
         console.log(resp.data);
         let feedback = `CON Your PIN has been reset successfully!\n\nEnter 0 Back to home menu`;
         resolve(feedback);
       })
-      .catch(error => {
+      .catch((error) => {
         console.log(JSON.stringify(error.response.data, null, 2));
         if (!!error.response) {
           resolve(
@@ -124,5 +124,5 @@ async function resetPinCall(sessionId, phoneNumber, walletPin) {
 }
 
 module.exports = {
-  resetPin
+  resetPin,
 };

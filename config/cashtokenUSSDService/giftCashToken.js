@@ -8,7 +8,7 @@ const {
   testPhoneNumber,
   formatNumber,
   MYBANKUSSD_BANK_CODES,
-  expireReportsInRedis
+  expireReportsInRedis,
 } = require("../utils");
 const { sendSMS } = require("../infoBipConfig");
 // const NAIRASIGN = "\u{020A6}";
@@ -43,11 +43,11 @@ async function giftCashTokenFlow(brokenDownText, phoneNumber, sessionId) {
           "DMMYYYY"
         )}`
       );
-      expireReportsInRedis(
-        `${APP_PREFIX_REDIS}:reports:count:topMenu_GiftCashToken:${moment().format(
-          "DMMYYYY"
-        )}`
-      );
+      // expireReportsInRedis(
+      //   `${APP_PREFIX_REDIS}:reports:count:topMenu_GiftCashToken:${moment().format(
+      //     "DMMYYYY"
+      //   )}`
+      // );
       response = `CON Enter Phone Number to Gift:`;
       resolve(response);
     } else if (brokenDownText.length === 3) {
@@ -185,7 +185,7 @@ async function giftCashTokenFlow(brokenDownText, phoneNumber, sessionId) {
       let {
         amount,
         numberToCredit,
-        walletPin
+        walletPin,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       let response = await processCashTokenPurchase(
         sessionId,
@@ -207,7 +207,7 @@ async function giftCashTokenFlow(brokenDownText, phoneNumber, sessionId) {
       let {
         amount,
         numberToCredit,
-        chosenUSSDBankCode
+        chosenUSSDBankCode,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       let response = await processCashTokenPurchase(
         sessionId,
@@ -262,26 +262,26 @@ function processCashTokenPurchase(
       method: paymentMethod,
       auth: {
         source: `${FelaMarketPlace.THIS_SOURCE}`,
-        passkey: `${walletPin}`
+        passkey: `${walletPin}`,
       },
       params: {
         recipient: `${numberToCredit}`,
         qty: `${amount}`,
-        mode: "buyAndGift"
+        mode: "buyAndGift",
       },
       user: {
         sessionId: `${sessionId}`,
         source: `${FelaMarketPlace.THIS_SOURCE}`,
         sourceId: `${phoneNumber}`,
-        phoneNumber: `${phoneNumber}`
-      }
+        phoneNumber: `${phoneNumber}`,
+      },
     };
     try {
       let response = await axios.post(
         `${FelaMarketPlace.BASE_URL}/payment/request`,
         payload,
         {
-          headers: felaHeader
+          headers: felaHeader,
         }
       );
       switch (paymentMethod) {
@@ -294,22 +294,22 @@ function processCashTokenPurchase(
               "DMMYYYY"
             )}`
           );
-          expireReportsInRedis(
-            `${APP_PREFIX_REDIS}:reports:count:purchases_GiftCashTokenWithWallet:${moment().format(
-              "DMMYYYY"
-            )}`
-          );
+          // expireReportsInRedis(
+          //   `${APP_PREFIX_REDIS}:reports:count:purchases_GiftCashTokenWithWallet:${moment().format(
+          //     "DMMYYYY"
+          //   )}`
+          // );
           await redisClient.incrbyAsync(
             `${APP_PREFIX_REDIS}:reports:count:totalValue_GiftCashTokenWithWallet:${moment().format(
               "DMMYYYY"
             )}`,
             parseInt(amount) * 35
           );
-          expireReportsInRedis(
-            `${APP_PREFIX_REDIS}:reports:count:totalValue_GiftCashTokenWithWallet:${moment().format(
-              "DMMYYYY"
-            )}`
-          );
+          // expireReportsInRedis(
+          //   `${APP_PREFIX_REDIS}:reports:count:totalValue_GiftCashTokenWithWallet:${moment().format(
+          //     "DMMYYYY"
+          //   )}`
+          // );
           resolve(
             `CON Dear Customer, this number ${numberToCredit} has been successfully gifted with ${amount} CashTokens\n\n0 Menu`
           );
@@ -324,22 +324,22 @@ function processCashTokenPurchase(
               "DMMYYYY"
             )}`
           );
-          expireReportsInRedis(
-            `${APP_PREFIX_REDIS}:reports:count:purchases_GiftCashTokenWithMyBankUSSD:${moment().format(
-              "DMMYYYY"
-            )}`
-          );
+          // expireReportsInRedis(
+          //   `${APP_PREFIX_REDIS}:reports:count:purchases_GiftCashTokenWithMyBankUSSD:${moment().format(
+          //     "DMMYYYY"
+          //   )}`
+          // );
           await redisClient.incrbyAsync(
             `${APP_PREFIX_REDIS}:reports:count:totalValue_GiftCashTokenWithMyBankUSSD:${moment().format(
               "DMMYYYY"
             )}`,
             parseInt(amount) * 35
           );
-          expireReportsInRedis(
-            `${APP_PREFIX_REDIS}:reports:count:totalValue_GiftCashTokenWithMyBankUSSD:${moment().format(
-              "DMMYYYY"
-            )}`
-          );
+          // expireReportsInRedis(
+          //   `${APP_PREFIX_REDIS}:reports:count:totalValue_GiftCashTokenWithMyBankUSSD:${moment().format(
+          //     "DMMYYYY"
+          //   )}`
+          // );
           resolve(
             `CON Ur Bank is *${chosenUSSDBankCode}#\nNever 4GET *000*\nTrans Code is ${paymentToken}\nRem last 4 Digits!\n\nDial2Pay *${chosenUSSDBankCode}*000*${paymentToken}#\nExpires in 5mins\n\nCashback\nWin N5k-100m\n\n0 Menu`
           );
@@ -369,5 +369,5 @@ function displayMyBankUSSDBanks() {
 }
 
 module.exports = {
-  processGiftCashToken
+  processGiftCashToken,
 };

@@ -38,7 +38,7 @@ const BANK_NAME_ABR = {
   "Access Mobile": "Access Mobile",
   "Aso Savings And Loans": "Aso Savings and Loans",
   "Parralex Bank": "Parralex",
-  "Coronation Merchant Bank": "Coronation Merchant Bank"
+  "Coronation Merchant Bank": "Coronation Merchant Bank",
 };
 
 Object.freeze(BANK_NAME_ABR);
@@ -56,7 +56,7 @@ const DIRECTDIAL_BANK_MAP = {
   "Keystone Bank Plc": "777",
   "Stanbic Ibtc Bank Plc": "909",
   "First Bank Plc": "894",
-  "Unity Bank Plc": "799"
+  "Unity Bank Plc": "799",
 };
 Object.freeze(DIRECTDIAL_BANK_MAP);
 
@@ -73,7 +73,7 @@ const MYBANKUSSD_BANK_CODES = {
   Keystone: "777",
   Stanbic: "909",
   FBN: "894",
-  Unity: "799"
+  Unity: "799",
 };
 
 Object.freeze(MYBANKUSSD_BANK_CODES);
@@ -84,7 +84,7 @@ const MYBANKUSSD_SERVICE_CODES = {
   cashtoken: "01",
   cableTvDSTV: "14",
   cableTvGOTV: "15",
-  cableTvStarTimes: "16"
+  cableTvStarTimes: "16",
 };
 
 Object.freeze(MYBANKUSSD_SERVICE_CODES);
@@ -95,17 +95,17 @@ const WalletTypes = {
   "myFela Top-Up": "Fela Wallet",
   iSavings: "iSavings",
   "Guaranteed Cashback": "Instant Cash-back",
-  Wins: "Draw Win Balance",
-  "bonus-cashback": "Bonus"
+  Wins: "Wins",
+  "bonus-cashback": "Bonus",
 };
 
 Object.freeze(WalletTypes);
 
 const globalKeyMap = {
-  global_totalSessions: "Total Sessions invoked",
-  global_activatedUsers: "Total Activated subscribers",
+  global_totalSessions: "Total Sessions Invoked",
+  global_activatedUsers: "Total Activated Subscribers",
   global_totalTransactionalHits: "Transactions",
-  global_totalVisitors: "Total Unique hits"
+  global_totalVisitors: "Total Unique hits",
 };
 
 const topMenuKeyMap = {
@@ -117,7 +117,7 @@ const topMenuKeyMap = {
   topMenu_GiftCashToken: "Gift Cashtoken",
   topMenu_LCC: "LCC",
   topMenu_PayBills: "Pay Bills",
-  topMenu_Redeem_Wallet: "Redeem/Wallet"
+  topMenu_Redeem_Wallet: "Redeem/Wallet",
 };
 
 const subMenuKeyMap = {
@@ -128,7 +128,7 @@ const subMenuKeyMap = {
   subMenu_Wallet_Info: "Wallet Info",
   subMenu_Gifting_Threshold: "Gifting Threshold",
   subMenu_PurchaseData: "Purchase Data",
-  subMenu_Reset_Pin: "Reset Pin"
+  subMenu_Reset_Pin: "Reset Pin",
 };
 
 const purchasesKeyMap = {
@@ -147,7 +147,8 @@ const purchasesKeyMap = {
   purchases_GiftCashTokenWithMyBankUSSD: "CashTokens Bought with MyBankUSSD",
   purchases_LCCWithWallet: "LCC Purchase with Wallet",
   purchases_LCCWithMyBankUSSD: "LCC Purchase with MyBankUSSD",
-  purchases_WalletCashout: "Wallet Cashout"
+  purchases_WalletCashout: "Wallet Cashout",
+  purchases_FundWallet: "Fund Fela Wallet",
 };
 
 const purchasesTotalValueKeyMap = {
@@ -166,7 +167,8 @@ const purchasesTotalValueKeyMap = {
   totalValue_GiftCashTokenWithMyBankUSSD: "CashTokens Bought with MyBankUSSD",
   totalValue_LCCWithWallet: "LCC Purchase with Wallet",
   totalValue_LCCWithMyBankUSSD: "LCC Purchase with MyBankUSSD",
-  totalValue_WalletCashout: "Wallet Cashout"
+  totalValue_WalletCashout: "Wallet Cashout",
+  purchases_FundWallet: "Fund Fela Wallet",
 };
 
 function createValidationFor(route) {
@@ -176,7 +178,7 @@ function createValidationFor(route) {
         check("sessionId")
           .exists()
           .withMessage("Parameter sessionId is not included in your request")
-          .custom(sessionId => {
+          .custom((sessionId) => {
             if (sessionId == null || sessionId.length < 1) {
               return Promise.reject("Session ID is not valid");
             } else {
@@ -186,7 +188,7 @@ function createValidationFor(route) {
         check("phoneNumber")
           .exists()
           .withMessage("Parameter phoneNumber is not included in your request")
-          .custom(phoneNumber => {
+          .custom((phoneNumber) => {
             if (!testPhoneNumber(phoneNumber)) {
               return Promise.reject("Phone Number is not valid");
             } else {
@@ -196,7 +198,7 @@ function createValidationFor(route) {
         check("text")
           .exists()
           .withMessage("Parameter text is not included in your request")
-          .custom(text => {
+          .custom((text) => {
             if (typeof text === "string") {
               return Promise.resolve();
             } else {
@@ -206,7 +208,7 @@ function createValidationFor(route) {
         check("serviceCode")
           .exists()
           .withMessage("Parameter serviceCode is not included in your request")
-          .custom(serviceCode => {
+          .custom((serviceCode) => {
             if (
               serviceCode == "*347*999#" ||
               serviceCode == "*384*24222#" ||
@@ -218,11 +220,18 @@ function createValidationFor(route) {
                 "Only serviceCode *347*999# is serviced by this API"
               );
             }
-          })
+          }),
       ];
     default:
       return [];
   }
+}
+
+function camelize(str) {
+  return str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function (match, index) {
+    if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
+    return index == 0 ? match.toLowerCase() : match.toUpperCase();
+  });
 }
 
 function checkValidationResult(req, res, next) {
@@ -276,34 +285,34 @@ async function storeInternalLog(req, response, inputedText) {
     "request_body",
     `${inputedText}`,
     "server_response_status",
-    `${responseStatus}`
+    `${responseStatus}`,
   ];
 
   redisClient
     .rpushAsync(`${APP_PREFIX_REDIS}:InternalLogs:Keys`, date_time)
-    .then(resp => {
+    .then((resp) => {
       redisClient
         .hmsetAsync(
           `${APP_PREFIX_REDIS}:InternalLogs`,
           date_time,
           JSON.stringify(logs)
         )
-        .then(resp => {
+        .then((resp) => {
           return Promise.resolve();
         });
     });
 }
 
 async function getBankCharge() {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     axios
       .get(
         `${FelaMarketPlace.BASE_URL}/info/felaWalletCharge?chargeType=transfer`,
         {
-          headers: felaHeader
+          headers: felaHeader,
         }
       )
-      .then(async response => {
+      .then(async (response) => {
         await redisClient.setAsync(
           `${APP_PREFIX_REDIS}:BankCharge`,
           response.data.data.fee
@@ -311,7 +320,7 @@ async function getBankCharge() {
         await redisClient.expireAsync(`${APP_PREFIX_REDIS}:BankCharge`, 360); //Cache for 1 hour
         resolve();
       })
-      .catch(e => {
+      .catch((e) => {
         console.loe("There was an error retrieving bank charge");
         console.log(e);
       });
@@ -322,7 +331,7 @@ function checkPinForRepetition(pin) {
   let initialDigit = pin[0];
   let pinRepeating = false;
 
-  [...`${pin}`].forEach(digit => {
+  [...`${pin}`].forEach((digit) => {
     pinRepeating = digit === initialDigit;
   });
   return pinRepeating;
@@ -414,14 +423,14 @@ function removeHashes(stringMe) {
 }
 
 async function expireReportsInRedis(key) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     await redisClient.expire(key, 172800); //Expire report after 2 days
     resolve();
   });
 }
 
 async function refineText(text, sessionId) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let backOneStep = false;
     if (text[text.length - 1] === "#") {
       backOneStep = true;
@@ -536,6 +545,7 @@ module.exports = {
   APP_PREFIX_REDIS,
   BANK_NAME_ABR,
   WalletTypes,
+  camelize,
   createValidationFor,
   checkValidationResult,
   storeInternalLog,
@@ -554,5 +564,5 @@ module.exports = {
   topMenuKeyMap,
   subMenuKeyMap,
   purchasesKeyMap,
-  purchasesTotalValueKeyMap
+  purchasesTotalValueKeyMap,
 };

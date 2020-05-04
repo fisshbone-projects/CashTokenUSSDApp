@@ -8,7 +8,7 @@ const NAIRASIGN = "N";
 
 let response = "";
 async function getUsersCashtoken(phoneNumber) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     console.log(`Getting ${phoneNumber}'s cashtokens`);
     let usersTokens = "XX";
     response = `CON Dear Customer, you have ${usersTokens} CashTokens. Your CashTokens qualify you to win up to ${NAIRASIGN}100 million in the weekly draw\n\n0 Menu`;
@@ -17,10 +17,11 @@ async function getUsersCashtoken(phoneNumber) {
 }
 
 async function getUsersWalletDetails(phoneNumber) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let response = "";
     console.log(`Getting ${phoneNumber}'s walletDetails`);
     let walletResponse = await fetchWalletDetails(phoneNumber);
+    console.log(walletResponse);
 
     if (typeof walletResponse === "object") {
       let { wallet: usersWallet } = walletResponse;
@@ -29,16 +30,20 @@ async function getUsersWalletDetails(phoneNumber) {
       let index = 1;
 
       for (let [key, value] of Object.entries(usersWallet)) {
-        if (value.title === "iSavings") {
+        if (value.isPublic) {
+          if (value.title === "iSavings") {
+            continue;
+          }
+          totalBalance += parseFloat(value.balance);
+          response += `${index++} ${
+            WalletTypes[value.title]
+          } - ${NAIRASIGN}${formatNumberAsCurrency(value.balance)}\n`;
+        } else {
           continue;
         }
-        totalBalance += parseFloat(value.balance);
-        response += `${index++} ${
-          WalletTypes[value.title]
-        } - ${NAIRASIGN}${formatNumberAsCurrency(value.balance)}\n`;
       }
 
-      response += `${index} Total Wallet Balance - ${NAIRASIGN}${formatNumberAsCurrency(
+      response += `${index} Total Balance - ${NAIRASIGN}${formatNumberAsCurrency(
         totalBalance
       )}\n\n0 Menu`;
     } else {
@@ -56,15 +61,15 @@ async function fetchWalletDetails(phoneNumber) {
       .get(
         `${FelaMarketPlace.BASE_URL}/info/felaWallet?accountId=${phoneNumber}`,
         {
-          headers: felaHeader
+          headers: felaHeader,
         }
       )
-      .then(async response => {
+      .then(async (response) => {
         resolve({
-          wallet: response.data.data.wallets
+          wallet: response.data.data.wallets,
         });
       })
-      .catch(e => {
+      .catch((e) => {
         console.log(e);
         resolve(
           "CON There was an error retrieving your wallet details\n\nEnter 0 Back to home menu"
@@ -75,5 +80,5 @@ async function fetchWalletDetails(phoneNumber) {
 
 module.exports = {
   getUsersCashtoken,
-  getUsersWalletDetails
+  getUsersWalletDetails,
 };
