@@ -455,9 +455,9 @@ function processAirtimePurchase(
           //   )}`
           // );
           resolve(
-            `CON Dear Customer, your line ${recipentNumber} has been successfully credited with ${NAIRASIGN}${formatNumber(
+            `END Dear Customer, your line ${recipentNumber} has been successfully credited with ${NAIRASIGN}${formatNumber(
               airtimeAmount
-            )} Airtime\n\n0 Menu`
+            )} Airtime`
           );
           break;
 
@@ -490,8 +490,11 @@ function processAirtimePurchase(
           // resolve(
           //   `CON Ur Bank is *${chosenUSSDBankCode}#\nNever 4GET *000*\nTrans Code is ${paymentToken}\nRem last 4 Digits!\n\nDial2Pay *${chosenUSSDBankCode}*000*${paymentToken}#\nExpires in 5mins\n\nCashback\nWin N5k-100m\n\n0 Menu`
           // );
+          // resolve(
+          //   `CON To complete your transaction, dial *${chosenUSSDBankCode}*000*${paymentToken}#\nPlease note that this USSD String will expire in the next 5 minutes.\n\n 0 Menu`
+          // );
           resolve(
-            `CON To complete your transaction, dial *${chosenUSSDBankCode}*000*${paymentToken}#\nPlease note that this USSD String will expire in the next 5 minutes.\n\n 0 Menu`
+            `END *${chosenUSSDBankCode}*000*${paymentToken}#\nDear Customer, memorize and dial the above code in your phone dialer to complete your transaction via your bank.\nThis code expires in 5 mins.`
           );
       }
     } catch (error) {

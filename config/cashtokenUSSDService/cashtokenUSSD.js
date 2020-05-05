@@ -251,8 +251,8 @@ async function NormalFlow(phoneNumber, text, sessionId) {
       response = servePayBillsRequest(phoneNumber, text, sessionId);
       resolve(response);
     } else if (text.startsWith("6")) {
-      response = `CON Welcome!\nThis service is currently unavailable at the moment.\nPlease check again soon.\n\n0 Menu`;
-      // response = await processLCC(phoneNumber, text, sessionId);
+      // response = `CON Welcome!\nThis service is currently unavailable at the moment.\nPlease check again soon.\n\n0 Menu`;
+      response = await processLCC(phoneNumber, text, sessionId);
       resolve(response);
     } else if (text.startsWith("7")) {
       response = await processGiftCashToken(phoneNumber, text, sessionId);
