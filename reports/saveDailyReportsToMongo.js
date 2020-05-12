@@ -1,6 +1,8 @@
-const mongo = require("../mongodbConfig");
-const DailyReport = require("../mongoModels/dailyReport/dailyReport.model");
-const { redisClient } = require("../redisConnectConfig");
+const mongo = require("../config/mongodbConfig");
+const {
+  DailyReportModel: DailyReport,
+} = require("../config/mongoModels/index");
+const { redisClient } = require("../config/redisConnectConfig");
 const {
   APP_PREFIX_REDIS,
   formatNumber,

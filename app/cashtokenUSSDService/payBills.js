@@ -1,4 +1,4 @@
-const { redisClient } = require("../redisConnectConfig");
+const { redisClient } = require("../../config/redisConnectConfig");
 const moment = require("moment");
 const { processElectricity } = require("./electricityPayment");
 const { processCableTv } = require("./cabletvPayment");

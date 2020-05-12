@@ -1,6 +1,6 @@
-const { redisClient } = require("../redisConnectConfig");
+const { redisClient } = require("../../config/redisConnectConfig");
 const moment = require("moment");
-const { FelaMarketPlace } = require("../index");
+const { FelaMarketPlace } = require("../../config/index");
 const {
   BANK_NAME_ABR,
   formatNumber,

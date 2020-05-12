@@ -1,7 +1,7 @@
-const { redisClient } = require("../redisConnectConfig");
+const { redisClient } = require("../../config/redisConnectConfig");
 const {
   DIRECTDIALSERVICE,
-  checkUserActivationStatus
+  checkUserActivationStatus,
 } = require("./directDialUtils");
 const { processWalletCashout } = require("./walletCashoutService");
 
@@ -41,5 +41,5 @@ function detectDDService(serviceString) {
 }
 
 module.exports = {
-  processDirectDial
+  processDirectDial,
 };

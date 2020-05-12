@@ -1,5 +1,5 @@
 const axios = require("axios");
-const { redisClient } = require("../redisConnectConfig");
+const { redisClient } = require("../../config/redisConnectConfig");
 const { getBankCodes } = require("./directDialUtils");
 const {
   formatNumber,

@@ -1,5 +1,5 @@
 const { check, validationResult } = require("express-validator");
-const { redisClient } = require("../redisConnectConfig");
+const { redisClient } = require("../../config/redisConnectConfig");
 const axios = require("axios");
 const { FelaMarketPlace } = require("../../config");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
@@ -242,6 +242,18 @@ function checkValidationResult(req, res, next) {
 
   res.status(422).json({ error: result.array() });
 }
+
+const sanitizePhoneNumber = (phoneNo, code = "234") => {
+  let phone = String(phoneNo);
+  const firstChar = phone.charAt(0);
+  if (firstChar === "0" || firstChar === "+") {
+    phone = phone.substring(1);
+  }
+  if (phone.substring(0, 3) === code) {
+    return phone;
+  }
+  return code + phone;
+};
 
 function testPhoneNumber(phoneNumber) {
   let regPhone1 = /^[+]{0,1}(234){1}[0-9]{10}$/;
@@ -553,6 +565,7 @@ module.exports = {
   testPhoneNumber,
   checkPinForRepetition,
   formatNumber,
+  sanitizePhoneNumber,
   formatNumberAsCurrency,
   expireReportsInRedis,
   DIRECTDIAL_BANK_MAP,

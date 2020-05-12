@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const mongooseDynamic = require("mongoose-dynamic-schemas");
 const Schema = mongoose.Schema;
-const { purchasesKeyMap, camelize } = require("../../../utils");
+const { purchasesKeyMap, camelize } = require("../../../../app/utils");
 
 let PurchasesLogSchema = new Schema({
   _id: false,

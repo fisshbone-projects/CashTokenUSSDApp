@@ -1,6 +1,6 @@
-const { redisClient } = require("../redisConnectConfig");
-const { FelaMarketPlace, App } = require("../index");
-const { sendSMS } = require("../infoBipConfig");
+const { redisClient } = require("../../config/redisConnectConfig");
+const { FelaMarketPlace, App } = require("../../config/index");
+const { sendSMS } = require("../../config/infoBipConfig");
 const moment = require("moment");
 const {
   APP_PREFIX_REDIS,

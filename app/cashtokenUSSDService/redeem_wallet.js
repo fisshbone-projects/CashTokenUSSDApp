@@ -3,7 +3,7 @@ const { getUsersWalletDetails } = require("./cashtokenWallet");
 const { processFundDisbursement } = require("./walletCashout");
 const { resetPin } = require("./resetPin");
 const { processFundWallet } = require("./fundWallet");
-const { redisClient } = require("../redisConnectConfig");
+const { redisClient } = require("../../config/redisConnectConfig");
 const { APP_PREFIX_REDIS, expireReportsInRedis } = require("../utils");
 function redeem_wallet(text, phoneNumber, sessionId) {
   return new Promise(async (resolve) => {

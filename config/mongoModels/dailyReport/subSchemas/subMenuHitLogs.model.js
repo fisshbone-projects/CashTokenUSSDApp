@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const { setupSchema } = require("../utils");
-const { subMenuKeyMap } = require("../../../utils");
+const { subMenuKeyMap } = require("../../../../app/utils");
 
 let SubMenuHitSchema = new Schema({
   _id: false,

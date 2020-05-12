@@ -1,4 +1,4 @@
-const { camelize } = require("../../utils");
+const { camelize } = require("../../../app/utils");
 const mongooseDynamic = require("mongoose-dynamic-schemas");
 
 exports.setupSchema = (keyMap, model) => {

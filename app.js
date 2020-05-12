@@ -6,14 +6,15 @@ const {
   checkValidationResult,
   createValidationFor,
   storeInternalLog,
-  refineText
-} = require("./config/utils");
-const { CELDUSSD } = require("./config/cashtokenUSSDService/cashtokenUSSD");
+  refineText,
+  sanitizePhoneNumber,
+} = require("./app/utils");
+const { CELDUSSD } = require("./app/cashtokenUSSDService/cashtokenUSSD");
 const {
-  DIRECTDIALSERVICE
-} = require("./config/cashtokenUSSDDirectDial/directDialUtils");
-const { processDirectDial } = require("./config/cashtokenUSSDDirectDial");
-const { processUSSDRequests } = require("./config/airtelThanksUSSDAPI");
+  DIRECTDIALSERVICE,
+} = require("./app/cashtokenUSSDDirectDial/directDialUtils");
+const { processDirectDial } = require("./app/cashtokenUSSDDirectDial");
+const { processUSSDRequests } = require("./app/airtelThanksUSSDAPI");
 const app = express();
 
 app.use(express.json());
@@ -61,7 +62,7 @@ app.post(
             : await CELDUSSD(
                 req.body.sessionId,
                 req.body.serviceCode,
-                req.body.phoneNumber,
+                sanitizePhoneNumber(req.body.phoneNumber),
                 refinedText
               );
           break;
@@ -78,7 +79,7 @@ app.post(
             : await CELDUSSD(
                 req.body.sessionId,
                 req.body.serviceCode,
-                req.body.phoneNumber,
+                sanitizePhoneNumber(req.body.phoneNumber),
                 refinedText
               );
           break;
@@ -94,7 +95,7 @@ app.post(
             : await CELDUSSD(
                 req.body.sessionId,
                 req.body.serviceCode,
-                req.body.phoneNumber,
+                sanitizePhoneNumber(req.body.phoneNumber),
                 refinedText
               );
           break;

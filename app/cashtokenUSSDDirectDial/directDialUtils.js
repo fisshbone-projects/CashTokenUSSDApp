@@ -1,11 +1,11 @@
 const axios = require("axios");
-const { redisClient } = require("../redisConnectConfig");
-const { FelaMarketPlace } = require("../index");
+const { redisClient } = require("../../config/redisConnectConfig");
+const { FelaMarketPlace } = require("../../config/index");
 const { App } = require("../../config");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 
 let DIRECTDIALSERVICE = {
-  CASHOUT: "01"
+  CASHOUT: "01",
 };
 Object.freeze(DIRECTDIALSERVICE);
 
@@ -15,17 +15,17 @@ async function checkUserActivationStatus(phoneNumber) {
       .get(
         `${FelaMarketPlace.BASE_URL}/info/felaWallet?accountId=${phoneNumber}`,
         {
-          headers: felaHeader
+          headers: felaHeader,
         }
       )
-      .then(async response => {
+      .then(async (response) => {
         console.log(JSON.stringify(response.data, null, 2));
         resolve({
           status: response.data.data.status,
-          name: response.data.data.name
+          name: response.data.data.name,
         });
       })
-      .catch(e => {
+      .catch((e) => {
         console.log(e);
         // console.log(e.response.data);
         resolve({ status: "inactive" });
@@ -37,12 +37,12 @@ async function getBankCodes() {
   return new Promise((resolve, reject) => {
     axios
       .get(`${FelaMarketPlace.BASE_URL}/list/banks`, {
-        headers: felaHeader
+        headers: felaHeader,
       })
-      .then(response => {
+      .then((response) => {
         // console.log(JSON.stringify(response.data, null, 2));
         let bankArray = Object.values(response.data.data);
-        bankArray.forEach(async bank => {
+        bankArray.forEach(async (bank) => {
           await redisClient.zaddAsync(
             `CELDUSSD:BankCodes`,
             bank.code,
@@ -52,7 +52,7 @@ async function getBankCodes() {
           resolve();
         });
       })
-      .catch(error => {
+      .catch((error) => {
         console.log("error");
         console.log(JSON.stringify(error.response.data, null, 2));
       });
@@ -62,5 +62,5 @@ async function getBankCodes() {
 module.exports = {
   DIRECTDIALSERVICE,
   checkUserActivationStatus,
-  getBankCodes
+  getBankCodes,
 };

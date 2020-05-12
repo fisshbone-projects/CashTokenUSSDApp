@@ -1,5 +1,5 @@
-const { redisClient } = require("../redisConnectConfig");
-const { FelaMarketPlace } = require("../index");
+const { redisClient } = require("../../config/redisConnectConfig");
+const { FelaMarketPlace } = require("../../config/index");
 const moment = require("moment");
 const {
   checkPinForRepetition,

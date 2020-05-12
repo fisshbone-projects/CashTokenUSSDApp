@@ -1,9 +1,9 @@
-const { redisClient } = require("../redisConnectConfig");
+const { redisClient } = require("../../config/redisConnectConfig");
 const {
   FelaMarketPlace,
   App,
   LCC: { LCC_PROVIDER_CODE, LCC_TOLL_SERVICE_CODE },
-} = require("../index");
+} = require("../../config/index");
 const {
   APP_PREFIX_REDIS,
   formatNumber,

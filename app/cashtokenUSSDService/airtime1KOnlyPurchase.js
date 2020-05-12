@@ -1,5 +1,5 @@
-const { redisClient } = require("../redisConnectConfig");
-const { FelaMarketPlace, App } = require("../index");
+const { redisClient } = require("../../config/redisConnectConfig");
+const { FelaMarketPlace, App } = require("../../config/index");
 const {
   APP_PREFIX_REDIS,
   expireReportsInRedis,
