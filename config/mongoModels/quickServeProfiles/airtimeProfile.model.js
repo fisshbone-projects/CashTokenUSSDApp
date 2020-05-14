@@ -15,6 +15,7 @@ let AirtimeQS_Schema = new Schema({
 
 AirtimeQS_Schema.pre("save", function (next) {
   let now = Date.now();
+  // console.log("Called the update");
 
   this.updatedAt = now;
   //Set a value for createdAt only if it is null

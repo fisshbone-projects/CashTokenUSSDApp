@@ -22,7 +22,10 @@ class UserMongoFront {
 
   async updateUserLastActive(phoneNumber) {
     try {
-      await UserModel.updateOne({ phoneNumber }, { lastActive: Date.now() });
+      await UserModel.updateOne(
+        { phoneNumber },
+        { lastActive: Date.now(), updatedAt: Date.now() }
+      );
       return;
     } catch (err) {
       console.log(err);

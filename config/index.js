@@ -3,7 +3,7 @@ const path = require("path");
 const ENV = process.env.NODE_ENV || "development";
 
 require("dotenv").config({
-  path: path.resolve(__dirname, `../.development.env`)
+  path: path.resolve(__dirname, `../.development.env`),
 });
 
 const Config = Object.freeze({
@@ -15,7 +15,10 @@ const Config = Object.freeze({
     REDIS_HOST: process.env.REDIS_HOST,
     REDIS_AUTH: process.env.REDIS_AUTH,
     REDIS_API_DATA_EXPIRE: process.env.REDIS_EXPIRE_API_INFO,
-    MONGO_CONNECT: process.env.MONGO_DB_CONNECTION_STRING
+    MONGO_CONNECT:
+      ENV === "production"
+        ? process.env.MONGO_DB_CONNECTION_STRING_PROD
+        : process.env.MONGO_DB_CONNECTION_STRING_STAGING,
   },
   LCC: {
     LCC_PROVIDER_CODE:
@@ -25,7 +28,7 @@ const Config = Object.freeze({
     LCC_TOLL_SERVICE_CODE:
       ENV === "production"
         ? process.env.LCC_TOLL_SERVICE_CODE_PROD
-        : process.env.LCC_TOLL_SERVICE_CODE_STAGING
+        : process.env.LCC_TOLL_SERVICE_CODE_STAGING,
   },
   FelaMarketPlace: {
     BASE_URL:
@@ -36,11 +39,11 @@ const Config = Object.freeze({
       ENV === "production"
         ? process.env.FELA_AUTH_BEARER_PROD
         : process.env.FELA_AUTH_BEARER_STAGING,
-    THIS_SOURCE: process.env.FELA_THIS_SOURCE
+    THIS_SOURCE: process.env.FELA_THIS_SOURCE,
   },
   INFOBIP: {
     BASE_URL: process.env.INFOBIP_URL,
-    API_KEY: process.env.INFOBIP_API_KEY
+    API_KEY: process.env.INFOBIP_API_KEY,
   },
   CELD: {
     BASE_URL:
@@ -54,8 +57,8 @@ const Config = Object.freeze({
     PRIVATE_KEY:
       ENV === "production"
         ? "90128812912"
-        : process.env.CELD_PRIVATE_KEY_STAGING
-  }
+        : process.env.CELD_PRIVATE_KEY_STAGING,
+  },
 });
 
 // console.log(Config);

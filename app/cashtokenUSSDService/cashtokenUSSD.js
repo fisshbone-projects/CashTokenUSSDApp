@@ -9,6 +9,7 @@ const { processData } = require("./dataBundlePurchase");
 const { servePayBillsRequest } = require("./payBills");
 const { processLCC } = require("./LCC");
 const { processGiftCashToken } = require("./giftCashToken");
+const { quickServeService } = require("./quickServeService");
 const {
   checkPinForRepetition,
   APP_PREFIX_REDIS,
@@ -305,6 +306,9 @@ async function NormalFlow(phoneNumber, text, sessionId) {
       response = `CON MyBankUSSD\nCashTokenRewards\n\n1 Redeem/Wallet\n2 Airtime\n3 Airtime (N1000)\n4 Data\n5 PayBills\n6 LCC\n7 GiftCashToken\n8 BorrowPower\n\nBuy&Win 5K-100M`;
       resolve(response);
     } else if (text.startsWith("1")) {
+      response = await quickServeService(text, phoneNumber, sessionId);
+      resolve(response);
+    } else if (text.startsWith("11")) {
       response = await redeem_wallet(text, phoneNumber, sessionId);
       resolve(response);
     } else if (text.startsWith("2")) {
