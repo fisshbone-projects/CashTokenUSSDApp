@@ -108,7 +108,7 @@ function NormalFlow(phoneNumber, text, sessionId) {
     } else if (text.startsWith("1")) {
       // response = await quickServeService(text, phoneNumber, sessionId);
       response =
-        "CON QuickServe is an exciting new feature we are working on.\n Please stay connected\n\n0 Main menu";
+        "CON QuickServe is an exciting new feature we are working on.\nPlease stay connected\n\n0 Main menu";
     } else if (text.startsWith("2")) {
       response = await redeem_wallet(text, phoneNumber, sessionId);
     } else if (text.startsWith("3")) {
