@@ -1,4 +1,4 @@
-const { redisClient } = require("../../config/redisConnectConfig");
+const { redisClient } = require("$config/redisConnectConfig");
 const {
   DIRECTDIALSERVICE,
   checkUserActivationStatus,

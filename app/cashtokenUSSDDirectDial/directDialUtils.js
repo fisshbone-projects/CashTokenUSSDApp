@@ -1,7 +1,6 @@
 const axios = require("axios");
-const { redisClient } = require("../../config/redisConnectConfig");
-const { FelaMarketPlace } = require("../../config/index");
-const { App } = require("../../config");
+const { redisClient } = require("$config/redisConnectConfig");
+const { FelaMarketPlace, App } = require("$config/index");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 
 let DIRECTDIALSERVICE = {

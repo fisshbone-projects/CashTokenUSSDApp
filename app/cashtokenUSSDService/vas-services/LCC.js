@@ -1,15 +1,15 @@
-const { redisClient } = require("../../config/redisConnectConfig");
+const { redisClient } = require("$config/redisConnectConfig");
 const {
   FelaMarketPlace,
   App,
   LCC: { LCC_PROVIDER_CODE, LCC_TOLL_SERVICE_CODE },
-} = require("../../config/index");
+} = require("$config/index");
 const {
   APP_PREFIX_REDIS,
   formatNumber,
   MYBANKUSSD_BANK_CODES,
   expireReportsInRedis,
-} = require("../utils");
+} = require("$utils");
 const moment = require("moment");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
@@ -20,7 +20,7 @@ async function processLCC(phoneNumber, text, sessionId) {
     console.log("Starting the LCC payment process");
     let response = "";
     let brokenDownText = text.split("*");
-    brokenDownText.unshift("dummyInsert"); //This dummy input helps the code behave as though the LCC service was a sub menu
+    // brokenDownText.unshift("dummyInsert"); //This dummy input helps the code behave as though the LCC service was a sub menu
     // console.log(brokenDownText);
     if (brokenDownText.length === 2) {
       await redisClient.incrAsync(

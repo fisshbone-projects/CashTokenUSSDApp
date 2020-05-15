@@ -1,5 +1,5 @@
-const { redisClient } = require("../../config/redisConnectConfig");
-const { FelaMarketPlace } = require("../../config/index");
+const { redisClient } = require("$config/redisConnectConfig");
+const { FelaMarketPlace } = require("$config/index");
 const moment = require("moment");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
@@ -9,22 +9,18 @@ const {
   formatNumber,
   MYBANKUSSD_BANK_CODES,
   expireReportsInRedis,
-} = require("../utils");
+} = require("$utils");
 const NAIRASIGN = "N";
 
 async function processFundWallet(phoneNumber, text, sessionId) {
   return new Promise(async (resolve, reject) => {
     console.log("Starting CashToken Purchase Process");
     let response = "";
-    if (text.startsWith("1*3")) {
-      let brokenDownText = text.split("*");
-      //   brokenDownText.unshift("dummyInsert");
-      response = await fundWalletFlow(brokenDownText, phoneNumber, sessionId);
-      resolve(response);
-    } else {
-      response = "CON Error!\nInvalid input\n\nEnter 0 to start over";
-      resolve(response);
-    }
+
+    let brokenDownText = text.split("*");
+    //   brokenDownText.unshift("dummyInsert");
+    response = await fundWalletFlow(brokenDownText, phoneNumber, sessionId);
+    resolve(response);
   });
 }
 

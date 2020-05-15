@@ -5,7 +5,17 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "start-dev": "cross-env NODE_ENV=development node app.js"
+    "start-dev": "cross-env NODE_ENV=development node app.js",
+    "postinstall": "link-module-alias"
+  },
+  "_moduleAliases": {
+    "$config": "./config",
+    "$mongoModels": "./config/mongoModels",
+    "$libs": "./app/libs",
+    "$felaLibs": "./app/libs/felaLibs",
+    "$mongoLibs": "./app/libs/mongoLibs",
+    "$utils": "./app/utils",
+    "$cashtoken-ussd-service": "./app/cashtokenUSSDService"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +31,7 @@
     "express-validator": "^6.3.1",
     "extends-classes": "^1.0.5",
     "helmet": "^3.21.2",
+    "link-module-alias": "^1.2.0",
     "moment": "^2.24.0",
     "mongoose": "^5.9.9",
     "mongoose-dynamic-schemas": "^1.2.6",

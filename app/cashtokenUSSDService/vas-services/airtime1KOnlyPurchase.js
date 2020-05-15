@@ -1,11 +1,11 @@
-const { redisClient } = require("../../config/redisConnectConfig");
-const { FelaMarketPlace, App } = require("../../config/index");
+const { redisClient } = require("$config/redisConnectConfig");
+const { FelaMarketPlace, App } = require("$config/index");
 const {
   APP_PREFIX_REDIS,
   expireReportsInRedis,
   formatNumber,
   MYBANKUSSD_BANK_CODES,
-} = require("../utils");
+} = require("$utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 // const NAIRASIGN = "\u{020A6}";

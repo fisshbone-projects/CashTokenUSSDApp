@@ -1,4 +1,4 @@
-const { redisClient } = require("../../../config/redisConnectConfig");
+const { redisClient } = require("$config/redisConnectConfig");
 const { createQSProfile } = require("./createProfiles/");
 
 function quickServeService(text, phoneNumber, sessionId) {

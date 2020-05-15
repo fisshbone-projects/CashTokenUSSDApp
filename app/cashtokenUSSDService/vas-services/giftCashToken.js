@@ -1,5 +1,5 @@
-const { redisClient } = require("../../config/redisConnectConfig");
-const { FelaMarketPlace } = require("../../config/index");
+const { redisClient } = require("$config/redisConnectConfig");
+const { FelaMarketPlace } = require("$config/index");
 const moment = require("moment");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
@@ -9,8 +9,8 @@ const {
   formatNumber,
   MYBANKUSSD_BANK_CODES,
   expireReportsInRedis,
-} = require("../utils");
-const { sendSMS } = require("../../config/infoBipConfig");
+} = require("$utils");
+const { sendSMS } = require("$config/infoBipConfig");
 // const NAIRASIGN = "\u{020A6}";
 const NAIRASIGN = "N";
 
@@ -18,19 +18,11 @@ async function processGiftCashToken(phoneNumber, text, sessionId) {
   return new Promise(async (resolve, reject) => {
     console.log("Starting CashToken Purchase Process");
     let response = "";
-    if (text.startsWith("7")) {
-      let brokenDownText = text.split("*");
-      brokenDownText.unshift("dummyInsert");
-      response = await giftCashTokenFlow(
-        brokenDownText,
-        phoneNumber,
-        sessionId
-      );
-      resolve(response);
-    } else {
-      response = "CON Error!\nInvalid input\n\nEnter 0 to start over";
-      resolve(response);
-    }
+
+    let brokenDownText = text.split("*");
+    brokenDownText.unshift("dummyInsert");
+    response = await giftCashTokenFlow(brokenDownText, phoneNumber, sessionId);
+    resolve(response);
   });
 }
 

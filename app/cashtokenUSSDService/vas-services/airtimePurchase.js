@@ -1,6 +1,6 @@
-const { redisClient } = require("../../config/redisConnectConfig");
-const { FelaMarketPlace, App } = require("../../config/index");
-const { sendSMS } = require("../../config/infoBipConfig");
+const { redisClient } = require("$config/redisConnectConfig");
+const { FelaMarketPlace, App } = require("$config/index");
+const { sendSMS } = require("$config/infoBipConfig");
 const moment = require("moment");
 const {
   APP_PREFIX_REDIS,
@@ -8,7 +8,7 @@ const {
   formatNumber,
   MYBANKUSSD_BANK_CODES,
   expireReportsInRedis,
-} = require("../utils");
+} = require("$utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 // const NAIRASIGN = "\u{020A6}";
@@ -19,14 +19,10 @@ async function processAirtime(text, phoneNumber, sessionId) {
   return new Promise(async (resolve, reject) => {
     console.log("Starting Airtime Purchase Process");
     let response = "";
-    if (text.startsWith("2")) {
-      let brokenDownText = text.split("*");
-      response = await airtimeFlow(brokenDownText, phoneNumber, sessionId);
-      resolve(response);
-    } else {
-      response = "CON Invalid response inputed\n\nEnter 0 Back to home menu";
-      resolve(response);
-    }
+
+    let brokenDownText = text.split("*");
+    response = await airtimeFlow(brokenDownText, phoneNumber, sessionId);
+    resolve(response);
   });
 }
 
@@ -330,7 +326,7 @@ function getAirtimeProviders() {
         providers.forEach((provider, index) => {
           response += `${++index} ${provider}\n`;
         });
-        response += `# Back\n0 Main Menu`;
+        response += `0 Main menu`;
 
         resolve(response);
       });

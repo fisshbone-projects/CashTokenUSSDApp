@@ -1,4 +1,4 @@
-const { UserModel, AirtimeQS } = require("../../../config/mongoModels/index");
+const { UserModel, AirtimeQS } = require("$mongoModels/index");
 
 class QSMongoFront {
   async createAirtimeProfile(airtimeDoc) {

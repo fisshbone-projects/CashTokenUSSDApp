@@ -1,4 +1,4 @@
-const { redisClient } = require("../../../../config/redisConnectConfig");
+const { redisClient } = require("$config/redisConnectConfig");
 const { createAirtimeProfile } = require("./airtimeQSCreate");
 
 function createQSProfile(text, phoneNumber, sessionId) {

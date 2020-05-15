@@ -1,14 +1,15 @@
 const axios = require("axios");
-const { redisClient } = require("../../config/redisConnectConfig");
+const { redisClient } = require("$config/redisConnectConfig");
 const { getBankCodes } = require("./directDialUtils");
 const {
   formatNumber,
   DIRECTDIAL_BANK_MAP,
   getBankCharge,
-} = require("../utils");
+  APP_PREFIX_REDIS,
+  expireReportsInRedis,
+} = require("$utils");
 const moment = require("moment");
-const { FelaMarketPlace } = require("../../config");
-const { APP_PREFIX_REDIS, expireReportsInRedis } = require("../utils");
+const { FelaMarketPlace } = require("$config");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 
 async function processWalletCashout(sessionId, userPhone, text) {

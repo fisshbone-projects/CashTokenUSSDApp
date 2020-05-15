@@ -1,12 +1,12 @@
-const { redisClient } = require("../../../../config/redisConnectConfig");
-const { getAirtimeProviders } = require("../../../libs/felaLibs");
-const mongoFront = require("../../../libs/mongoLibs/mongoFront");
+const { redisClient } = require("$config/redisConnectConfig");
+const { getAirtimeProviders } = require("$felaLibs");
+const mongoFront = require("$mongoLibs/mongoFront");
 const {
   APP_PREFIX_REDIS,
   testPhoneNumber,
   sanitizePhoneNumber,
   formatNumber,
-} = require("../../../utils");
+} = require("$utils");
 
 function createAirtimeProfile(text, phoneNumber, sessionId) {
   return new Promise(async (resolve) => {

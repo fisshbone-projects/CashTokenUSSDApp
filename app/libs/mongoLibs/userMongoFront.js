@@ -1,4 +1,4 @@
-const { UserModel } = require("../../../config/mongoModels/index");
+const { UserModel } = require("$mongoModels/index");
 
 class UserMongoFront {
   async findUser(phoneNumber) {

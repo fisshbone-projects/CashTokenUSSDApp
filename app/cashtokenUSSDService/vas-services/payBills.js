@@ -1,9 +1,10 @@
-const { redisClient } = require("../../config/redisConnectConfig");
+const { redisClient } = require("$config/redisConnectConfig");
 const moment = require("moment");
 const { processElectricity } = require("./electricityPayment");
 const { processCableTv } = require("./cabletvPayment");
+const { processLCC } = require("./LCC");
 // const { getUserStat } = require("../utils/cashTokenApi");
-const { APP_PREFIX_REDIS, expireReportsInRedis } = require("../utils");
+const { APP_PREFIX_REDIS, expireReportsInRedis } = require("$utils");
 // const { FelaMarketPlace } = require("../index");
 // const axios = require("axios");
 
@@ -12,7 +13,7 @@ const { APP_PREFIX_REDIS, expireReportsInRedis } = require("../utils");
 async function servePayBillsRequest(phoneNumber, text, sessionId) {
   return new Promise(async (resolve) => {
     let response = "";
-    if (text === "5") {
+    if (text === "6") {
       await redisClient.incrAsync(
         `${APP_PREFIX_REDIS}:reports:count:topMenu_PayBills:${moment().format(
           "DMMYYYY"
@@ -23,13 +24,16 @@ async function servePayBillsRequest(phoneNumber, text, sessionId) {
       //     "DMMYYYY"
       //   )}`
       // );
-      response = `CON 1 Pay Electricity Bills\n2 Pay CableTV Bills\n0 Main Menu`;
+      response = `CON 1 Pay Electricity Bills\n2 Pay CableTV Bills\n3 Pay LCC Bills\n0 Main menu`;
       resolve(response);
-    } else if (text.startsWith("5*1")) {
+    } else if (text.startsWith("6*1")) {
       response = await processElectricity(phoneNumber, text, sessionId);
       resolve(response);
-    } else if (text.startsWith("5*2")) {
+    } else if (text.startsWith("6*2")) {
       response = await processCableTv(phoneNumber, text, sessionId);
+      resolve(response);
+    } else if (text.startsWith("6*3")) {
+      response = await processLCC(phoneNumber, text, sessionId);
       resolve(response);
     } else {
       response =

@@ -1,7 +1,7 @@
-const { redisClient } = require("../../../config/redisConnectConfig");
-const { FelaMarketPlace, App } = require("../../../config/index");
+const { redisClient } = require("$config/redisConnectConfig");
+const { FelaMarketPlace, App } = require("$config/index");
 // const moment = require("moment");
-const { APP_PREFIX_REDIS } = require("../../utils");
+const { APP_PREFIX_REDIS } = require("$utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 const API_DATA_EXPIRE_TIME = parseInt(App.REDIS_API_DATA_EXPIRE);

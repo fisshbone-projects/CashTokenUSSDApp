@@ -1,5 +1,5 @@
-const { redisClient } = require("../../config/redisConnectConfig");
-const { FelaMarketPlace, App } = require("../../config/index");
+const { redisClient } = require("$config/redisConnectConfig");
+const { FelaMarketPlace, App } = require("$config/index");
 const moment = require("moment");
 const {
   APP_PREFIX_REDIS,
@@ -7,7 +7,7 @@ const {
   formatNumber,
   MYBANKUSSD_BANK_CODES,
   expireReportsInRedis,
-} = require("../utils");
+} = require("$utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 const NAIRASIGN = "N";
@@ -157,7 +157,7 @@ function getDataProviders() {
         providers.forEach((provider, index) => {
           response += `${++index} ${provider}\n`;
         });
-        response += `0 Main Menu`;
+        response += `0 Main menu`;
 
         resolve(response);
       });

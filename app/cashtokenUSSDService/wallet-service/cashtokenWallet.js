@@ -1,6 +1,6 @@
-const { redisClient } = require("../../config/redisConnectConfig");
-const { FelaMarketPlace } = require("../../config/index");
-const { WalletTypes, formatNumberAsCurrency } = require("../utils");
+const { redisClient } = require("$config/redisConnectConfig");
+const { FelaMarketPlace } = require("$config/index");
+const { WalletTypes, formatNumberAsCurrency } = require("$utils");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 // const NAIRASIGN = "\u{020A6}";

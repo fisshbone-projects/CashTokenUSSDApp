@@ -1,4 +1,4 @@
-const mongo = require("../../../config/mongodbConfig");
+const mongo = require("$config/mongodbConfig");
 const Many = require("extends-classes");
 const UserFront = require("./userMongoFront");
 const QSMongoFront = require("./quickServeProfilesMongoFront");
