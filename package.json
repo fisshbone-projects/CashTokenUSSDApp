@@ -47,5 +47,8 @@
       "node_modules"
     ],
     "exec": "npm run start-dev"
+  },
+  "config": {
+    "unsafe-perm": true
   }
 }

@@ -47,4 +47,4 @@ RUN npm install
 WORKDIR /var/cashtokenussd/
 COPY . /var/cashtokenussd
 EXPOSE ${port}
-CMD ["npm","start"]
+CMD ["./start.sh"]
