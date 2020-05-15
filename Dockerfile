@@ -48,4 +48,5 @@ WORKDIR /var/cashtokenussd/
 COPY . /var/cashtokenussd
 EXPOSE ${port}
 RUN ls
-ENTRYPOINT ["./start.sh"]
+RUN chmod =x ./start.sh
+CMD ["./start.sh"]
