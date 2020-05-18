@@ -156,7 +156,7 @@ async function giftCashTokenFlow(brokenDownText, phoneNumber, sessionId) {
       );
 
       response = `CON Confirm CashToken Purchase:\nRecipient's Number: ${numberToCredit}\nAmount to Gift: ${amount}\nPrice to Pay: ${NAIRASIGN}${formatNumber(
-        parseInt(amount) * 35
+        parseInt(amount) * CASHTOKENPRICE
       )}\nPayment Method: ${
         chosenUSSDBankName.includes("bank") ||
         chosenUSSDBankName == "GTB" ||
