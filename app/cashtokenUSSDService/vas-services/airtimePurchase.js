@@ -79,16 +79,24 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
       }
     } else if (brokenDownText.length === 4) {
       let amount = brokenDownText[3];
+
       if (/^[0-9]*$/.test(amount)) {
         console.log("Amount is valid");
-        await redisClient.hsetAsync(
-          `${APP_PREFIX_REDIS}:${sessionId}`,
-          "airtimeAmount",
-          `${amount}`
-        );
-
-        response = `CON Select Payment Method:\n1 My CashToken Wallet\n2 MyBankUSSD`;
-        resolve(response);
+        if (parseInt(amount) >= 50 && parseInt(amount) <= 100000) {
+          await redisClient.hsetAsync(
+            `${APP_PREFIX_REDIS}:${sessionId}`,
+            "airtimeAmount",
+            `${amount}`
+          );
+          response = `CON Select Payment Method:\n1 My CashToken Wallet\n2 MyBankUSSD`;
+          resolve(response);
+        } else {
+          console.log(
+            "Amount is less than 50 naira | greater than 100,000 naira"
+          );
+          response = `CON Error! You can purchase airtime between the amount N50 and N100,000 only\n\n0 Menu`;
+          resolve(response);
+        }
       } else {
         console.log("Amount is invalid");
         response = `CON Error! Inputted amount is not a valid number\n\nEnter 0 to start over`;

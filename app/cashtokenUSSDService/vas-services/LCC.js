@@ -57,14 +57,21 @@ async function processLCC(phoneNumber, text, sessionId) {
       //save amount and ask for payment method
       let amount = brokenDownText[3];
       if (/^[0-9]*$/.test(amount)) {
-        await redisClient.hsetAsync(
-          `${APP_PREFIX_REDIS}:${sessionId}`,
-          "amount",
-          `${amount}`
-        );
-
-        response = `CON Select payment method:\n1 My Wallet\n2 MyBankUSSD`;
-        resolve(response);
+        if (parseInt(amount) >= 50 && parseInt(amount) <= 100000) {
+          await redisClient.hsetAsync(
+            `${APP_PREFIX_REDIS}:${sessionId}`,
+            "amount",
+            `${amount}`
+          );
+          response = `CON Select payment method:\n1 My Wallet\n2 MyBankUSSD`;
+          resolve(response);
+        } else {
+          console.log(
+            "Amount is less than 50 naira | greater than 100,000 naira"
+          );
+          response = `CON Error! You can pay between the amount N50 and N100,000 only\n\n0 Menu`;
+          resolve(response);
+        }
       } else {
         console.log("Amount inputed is invalid");
         response = `CON Error!\nAmount can only be numbers\n\nEnter 0 to start over`;
