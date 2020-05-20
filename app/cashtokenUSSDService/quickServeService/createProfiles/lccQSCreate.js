@@ -1,20 +1,13 @@
 const { redisClient } = require("$config/redisConnectConfig");
-const { getAirtimeProviders } = require("$felaLibs");
+const { verifyLCCAccountNo } = require("$felaLibs");
 const mongoFront = require("$mongoLibs/mongoFront");
-const {
-  APP_PREFIX_REDIS,
-  testPhoneNumber,
-  sanitizePhoneNumber,
-  formatNumber,
-} = require("$utils");
+const { APP_PREFIX_REDIS, formatNumber } = require("$utils");
 
-function createAirtimeProfile(text, phoneNumber, sessionId) {
+function createLccProfile(text, phoneNumber, sessionId) {
   return new Promise(async (resolve) => {
     let brokenDownText = text.split("*");
     let response = "";
     let textlength = brokenDownText.length;
-
-    let { providersName, providersCode } = await getAirtimeProviders();
 
     if (textlength === 3) {
       response = "CON Enter Beneficiary's Name (Max 20 characters):";
@@ -23,14 +16,11 @@ function createAirtimeProfile(text, phoneNumber, sessionId) {
       if (profileName.length >= 1 && profileName.length <= 20) {
         redisClient.hmsetAsync(
           `${APP_PREFIX_REDIS}:${sessionId}`,
-          "QS_Airtime_name",
+          "QS_Lcc_name",
           profileName.toLowerCase()
         );
 
-        response = "CON Select Beneficiary's Network:\n";
-        providersName.forEach((provider, index) => {
-          response += `${++index} ${provider}\n`;
-        });
+        response = "CON Enter Beneficiary's LCC Account Number:";
       } else {
         console.log("Beneficiary's Name inputed is more than 20 characters");
         if (profileName.length < 1) {
@@ -40,38 +30,28 @@ function createAirtimeProfile(text, phoneNumber, sessionId) {
             "CON Error! Beneficiary's name can only be 20 characters long or less\n\n0 Main Menu";
         }
       }
-    } else if (
-      textlength === 5 &&
-      brokenDownText[textlength - 1] <= providersName.length
-    ) {
-      let selectedNetwork = brokenDownText[textlength - 1] - 1;
-      redisClient.hmsetAsync(
-        `${APP_PREFIX_REDIS}:${sessionId}`,
-        "QS_Airtime_networkName",
-        providersName[selectedNetwork],
-        "QS_Airtime_networkCode",
-        providersCode[selectedNetwork]
-      );
-      response = `CON Enter Beneficiary's Phone Number:`;
-    } else if (textlength === 6) {
-      let inputedBeneficiarysNo = brokenDownText[textlength - 1];
-      if (testPhoneNumber(inputedBeneficiarysNo)) {
+    } else if (textlength === 5) {
+      let lccAccountNo = brokenDownText[textlength - 1];
+      let confirmLccAccountNo = await verifyLCCAccountNo(lccAccountNo);
+
+      if (confirmLccAccountNo) {
         redisClient.hmsetAsync(
           `${APP_PREFIX_REDIS}:${sessionId}`,
-          "QS_Airtime_phoneNumber",
-          sanitizePhoneNumber(inputedBeneficiarysNo)
+          "QS_Lcc_accountNo",
+          lccAccountNo
         );
-        response = "CON Enter Default Amount to Purchase for this Beneficiary:";
+        response = `CON Enter Default Amount to Purchase for this Beneficiary:`;
       } else {
-        response = "CON Error! Inputed phone number is not valid\n\n0 Menu";
+        response =
+          "CON Error! LCC acount number cannot be verified\n\n0 Main Menu";
       }
-    } else if (textlength === 7) {
+    } else if (textlength === 6) {
       let inputedAmount = brokenDownText[textlength - 1];
       if (/^[0-9]*$/.test(inputedAmount)) {
         if (Number(inputedAmount) >= 50 && Number(inputedAmount) <= 100000) {
           await redisClient.hmsetAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`,
-            "QS_Airtime_amount",
+            "QS_Lcc_amount",
             inputedAmount
           );
           response = await generateSummary(sessionId);
@@ -82,34 +62,30 @@ function createAirtimeProfile(text, phoneNumber, sessionId) {
       } else {
         response = "CON Error! Inputed amount is not a valid number\n\n0 Menu";
       }
-    } else if (textlength === 8 && brokenDownText[textlength - 1] == "1") {
-      console.log("Saving airtime beneficiary");
+    } else if (textlength === 7 && brokenDownText[textlength - 1] == "1") {
+      console.log("Saving lcc beneficiary");
       let {
         mongo_userId,
-        QS_Airtime_name,
-        QS_Airtime_amount,
-        QS_Airtime_phoneNumber,
-        QS_Airtime_networkCode,
-        QS_Airtime_networkName,
+        QS_Lcc_amount,
+        QS_Lcc_accountNo,
+        QS_Lcc_name,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
 
       let beneficiaryExists = await mongoFront.findExistingProfile(
         mongo_userId,
-        QS_Airtime_name,
-        "airtime"
+        QS_Lcc_name,
+        "lcc"
       );
 
       if (!beneficiaryExists) {
-        console.log("Creating a new Airtime beneficiary");
-        let airtimeDoc = {
-          name: QS_Airtime_name,
-          networkCode: QS_Airtime_networkCode,
-          networkName: QS_Airtime_networkName,
-          phoneNumber: QS_Airtime_phoneNumber,
-          defaultAmount: QS_Airtime_amount,
+        console.log("Creating a new LCC beneficiary");
+        let lccDoc = {
+          name: QS_Lcc_name,
+          accountNumber: QS_Lcc_accountNo,
+          defaultAmount: QS_Lcc_amount,
           customer: mongo_userId,
         };
-        let newId = await mongoFront.createProfile(airtimeDoc, "airtime");
+        let newId = await mongoFront.createProfile(lccDoc, "lcc");
         if (newId) {
           response = "CON Beneficiary created successfully!\n\n0 Menu";
         } else {
@@ -120,36 +96,32 @@ function createAirtimeProfile(text, phoneNumber, sessionId) {
         console.log("Updating beneficiary from create state");
         await redisClient.hmsetAsync(
           `${APP_PREFIX_REDIS}:${sessionId}`,
-          "QS_Airtime_oldProfileId",
+          "QS_Lcc_oldProfileId",
           beneficiaryExists._id.toString()
         );
-        response = `CON You currently have a beneficiary with the name '${QS_Airtime_name}'. Will you like to update this beneficiary instead?\n\n1 Yes\n2 No`;
+        response = `CON You currently have a beneficiary with the name '${QS_Lcc_name}'. Will you like to update this beneficiary instead?\n\n1 Yes\n2 No`;
       }
-    } else if (textlength === 8 && brokenDownText[textlength - 1] == "2") {
+    } else if (textlength === 7 && brokenDownText[textlength - 1] == "2") {
       response = "CON Beneficiary creation process canceled by user\n\n0 Menu";
-    } else if (textlength === 9 && brokenDownText[textlength - 1] == "1") {
+    } else if (textlength === 8 && brokenDownText[textlength - 1] == "1") {
       let {
         mongo_userId,
-        QS_Airtime_name,
-        QS_Airtime_amount,
-        QS_Airtime_phoneNumber,
-        QS_Airtime_networkCode,
-        QS_Airtime_networkName,
-        QS_Airtime_oldProfileId,
+        QS_Lcc_amount,
+        QS_Lcc_accountNo,
+        QS_Lcc_name,
+        QS_Lcc_oldProfileId,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
-      let airtimeDoc = {
-        name: QS_Airtime_name,
-        networkCode: QS_Airtime_networkCode,
-        networkName: QS_Airtime_networkName,
-        phoneNumber: QS_Airtime_phoneNumber,
-        defaultAmount: QS_Airtime_amount,
+      let lccDoc = {
+        name: QS_Lcc_name,
+        accountNumber: QS_Lcc_accountNo,
+        defaultAmount: QS_Lcc_amount,
         customer: mongo_userId,
         updatedAt: Date.now(),
       };
       let updated = await mongoFront.updateProfile(
-        QS_Airtime_oldProfileId,
-        airtimeDoc,
-        "airtime"
+        QS_Lcc_oldProfileId,
+        lccDoc,
+        "lcc"
       );
       if (!!updated) {
         response = "CON Beneficiary updated successfully!\n\n0 Menu";
@@ -157,7 +129,7 @@ function createAirtimeProfile(text, phoneNumber, sessionId) {
         response =
           "CON There was an error saving beneficiary.\nPlease try again later\n\n0 Menu";
       }
-    } else if (textlength === 9 && brokenDownText[textlength - 1] == "2") {
+    } else if (textlength === 8 && brokenDownText[textlength - 1] == "2") {
       response = "CON Beneficiary creation process canceled by user\n\n0 Menu";
     } else {
       response = "CON Error! Wrong option inputed\n\n0 Main Menu";
@@ -170,19 +142,18 @@ function createAirtimeProfile(text, phoneNumber, sessionId) {
 function generateSummary(sessionId) {
   return new Promise(async (resolve) => {
     let {
-      QS_Airtime_amount,
-      QS_Airtime_phoneNumber,
-      QS_Airtime_networkName,
-      QS_Airtime_name,
+      QS_Lcc_amount,
+      QS_Lcc_accountNo,
+      QS_Lcc_name,
     } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
     let response = "";
 
-    response = `CON Confirm your airtime beneficiary:\nName: ${QS_Airtime_name}\nNetwork: ${QS_Airtime_networkName}\nPhoneNumber: ${QS_Airtime_phoneNumber}\nDefaultAmount: ${formatNumber(
-      QS_Airtime_amount
+    response = `CON Confirm your LCC beneficiary:\nName: ${QS_Lcc_name}\nAccountNo: ${QS_Lcc_accountNo}\nDefaultAmount: ${formatNumber(
+      QS_Lcc_amount
     )}\n\n1 Confirm\n2 Cancel`;
 
     resolve(response);
   });
 }
 
-module.exports = { createAirtimeProfile };
+module.exports = { createLccProfile };

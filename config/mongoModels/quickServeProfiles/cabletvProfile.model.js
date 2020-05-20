@@ -4,9 +4,12 @@ const UserModel = require("../user/user.model");
 
 let CabletvQS_Schema = new Schema({
   name: { type: String, required: true },
-  provider: { type: String, required: true },
+  providerName: { type: String, required: true },
+  providerCode: { type: String, required: true },
   cardNumber: { type: String, required: true },
-  defaultBouquet: { type: String, required: true },
+  defaultBouquetName: { type: String, required: true },
+  defaultBouquetCode: { type: String, required: true },
+  defaultBouquetPrice: { type: String, required: true },
   customer: { type: Schema.Types.ObjectId, ref: UserModel, required: true },
   successfulTransactions: { type: Number },
   createdAt: { type: Date },

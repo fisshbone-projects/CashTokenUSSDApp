@@ -1,7 +1,7 @@
 const { redisClient } = require("$config/redisConnectConfig");
 const mongoFront = require("$mongoLibs/mongoFront");
 const moment = require("moment");
-const { FelaMarketPlace } = require("$config/index");
+const { FelaMarketPlace, App } = require("$config/index");
 const { redeem_wallet, rewardTarget } = require("../wallet-service");
 const {
   processAirtime,
@@ -106,9 +106,12 @@ function NormalFlow(phoneNumber, text, sessionId) {
 
       response = MAINMENU_1;
     } else if (text.startsWith("1")) {
-      // response = await quickServeService(text, phoneNumber, sessionId);
-      response =
-        "CON QuickServe is an exciting new feature we are working on.\nPlease stay connected\n\n0 Main menu";
+      if (App.PROD) {
+        response =
+          "CON QuickServe is an exciting new feature we are working on.\nPlease stay connected\n\n0 Main menu";
+      } else {
+        response = await quickServeService(text, phoneNumber, sessionId);
+      }
     } else if (text.startsWith("2")) {
       response = await redeem_wallet(text, phoneNumber, sessionId);
     } else if (text.startsWith("3")) {

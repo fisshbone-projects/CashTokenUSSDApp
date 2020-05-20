@@ -127,7 +127,6 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
                     resolve(response);
                   } else if (savedWalletStatus === "active") {
                     if (!mongo_userId) {
-                      console.log("Setting up userId for user");
                       // Check if user exists in mongo
                       let getUserId = await mongoFront.findUser(phoneNumber);
                       if (getUserId) {

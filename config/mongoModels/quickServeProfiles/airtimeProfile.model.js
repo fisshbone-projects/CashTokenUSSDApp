@@ -4,7 +4,8 @@ const UserModel = require("../user/user.model");
 
 let AirtimeQS_Schema = new Schema({
   name: { type: String, required: true },
-  network: { type: String, required: true },
+  networkCode: { type: String, required: true },
+  networkName: { type: String, required: true },
   phoneNumber: { type: String, required: true },
   defaultAmount: { type: String, required: true },
   customer: { type: Schema.Types.ObjectId, ref: UserModel, required: true },
@@ -15,7 +16,6 @@ let AirtimeQS_Schema = new Schema({
 
 AirtimeQS_Schema.pre("save", function (next) {
   let now = Date.now();
-  // console.log("Called the update");
 
   this.updatedAt = now;
   //Set a value for createdAt only if it is null
