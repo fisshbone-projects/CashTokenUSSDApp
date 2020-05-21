@@ -3,6 +3,8 @@ const {
   AirtimeQS,
   LccQS,
   CabletvQS,
+  ElectricityQS,
+  DatabundleQS,
 } = require("$mongoModels/index");
 
 class QSMongoFront {
@@ -21,6 +23,14 @@ class QSMongoFront {
         case "cabletv":
           let { _id: cabletvId } = await CabletvQS.create(doc);
           createResponse = cabletvId.toString();
+          break;
+        case "electricity":
+          let { _id: elecId } = await ElectricityQS.create(doc);
+          createResponse = elecId.toString();
+          break;
+        case "databundle":
+          let { _id: dataId } = await DatabundleQS.create(doc);
+          createResponse = dataId.toString();
           break;
       }
 
@@ -54,6 +64,20 @@ class QSMongoFront {
           );
           allGood = cabletvOk;
           break;
+        case "electricity":
+          let { ok: elecOk } = await ElectricityQS.updateOne(
+            { _id: profileId },
+            doc
+          );
+          allGood = elecOk;
+          break;
+        case "databundle":
+          let { ok: dataOk } = await DatabundleQS.updateOne(
+            { _id: profileId },
+            doc
+          );
+          allGood = dataOk;
+          break;
       }
       return allGood;
     } catch (err) {
@@ -79,6 +103,18 @@ class QSMongoFront {
         break;
       case "cabletv":
         exists = await CabletvQS.findOne({
+          customer: userId,
+          name: profileName,
+        });
+        break;
+      case "electricity":
+        exists = await ElectricityQS.findOne({
+          customer: userId,
+          name: profileName,
+        });
+        break;
+      case "databundle":
+        exists = await DatabundleQS.findOne({
           customer: userId,
           name: profileName,
         });

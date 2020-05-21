@@ -2,6 +2,7 @@ const { redisClient } = require("$config/redisConnectConfig");
 const { createAirtimeProfile } = require("./airtimeQSCreate");
 const { createLccProfile } = require("./lccQSCreate");
 const { createCabletvProfile } = require("./cabletvQSCreate");
+const { createElectricityProfile } = require("./electricityQSCreate");
 
 function createQSProfile(text, phoneNumber, sessionId) {
   return new Promise(async (resolve) => {
@@ -13,6 +14,8 @@ function createQSProfile(text, phoneNumber, sessionId) {
       response = await createAirtimeProfile(text, phoneNumber, sessionId);
     } else if (text.startsWith("1*1*3")) {
       response = await createCabletvProfile(text, phoneNumber, sessionId);
+    } else if (text.startsWith("1*1*4")) {
+      response = await createElectricityProfile(text, phoneNumber, sessionId);
     } else if (text.startsWith("1*1*5")) {
       response = await createLccProfile(text, phoneNumber, sessionId);
     }

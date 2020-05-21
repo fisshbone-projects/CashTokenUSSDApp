@@ -157,7 +157,7 @@ function getDataProviders() {
         providers.forEach((provider, index) => {
           response += `${++index} ${provider}\n`;
         });
-        response += `0 Main menu`;
+        // response += `0 Main menu`;
 
         resolve(response);
       });

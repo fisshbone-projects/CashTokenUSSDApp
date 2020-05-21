@@ -24,10 +24,10 @@ function createLccProfile(text, phoneNumber, sessionId) {
       } else {
         console.log("Beneficiary's Name inputed is more than 20 characters");
         if (profileName.length < 1) {
-          response = "CON Error! Name field cannot be empty\n\n0 Main Menu";
+          response = "CON Error! Name field cannot be empty\n\n0 Menu";
         } else {
           response =
-            "CON Error! Beneficiary's name can only be 20 characters long or less\n\n0 Main Menu";
+            "CON Error! Beneficiary's name can only be 20 characters long or less\n\n0 Menu";
         }
       }
     } else if (textlength === 5) {
@@ -42,8 +42,7 @@ function createLccProfile(text, phoneNumber, sessionId) {
         );
         response = `CON Enter Default Amount to Purchase for this Beneficiary:`;
       } else {
-        response =
-          "CON Error! LCC acount number cannot be verified\n\n0 Main Menu";
+        response = "CON Error! LCC acount number cannot be verified\n\n0 Menu";
       }
     } else if (textlength === 6) {
       let inputedAmount = brokenDownText[textlength - 1];
@@ -132,7 +131,7 @@ function createLccProfile(text, phoneNumber, sessionId) {
     } else if (textlength === 8 && brokenDownText[textlength - 1] == "2") {
       response = "CON Beneficiary creation process canceled by user\n\n0 Menu";
     } else {
-      response = "CON Error! Wrong option inputed\n\n0 Main Menu";
+      response = "CON Error! Wrong option inputed\n\n0 Menu";
     }
 
     resolve(response);

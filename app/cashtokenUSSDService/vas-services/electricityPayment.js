@@ -73,7 +73,7 @@ async function processElectricity(phoneNumber, text, sessionId) {
           resolve(response);
         }
       } else if (electricPlan === "postpaid") {
-        if (parseInt(selectedDisco) <= 5 && parseInt(selectedDisco) >= 1) {
+        if (parseInt(selectedDisco) <= 9 && parseInt(selectedDisco) >= 1) {
           await saveDisco(electricPlan, selectedDisco, sessionId);
           response = `CON Enter your meter number:`;
           resolve(response);
@@ -386,11 +386,11 @@ async function saveDisco(electricPlan, selectedDisco, sessionId) {
       console.log(planCode);
       resolve();
     } else {
-      if (selectedDisco === "4") {
-        selectedDisco = "5";
-      } else if (selectedDisco === "5") {
-        selectedDisco = "7";
-      }
+      // if (selectedDisco === "4") {
+      //   selectedDisco = "5";
+      // } else if (selectedDisco === "5") {
+      //   selectedDisco = "7";
+      // }
       let [planCode] = await redisClient.zrangebyscoreAsync(
         `${APP_PREFIX_REDIS}:Discos:Postpaid:Code`,
         selectedDisco,

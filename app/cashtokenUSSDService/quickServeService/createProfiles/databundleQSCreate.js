@@ -8,7 +8,7 @@ const {
   formatNumber,
 } = require("$utils");
 
-function createAirtimeProfile(text, phoneNumber, sessionId) {
+function createDatabundleProfile(text, phoneNumber, sessionId) {
   return new Promise(async (resolve) => {
     let brokenDownText = text.split("*");
     let response = "";
@@ -185,4 +185,4 @@ function generateSummary(sessionId) {
   });
 }
 
-module.exports = { createAirtimeProfile };
+module.exports = { createDatabundleProfile };

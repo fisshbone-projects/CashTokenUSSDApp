@@ -6,6 +6,162 @@ const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 const API_DATA_EXPIRE_TIME = parseInt(App.REDIS_API_DATA_EXPIRE);
 
+async function confirmMeterNo(meterNumber, electricPlan, discoCode) {
+  return new Promise((resolve) => {
+    console.log(electricPlan, discoCode, meterNumber);
+    axios
+      .get(
+        `https://api.myfela.ng/info/meterNo?number=${meterNumber}&provider_code=${discoCode}&service_code=${electricPlan}`,
+        {
+          headers: {
+            Authorization: `Bearer eca76401-2cb0-4c64-a125-709d2c1e5ad8 `,
+          },
+        }
+      )
+      .then(async (resp) => {
+        console.log(resp.data);
+        if (resp.status === 200) {
+          if (
+            resp.data.message.includes("Meter number resolved successfully")
+          ) {
+            let minimumAmount = parseInt(resp.data.data.customer.minimumAmount);
+
+            resolve({ verified: true, minimumAmount });
+          } else {
+            resolve({ verified: false, minimumAmount: 0 });
+          }
+        } else {
+          resolve({ verified: false, minimumAmount: 0 });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        resolve({ verified: false, minimumAmount: 0 });
+      });
+  });
+}
+
+async function displayListOfDiscos(plan) {
+  return new Promise(async (resolve) => {
+    let response = "";
+    if (plan === "prepaid") {
+      response += await displayDisco("Prepaid");
+      resolve(response);
+    } else {
+      response += await displayDisco("Postpaid");
+      resolve(response);
+    }
+
+    function displayDisco(planType) {
+      return new Promise(async (resolve) => {
+        let response = "";
+        let index = 1;
+        let infoExists = await redisClient.existsAsync(
+          `${APP_PREFIX_REDIS}:Discos:${planType}:Title`
+        );
+
+        if (infoExists === 0) {
+          await fetchDiscoDetails();
+        }
+
+        let listOfDiscos = await redisClient.zrangeAsync(
+          `${APP_PREFIX_REDIS}:Discos:${planType}:Title`,
+          0,
+          -1
+        );
+
+        for (let disco of listOfDiscos) {
+          response += `${index++} ${refineDiscoName(disco)}\n`;
+        }
+        resolve(response);
+      });
+    }
+
+    function refineDiscoName(disco) {
+      let refine1 = disco.replace(/ /g, "");
+      let refine2 = refine1.replace("Electricity", "");
+      let refine3 = refine2.replace(")", "");
+      let refine4 = refine3.replace("(", ":");
+
+      return refine4;
+    }
+  });
+}
+
+async function fetchDiscoDetails() {
+  return new Promise((resolve) => {
+    axios
+      .get(`https://api.myfela.ng/list/electricityProviders`, {
+        headers: {
+          Authorization: `Bearer eca76401-2cb0-4c64-a125-709d2c1e5ad8 `,
+        },
+      })
+      .then(async (response) => {
+        let discos = response.data.data;
+        let prepaidScore = 1;
+        let postpaidScore = 1;
+
+        let keys = Object.keys(discos);
+        for (let key of keys) {
+          let packages = discos[key].packages;
+
+          for (let item of packages) {
+            if (item.code === "prepaid") {
+              await redisClient.zaddAsync(
+                `${APP_PREFIX_REDIS}:Discos:Prepaid:Title`,
+                prepaidScore,
+                `${discos[key].title}`
+              );
+              await redisClient.zaddAsync(
+                `${APP_PREFIX_REDIS}:Discos:Prepaid:Code`,
+                prepaidScore,
+                `${discos[key].code}`
+              );
+
+              redisClient.expire(
+                `${APP_PREFIX_REDIS}:Discos:Prepaid:Code`,
+                API_DATA_EXPIRE_TIME
+              );
+              redisClient.expire(
+                `${APP_PREFIX_REDIS}:Discos:Prepaid:Code`,
+                API_DATA_EXPIRE_TIME
+              );
+            }
+
+            if (item.code === "postpaid") {
+              await redisClient.zaddAsync(
+                `${APP_PREFIX_REDIS}:Discos:Postpaid:Title`,
+                postpaidScore,
+                `${discos[key].title}`
+              );
+              await redisClient.zaddAsync(
+                `${APP_PREFIX_REDIS}:Discos:Postpaid:Code`,
+                postpaidScore,
+                `${discos[key].code}`
+              );
+              redisClient.expire(
+                `${APP_PREFIX_REDIS}:Discos:Postpaid:Title`,
+                API_DATA_EXPIRE_TIME
+              );
+              redisClient.expire(
+                `${APP_PREFIX_REDIS}:Discos:Postpaid:Code`,
+                API_DATA_EXPIRE_TIME
+              );
+            }
+          }
+          prepaidScore++;
+          postpaidScore++;
+        }
+        resolve();
+      })
+      .catch((error) => {
+        console.log("error");
+        console.log(JSON.stringify(error.response.data, null, 2));
+        resolve();
+      });
+  });
+}
+
 async function confirmSmartCardNo(smartCardNo, providerCode, bouquetCode) {
   return new Promise((resolve) => {
     console.log(smartCardNo, providerCode, bouquetCode);
@@ -334,4 +490,6 @@ module.exports = {
   fetchCableProviders,
   displayBouquets,
   confirmSmartCardNo,
+  displayListOfDiscos,
+  confirmMeterNo,
 };

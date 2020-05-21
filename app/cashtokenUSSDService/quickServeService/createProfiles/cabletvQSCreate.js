@@ -38,10 +38,10 @@ function createCabletvProfile(text, phoneNumber, sessionId) {
       } else {
         console.log("Beneficiary's Name inputed is more than 20 characters");
         if (profileName.length < 1) {
-          response = "CON Error! Name field cannot be empty\n\n0 Main Menu";
+          response = "CON Error! Name field cannot be empty\n\n0 Menu";
         } else {
           response =
-            "CON Error! Beneficiary's name can only be 20 characters long or less\n\n0 Main Menu";
+            "CON Error! Beneficiary's name can only be 20 characters long or less\n\n0 Menu";
         }
       }
     } else if (
@@ -126,7 +126,7 @@ function createCabletvProfile(text, phoneNumber, sessionId) {
         await saveSelectedBouquet(chosenProvCode, selectedBouquet, sessionId);
         response = "CON Enter Beneficiary's Smartcard Number:";
       } else if (textlength === 9 && Number(selectedOption) > 7) {
-        response = "CON Error! Wrong option inputed\n\n0 Main Menu";
+        response = "CON Error! Wrong option inputed\n\n0 Menu";
       }
     } else if (textlength === 7 && chosenProvName === "GOTV") {
       let smartCardNo = brokenDownText[textlength - 1];
@@ -149,8 +149,7 @@ function createCabletvProfile(text, phoneNumber, sessionId) {
         );
         response = await generateSummary(sessionId);
       } else {
-        response =
-          "CON Error! Smartcard number cannot be verified\n\n0 Main Menu";
+        response = "CON Error! Smartcard number cannot be verified\n\n0 Menu";
       }
     } else if (
       (textlength === 7 ||
@@ -182,8 +181,7 @@ function createCabletvProfile(text, phoneNumber, sessionId) {
         );
         response = await generateSummary(sessionId);
       } else {
-        response =
-          "CON Error! Smartcard number cannot be verified\n\n0 Main Menu";
+        response = "CON Error! Smartcard number cannot be verified\n\n0 Menu";
       }
     } else if (textlength === 8 && chosenProvName === "GOTV") {
       let userSelection = brokenDownText[textlength - 1];
@@ -193,7 +191,7 @@ function createCabletvProfile(text, phoneNumber, sessionId) {
       } else if (userSelection === "1") {
         response = await createBeneficiary(sessionId);
       } else {
-        response = "CON Error! Wrong option inputed\n\n0 Main Menu";
+        response = "CON Error! Wrong option inputed\n\n0 Menu";
       }
     } else if (
       (textlength === 8 ||
@@ -210,7 +208,7 @@ function createCabletvProfile(text, phoneNumber, sessionId) {
       } else if (userSelection === "1") {
         response = await createBeneficiary(sessionId);
       } else {
-        response = "CON Error! Wrong option inputed\n\n0 Main Menu";
+        response = "CON Error! Wrong option inputed\n\n0 Menu";
       }
     } else if (textlength === 9 && chosenProvName === "GOTV") {
       let userSelection = brokenDownText[textlength - 1];
@@ -220,7 +218,7 @@ function createCabletvProfile(text, phoneNumber, sessionId) {
       } else if (userSelection === "1") {
         response = await updateBeneficiary(sessionId);
       } else {
-        response = "CON Error! Wrong option inputed\n\n0 Main Menu";
+        response = "CON Error! Wrong option inputed\n\n0 Menu";
       }
     } else if (
       (textlength === 9 ||
@@ -237,10 +235,10 @@ function createCabletvProfile(text, phoneNumber, sessionId) {
       } else if (userSelection === "1") {
         response = await updateBeneficiary(sessionId);
       } else {
-        response = "CON Error! Wrong option inputed\n\n0 Main Menu";
+        response = "CON Error! Wrong option inputed\n\n0 Menu";
       }
     } else {
-      response = "CON Error! Wrong option inputed\n\n0 Main Menu";
+      response = "CON Error! Wrong option inputed\n\n0 Menu";
     }
 
     resolve(response);
