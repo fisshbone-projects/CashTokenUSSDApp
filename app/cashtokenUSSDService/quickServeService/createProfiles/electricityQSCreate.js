@@ -1,12 +1,7 @@
 const { redisClient } = require("$config/redisConnectConfig");
 const { displayListOfDiscos, confirmMeterNo } = require("$felaLibs");
 const mongoFront = require("$mongoLibs/mongoFront");
-const {
-  APP_PREFIX_REDIS,
-  testPhoneNumber,
-  sanitizePhoneNumber,
-  formatNumber,
-} = require("$utils");
+const { APP_PREFIX_REDIS, formatNumber } = require("$utils");
 
 function createElectricityProfile(text, phoneNumber, sessionId) {
   return new Promise(async (resolve) => {
@@ -126,8 +121,7 @@ function createElectricityProfile(text, phoneNumber, sessionId) {
     } else if (textlength === 9) {
       let userResponse = brokenDownText[textlength - 1];
       if (userResponse === "2") {
-        response =
-          "CON Beneficiary creation process canceled by user\n\n0 Menu";
+        response = "END Beneficiary creation process canceled by user";
       } else if (userResponse === "1") {
         let {
           mongo_userId,
@@ -156,10 +150,10 @@ function createElectricityProfile(text, phoneNumber, sessionId) {
           };
           let newId = await mongoFront.createProfile(elecDoc, "electricity");
           if (newId) {
-            response = "CON Beneficiary created successfully!\n\n0 Menu";
+            response = "END Beneficiary created successfully!";
           } else {
             response =
-              "CON There was an error saving beneficiary.\nPlease try again later\n\n0 Menu";
+              "END There was an error saving beneficiary.\nPlease try again later";
           }
         } else {
           console.log("Updating beneficiary from create state");
@@ -176,8 +170,7 @@ function createElectricityProfile(text, phoneNumber, sessionId) {
     } else if (textlength === 10) {
       let userResponse = brokenDownText[textlength - 1];
       if (userResponse === "2") {
-        response =
-          "CON Beneficiary creation process canceled by user\n\n0 Menu";
+        response = "END Beneficiary creation process canceled by user";
       } else if (userResponse === "1") {
         let {
           mongo_userId,
@@ -203,14 +196,13 @@ function createElectricityProfile(text, phoneNumber, sessionId) {
           "electricity"
         );
         if (!!updated) {
-          response = "CON Beneficiary updated successfully!\n\n0 Menu";
+          response = "END Beneficiary updated successfully!";
         } else {
           response =
-            "CON There was an error saving beneficiary.\nPlease try again later\n\n0 Menu";
+            "END There was an error saving beneficiary.\nPlease try again later";
         }
       } else {
-        response =
-          "CON Beneficiary creation process canceled by user\n\n0 Menu";
+        response = "END Beneficiary creation process canceled by user";
       }
     } else {
       response = "CON Error! Wrong option inputed\n\n0 Menu";

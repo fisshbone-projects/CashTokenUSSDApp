@@ -208,6 +208,7 @@ async function fetchDataProviders() {
 async function handleMTN(brokenDownText, phoneNumber, sessionId, dataHandler) {
   return new Promise(async (resolve) => {
     let response = "";
+    let textlength = brokenDownText.length - 1;
     if (brokenDownText.length === 2) {
       response = await displayBundles(dataHandler, 0, 6);
       resolve(response);
@@ -230,7 +231,7 @@ async function handleMTN(brokenDownText, phoneNumber, sessionId, dataHandler) {
       );
       resolve(response);
     } else if (brokenDownText.length === 4 && brokenDownText[3] === "8") {
-      response = await displayBundles(dataHandler, 14, -1);
+      response = await displayBundles(dataHandler, 14, 20);
       resolve(response);
     } else if (
       brokenDownText.length === 4 &&
@@ -247,9 +248,12 @@ async function handleMTN(brokenDownText, phoneNumber, sessionId, dataHandler) {
         dataHandler
       );
       resolve(response);
+    } else if (brokenDownText.length === 5 && brokenDownText[4] === "8") {
+      response = await displayBundles(dataHandler, 21, -1);
+      resolve(response);
     } else if (
       brokenDownText.length === 5 &&
-      parseInt(brokenDownText[4]) <= 9 &&
+      parseInt(brokenDownText[4]) <= 7 &&
       (await redisClient.hgetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
         "userState"
@@ -263,22 +267,39 @@ async function handleMTN(brokenDownText, phoneNumber, sessionId, dataHandler) {
       );
       resolve(response);
     } else if (
+      brokenDownText.length === 6 &&
+      parseInt(brokenDownText[5]) <= 7 &&
+      (await redisClient.hgetAsync(
+        `${APP_PREFIX_REDIS}:${sessionId}`,
+        "userState"
+      )) === "selectBundle"
+    ) {
+      let bundleChosen = parseInt(brokenDownText[5]);
+      response = await saveUserBundleData(
+        sessionId,
+        bundleChosen + 20,
+        dataHandler
+      );
+      resolve(response);
+    } else if (
       (brokenDownText.length === 4 ||
         brokenDownText.length === 5 ||
-        brokenDownText.length === 6) &&
+        brokenDownText.length === 6 ||
+        brokenDownText.length === 7) &&
       (await redisClient.hgetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
         "userState"
       )) === "savedBundle"
     ) {
       let recipentNumber = "";
-      if (brokenDownText.length === 4) {
-        recipentNumber = brokenDownText[3];
-      } else if (brokenDownText.length === 5) {
-        recipentNumber = brokenDownText[4];
-      } else if (brokenDownText.length === 6) {
-        recipentNumber = brokenDownText[5];
-      }
+      recipentNumber = brokenDownText[textlength];
+      // if (brokenDownText.length === 4) {
+      //   recipentNumber = brokenDownText[3];
+      // } else if (brokenDownText.length === 5) {
+      //   recipentNumber = brokenDownText[4];
+      // } else if (brokenDownText.length === 6) {
+      //   recipentNumber = brokenDownText[5];
+      // }
 
       if (testPhoneNumber(recipentNumber)) {
         console.log("Number is valid");
@@ -299,20 +320,21 @@ async function handleMTN(brokenDownText, phoneNumber, sessionId, dataHandler) {
     } else if (
       (brokenDownText.length === 5 ||
         brokenDownText.length === 6 ||
-        brokenDownText.length === 7) &&
+        brokenDownText.length === 7 ||
+        brokenDownText.length === 8) &&
       (await redisClient.hgetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
         "userState"
       )) === "gotRecipent"
     ) {
-      let paymentMethod = "";
-      if (brokenDownText.length === 5) {
-        paymentMethod = brokenDownText[4];
-      } else if (brokenDownText.length === 6) {
-        paymentMethod = brokenDownText[5];
-      } else if (brokenDownText.length === 7) {
-        paymentMethod = brokenDownText[6];
-      }
+      let paymentMethod = brokenDownText[textlength];
+      // if (brokenDownText.length === 5) {
+      //   paymentMethod = brokenDownText[4];
+      // } else if (brokenDownText.length === 6) {
+      //   paymentMethod = brokenDownText[5];
+      // } else if (brokenDownText.length === 7) {
+      //   paymentMethod = brokenDownText[6];
+      // }
 
       if (paymentMethod === "1" || paymentMethod === "2") {
         if (paymentMethod === "1") {
@@ -345,25 +367,26 @@ async function handleMTN(brokenDownText, phoneNumber, sessionId, dataHandler) {
     } else if (
       (brokenDownText.length === 6 ||
         brokenDownText.length === 7 ||
-        brokenDownText.length === 8) &&
+        brokenDownText.length === 8 ||
+        brokenDownText.length === 9) &&
       (await redisClient.hgetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
         "userState"
       )) === "gotPaymentMethod"
     ) {
-      let paymentDetail = "";
+      let paymentDetail = brokenDownText[textlength];
       let paymentMethod = await redisClient.hgetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
         "paymentMethod"
       );
 
-      if (brokenDownText.length === 6) {
-        paymentDetail = brokenDownText[5];
-      } else if (brokenDownText.length === 7) {
-        paymentDetail = brokenDownText[6];
-      } else if (brokenDownText.length === 8) {
-        paymentDetail = brokenDownText[7];
-      }
+      // if (brokenDownText.length === 6) {
+      //   paymentDetail = brokenDownText[5];
+      // } else if (brokenDownText.length === 7) {
+      //   paymentDetail = brokenDownText[6];
+      // } else if (brokenDownText.length === 8) {
+      //   paymentDetail = brokenDownText[7];
+      // }
 
       if (paymentMethod === "felawallet") {
         if (/^[0-9]*$/.test(paymentDetail)) {
@@ -408,7 +431,8 @@ async function handleMTN(brokenDownText, phoneNumber, sessionId, dataHandler) {
     } else if (
       (brokenDownText.length === 7 ||
         brokenDownText.length === 8 ||
-        brokenDownText.length === 9) &&
+        brokenDownText.length === 9 ||
+        brokenDownText.length === 10) &&
       (await redisClient.hgetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
         "userState"
@@ -418,15 +442,15 @@ async function handleMTN(brokenDownText, phoneNumber, sessionId, dataHandler) {
         `${APP_PREFIX_REDIS}:${sessionId}`,
         "paymentMethod"
       );
-      let confirmation = "";
+      let confirmation = brokenDownText[textlength];
 
-      if (brokenDownText.length === 7) {
-        confirmation = brokenDownText[6];
-      } else if (brokenDownText.length === 8) {
-        confirmation = brokenDownText[7];
-      } else if (brokenDownText.length === 9) {
-        confirmation = brokenDownText[8];
-      }
+      // if (brokenDownText.length === 7) {
+      //   confirmation = brokenDownText[6];
+      // } else if (brokenDownText.length === 8) {
+      //   confirmation = brokenDownText[7];
+      // } else if (brokenDownText.length === 9) {
+      //   confirmation = brokenDownText[8];
+      // }
 
       if (confirmation === "1") {
         response = await makePayment(paymentMethod, sessionId, phoneNumber);
@@ -458,7 +482,7 @@ async function handleMTN(brokenDownText, phoneNumber, sessionId, dataHandler) {
           );
 
           console.log(providers);
-          response = `CON Select Data Bundle:\n`;
+          let response = `CON Select Data Bundle:\n`;
           let index = 0;
           providers.forEach((value) => {
             response += `${++index} ${value}\n`;

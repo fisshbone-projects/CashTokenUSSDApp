@@ -86,10 +86,10 @@ function createLccProfile(text, phoneNumber, sessionId) {
         };
         let newId = await mongoFront.createProfile(lccDoc, "lcc");
         if (newId) {
-          response = "CON Beneficiary created successfully!\n\n0 Menu";
+          response = "END Beneficiary created successfully!";
         } else {
           response =
-            "CON There was an error saving beneficiary.\nPlease try again later\n\n0 Menu";
+            "END There was an error saving beneficiary.\nPlease try again later";
         }
       } else {
         console.log("Updating beneficiary from create state");
@@ -101,7 +101,7 @@ function createLccProfile(text, phoneNumber, sessionId) {
         response = `CON You currently have a beneficiary with the name '${QS_Lcc_name}'. Will you like to update this beneficiary instead?\n\n1 Yes\n2 No`;
       }
     } else if (textlength === 7 && brokenDownText[textlength - 1] == "2") {
-      response = "CON Beneficiary creation process canceled by user\n\n0 Menu";
+      response = "END Beneficiary creation process canceled by user";
     } else if (textlength === 8 && brokenDownText[textlength - 1] == "1") {
       let {
         mongo_userId,
@@ -123,13 +123,13 @@ function createLccProfile(text, phoneNumber, sessionId) {
         "lcc"
       );
       if (!!updated) {
-        response = "CON Beneficiary updated successfully!\n\n0 Menu";
+        response = "END Beneficiary updated successfully!";
       } else {
         response =
-          "CON There was an error saving beneficiary.\nPlease try again later\n\n0 Menu";
+          "END There was an error saving beneficiary.\nPlease try again later";
       }
     } else if (textlength === 8 && brokenDownText[textlength - 1] == "2") {
-      response = "CON Beneficiary creation process canceled by user\n\n0 Menu";
+      response = "END Beneficiary creation process canceled by user";
     } else {
       response = "CON Error! Wrong option inputed\n\n0 Menu";
     }

@@ -186,8 +186,7 @@ function createCabletvProfile(text, phoneNumber, sessionId) {
     } else if (textlength === 8 && chosenProvName === "GOTV") {
       let userSelection = brokenDownText[textlength - 1];
       if (userSelection === "2") {
-        response =
-          "CON Beneficiary creation process canceled by user\n\n0 Menu";
+        response = "END Beneficiary creation process canceled by user";
       } else if (userSelection === "1") {
         response = await createBeneficiary(sessionId);
       } else {
@@ -203,8 +202,7 @@ function createCabletvProfile(text, phoneNumber, sessionId) {
     ) {
       let userSelection = brokenDownText[textlength - 1];
       if (userSelection === "2") {
-        response =
-          "CON Beneficiary creation process canceled by user\n\n0 Menu";
+        response = "END Beneficiary creation process canceled by user";
       } else if (userSelection === "1") {
         response = await createBeneficiary(sessionId);
       } else {
@@ -213,8 +211,7 @@ function createCabletvProfile(text, phoneNumber, sessionId) {
     } else if (textlength === 9 && chosenProvName === "GOTV") {
       let userSelection = brokenDownText[textlength - 1];
       if (userSelection === "2") {
-        response =
-          "CON Beneficiary creation process canceled by user\n\n0 Menu";
+        response = "END Beneficiary creation process canceled by user";
       } else if (userSelection === "1") {
         response = await updateBeneficiary(sessionId);
       } else {
@@ -230,8 +227,7 @@ function createCabletvProfile(text, phoneNumber, sessionId) {
     ) {
       let userSelection = brokenDownText[textlength - 1];
       if (userSelection === "2") {
-        response =
-          "CON Beneficiary creation process canceled by user\n\n0 Menu";
+        response = "END Beneficiary creation process canceled by user";
       } else if (userSelection === "1") {
         response = await updateBeneficiary(sessionId);
       } else {
@@ -295,10 +291,10 @@ function updateBeneficiary(sessionId) {
       "cabletv"
     );
     if (!!updated) {
-      response = "CON Beneficiary updated successfully!\n\n0 Menu";
+      response = "END Beneficiary updated successfully!";
     } else {
       response =
-        "CON There was an error saving beneficiary.\nPlease try again later\n\n0 Menu";
+        "END There was an error saving beneficiary.\nPlease try again later";
     }
     resolve(response);
   });
@@ -338,10 +334,10 @@ function createBeneficiary(sessionId) {
       };
       let newId = await mongoFront.createProfile(cabletvDoc, "cabletv");
       if (newId) {
-        response = "CON Beneficiary created successfully!\n\n0 Menu";
+        response = "END Beneficiary created successfully!";
       } else {
         response =
-          "CON There was an error saving beneficiary.\nPlease try again later\n\n0 Menu";
+          "END There was an error saving beneficiary.\nPlease try again later";
       }
     } else {
       console.log("Updating beneficiary from create state");

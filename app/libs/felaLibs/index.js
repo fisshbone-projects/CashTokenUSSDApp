@@ -6,6 +6,354 @@ const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 const API_DATA_EXPIRE_TIME = parseInt(App.REDIS_API_DATA_EXPIRE);
 
+function displayBundles(codeName, start, end) {
+  return new Promise((resolve) => {
+    redisClient
+      .existsAsync(`${APP_PREFIX_REDIS}:${codeName}BundleNames`)
+      .then(async (resp) => {
+        if (resp === 0) {
+          let bundles = await fetchDataBundle(codeName);
+
+          switch (codeName) {
+            case "MTN":
+              await storeMTNBundle(codeName, bundles);
+              break;
+            case "Airtel":
+              await storeAirtelBundle(codeName, bundles);
+              break;
+            case "Etisalat":
+              await storeEtisalatBundle(codeName, bundles);
+              break;
+            case "Smile":
+              await storeSmileBundle(codeName, bundles);
+
+              break;
+            case "Spectranet":
+              await storeSpectranetBundle(codeName, bundles);
+              break;
+          }
+        }
+        let response = "";
+
+        if (codeName === "Smile") {
+          let providers = await redisClient.lrangeAsync(
+            `${APP_PREFIX_REDIS}:${codeName}BundleNames`,
+            start,
+            end
+          );
+
+          console.log(providers);
+          response = "";
+          let index = 0;
+          providers.forEach((value) => {
+            response += `${++index} ${value}\n`;
+          });
+
+          if (end !== -1) {
+            response += `${++index} Next`;
+          }
+
+          resolve(response);
+        } else {
+          let providers = await redisClient.zrangeAsync(
+            `${APP_PREFIX_REDIS}:${codeName}BundleNames`,
+            start,
+            end
+          );
+
+          console.log(providers);
+          response = "";
+          let index = 0;
+          providers.forEach((value) => {
+            response += `${++index} ${value}\n`;
+          });
+
+          let rank = await redisClient.zrankAsync(
+            `${APP_PREFIX_REDIS}:${codeName}BundleNames`,
+            `${providers[providers.length - 1]}`
+          );
+
+          let bundleSize = await redisClient.zcardAsync(
+            `${APP_PREFIX_REDIS}:${codeName}BundleNames`
+          );
+
+          console.log(rank, bundleSize);
+          if (rank + 1 != bundleSize) {
+            response += `${++index} Next`;
+          }
+
+          resolve(response);
+        }
+      });
+  });
+}
+
+function storeMTNBundle(codeName, bundles) {
+  return new Promise(async (resolve) => {
+    for (let bundle of Object.values(bundles)) {
+      let refinedName = refineName(bundle.title);
+      await redisClient.zaddAsync(
+        `${APP_PREFIX_REDIS}:${codeName}BundleNames`,
+        bundle.price,
+        refinedName
+      );
+      await redisClient.zaddAsync(
+        `${APP_PREFIX_REDIS}:${codeName}BundleCodes`,
+        bundle.price,
+        bundle.code
+      );
+    }
+    redisClient.expire(
+      `${APP_PREFIX_REDIS}:${codeName}BundleNames`,
+      API_DATA_EXPIRE_TIME
+    );
+    redisClient.expire(
+      `${APP_PREFIX_REDIS}:${codeName}BundleCodes`,
+      API_DATA_EXPIRE_TIME
+    );
+    resolve();
+
+    function refineName(name) {
+      let refinedName = "";
+      name = name.replace(/\s/g, "");
+      refinedName = name.replace("-", "/");
+      return refinedName;
+    }
+  });
+}
+
+function storeAirtelBundle(codeName, bundles) {
+  return new Promise(async (resolve) => {
+    for (let bundle of Object.values(bundles)) {
+      let refinedName = refineName(bundle.title);
+      await redisClient.zaddAsync(
+        `${APP_PREFIX_REDIS}:${codeName}BundleNames`,
+        bundle.price,
+        refinedName
+      );
+      await redisClient.zaddAsync(
+        `${APP_PREFIX_REDIS}:${codeName}BundleCodes`,
+        bundle.price,
+        bundle.code
+      );
+    }
+    redisClient.expire(
+      `${APP_PREFIX_REDIS}:${codeName}BundleNames`,
+      API_DATA_EXPIRE_TIME
+    );
+    redisClient.expire(
+      `${APP_PREFIX_REDIS}:${codeName}BundleCodes`,
+      API_DATA_EXPIRE_TIME
+    );
+    resolve();
+
+    function refineName(name) {
+      let refinedName = "";
+      name = name.replace(/\s/g, "");
+      refinedName = name.replace("-", "/");
+      return refinedName;
+    }
+  });
+}
+
+function storeEtisalatBundle(codeName, bundles) {
+  return new Promise(async (resolve) => {
+    for (let bundle of Object.values(bundles)) {
+      let refinedName = refineName(bundle.title);
+      await redisClient.zaddAsync(
+        `${APP_PREFIX_REDIS}:${codeName}BundleNames`,
+        bundle.price,
+        refinedName
+      );
+      await redisClient.zaddAsync(
+        `${APP_PREFIX_REDIS}:${codeName}BundleCodes`,
+        bundle.price,
+        bundle.code
+      );
+    }
+    redisClient.expire(
+      `${APP_PREFIX_REDIS}:${codeName}BundleNames`,
+      API_DATA_EXPIRE_TIME
+    );
+    redisClient.expire(
+      `${APP_PREFIX_REDIS}:${codeName}BundleCodes`,
+      API_DATA_EXPIRE_TIME
+    );
+    resolve();
+
+    function refineName(name) {
+      let refinedName = "";
+      name = name.replace(/\s/g, "");
+      refinedName = name.replace("-", "/");
+      return refinedName;
+    }
+  });
+}
+
+function storeSmileBundle(codeName, bundles) {
+  return new Promise(async (resolve) => {
+    for (let bundle of Object.values(bundles)) {
+      if (!Number.isInteger(bundle.price)) {
+        //Excluding plans with float or unfixed prices
+        continue;
+      }
+
+      let refinedName = refineName(bundle.title);
+
+      await redisClient.rpushAsync(
+        `${APP_PREFIX_REDIS}:${codeName}BundleNames`,
+        refinedName
+      );
+
+      await redisClient.rpushAsync(
+        `${APP_PREFIX_REDIS}:${codeName}BundlePrices`,
+        bundle.price
+      );
+      await redisClient.rpushAsync(
+        `${APP_PREFIX_REDIS}:${codeName}BundleCodes`,
+        bundle.code
+      );
+    }
+
+    redisClient.expire(
+      `${APP_PREFIX_REDIS}:${codeName}BundleNames`,
+      API_DATA_EXPIRE_TIME
+    );
+    redisClient.expire(
+      `${APP_PREFIX_REDIS}:${codeName}BundlePrices`,
+      API_DATA_EXPIRE_TIME
+    );
+    redisClient.expire(
+      `${APP_PREFIX_REDIS}:${codeName}BundleCodes`,
+      API_DATA_EXPIRE_TIME
+    );
+
+    resolve();
+
+    function refineName(name) {
+      let refinedName = "";
+      name = name.replace(/\d+$/, "");
+      refinedName = name.replace(/\s/g, "");
+      return refinedName;
+    }
+  });
+}
+
+function storeSpectranetBundle(codeName, bundles) {
+  return new Promise(async (resolve) => {
+    for (let bundle of Object.values(bundles)) {
+      let refinedName = refineName(bundle.title);
+      await redisClient.zaddAsync(
+        `${APP_PREFIX_REDIS}:${codeName}BundleNames`,
+        bundle.price,
+        refinedName
+      );
+      await redisClient.zaddAsync(
+        `${APP_PREFIX_REDIS}:${codeName}BundleCodes`,
+        bundle.price,
+        bundle.code
+      );
+    }
+    redisClient.expire(
+      `${APP_PREFIX_REDIS}:${codeName}BundleNames`,
+      API_DATA_EXPIRE_TIME
+    );
+    redisClient.expire(
+      `${APP_PREFIX_REDIS}:${codeName}BundleCodes`,
+      API_DATA_EXPIRE_TIME
+    );
+
+    resolve();
+
+    function refineName(name) {
+      let refinedName = "";
+      name = name.replace(/\s/g, "");
+      refinedName = name.replace("-", "/");
+      return refinedName;
+    }
+  });
+}
+
+async function fetchDataBundle(code) {
+  return new Promise((resolve) => {
+    axios
+      .get(`https://api.myfela.ng/list/dataBundles?provider_code=${code}`, {
+        headers: {
+          Authorization: `Bearer eca76401-2cb0-4c64-a125-709d2c1e5ad8 `,
+        },
+      })
+      .then(async (response) => {
+        resolve(response.data.data);
+      });
+  });
+}
+
+function getDataProviders() {
+  return new Promise((resolve) => {
+    redisClient
+      .existsAsync(`${APP_PREFIX_REDIS}:DataProvidersNames`)
+      .then(async (resp) => {
+        if (resp === 0) {
+          await fetchDataProviders();
+        }
+
+        let providersName = await redisClient.zrangeAsync(
+          `${APP_PREFIX_REDIS}:DataProvidersNames`,
+          0,
+          -1
+        );
+        let providersCode = await redisClient.zrangeAsync(
+          `${APP_PREFIX_REDIS}:DataProvidersCodes`,
+          0,
+          -1
+        );
+
+        resolve({ providersName, providersCode });
+      });
+  });
+}
+
+async function fetchDataProviders() {
+  return new Promise((resolve) => {
+    axios
+      .get(`https://api.myfela.ng/list/dataProviders`, {
+        headers: {
+          Authorization: `Bearer eca76401-2cb0-4c64-a125-709d2c1e5ad8 `,
+        },
+      })
+      .then(async (response) => {
+        let dataProvidersArray = Object.values(response.data.data);
+
+        for (let [index, provider] of dataProvidersArray.entries()) {
+          let code = ++index;
+          await redisClient.zaddAsync(
+            `${APP_PREFIX_REDIS}:DataProvidersNames`,
+            code,
+            provider.title
+          );
+          redisClient.expire(
+            `${APP_PREFIX_REDIS}:DataProvidersNames`,
+            API_DATA_EXPIRE_TIME
+          );
+
+          await redisClient.zaddAsync(
+            `${APP_PREFIX_REDIS}:DataProvidersCodes`,
+            code,
+            provider.code
+          );
+          redisClient.expire(
+            `${APP_PREFIX_REDIS}:DataProvidersCodes`,
+            API_DATA_EXPIRE_TIME
+          );
+        }
+
+        console.log("Done fetching dataProviders");
+
+        resolve();
+      });
+  });
+}
+
 async function confirmMeterNo(meterNumber, electricPlan, discoCode) {
   return new Promise((resolve) => {
     console.log(electricPlan, discoCode, meterNumber);
@@ -492,4 +840,6 @@ module.exports = {
   confirmSmartCardNo,
   displayListOfDiscos,
   confirmMeterNo,
+  getDataProviders,
+  displayBundles,
 };
