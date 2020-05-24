@@ -1257,18 +1257,58 @@ async function handleSmile(
       response = await displayBundles(dataHandler, 42, 47);
       resolve(response);
     } else if (brokenDownText.length === 10 && brokenDownText[9] === "7") {
-      response = await displayBundles(dataHandler, 48, -1);
+      response = await displayBundles(dataHandler, 48, 53);
+      resolve(response);
+    } else if (brokenDownText.length === 11 && brokenDownText[10] === "7") {
+      response = await displayBundles(dataHandler, 54, 59);
+      resolve(response);
+    } else if (brokenDownText.length === 12 && brokenDownText[11] === "7") {
+      response = await displayBundles(dataHandler, 60, 65);
+      resolve(response);
+    } else if (brokenDownText.length === 13 && brokenDownText[12] === "7") {
+      response = await displayBundles(dataHandler, 66, 71);
+      resolve(response);
+    } else if (brokenDownText.length === 14 && brokenDownText[13] === "7") {
+      response = await displayBundles(dataHandler, 72, 77);
+      resolve(response);
+    } else if (brokenDownText.length === 15 && brokenDownText[14] === "7") {
+      response = await displayBundles(dataHandler, 78, 83);
+      resolve(response);
+    } else if (brokenDownText.length === 16 && brokenDownText[15] === "7") {
+      response = await displayBundles(dataHandler, 84, 89);
+      resolve(response);
+    } else if (brokenDownText.length === 17 && brokenDownText[16] === "7") {
+      response = await displayBundles(dataHandler, 90, 95);
+      resolve(response);
+    } else if (brokenDownText.length === 18 && brokenDownText[17] === "7") {
+      response = await displayBundles(dataHandler, 96, 101);
+      resolve(response);
+    } else if (brokenDownText.length === 19 && brokenDownText[18] === "7") {
+      response = await displayBundles(dataHandler, 102, 107);
+      resolve(response);
+    } else if (brokenDownText.length === 20 && brokenDownText[19] === "7") {
+      response = await displayBundles(dataHandler, 108, -1);
       resolve(response);
     } else if (
-      ((brokenDownText.length === 3 && parseInt(brokenDownText[2]) <= 7) ||
-        (brokenDownText.length === 4 && parseInt(brokenDownText[3]) <= 7) ||
-        (brokenDownText.length === 5 && parseInt(brokenDownText[4]) <= 7) ||
-        (brokenDownText.length === 6 && parseInt(brokenDownText[5]) <= 7) ||
-        (brokenDownText.length === 7 && parseInt(brokenDownText[6]) <= 7) ||
-        (brokenDownText.length === 8 && parseInt(brokenDownText[7]) <= 7) ||
-        (brokenDownText.length === 9 && parseInt(brokenDownText[8]) <= 7) ||
-        (brokenDownText.length === 10 && parseInt(brokenDownText[9]) <= 7) ||
-        (brokenDownText.length === 11 && parseInt(brokenDownText[10]) <= 4)) &&
+      ((brokenDownText.length === 3 && parseInt(brokenDownText[2]) <= 6) ||
+        (brokenDownText.length === 4 && parseInt(brokenDownText[3]) <= 6) ||
+        (brokenDownText.length === 5 && parseInt(brokenDownText[4]) <= 6) ||
+        (brokenDownText.length === 6 && parseInt(brokenDownText[5]) <= 6) ||
+        (brokenDownText.length === 7 && parseInt(brokenDownText[6]) <= 6) ||
+        (brokenDownText.length === 8 && parseInt(brokenDownText[7]) <= 6) ||
+        (brokenDownText.length === 9 && parseInt(brokenDownText[8]) <= 6) ||
+        (brokenDownText.length === 10 && parseInt(brokenDownText[9]) <= 6) ||
+        (brokenDownText.length === 11 && parseInt(brokenDownText[10]) <= 6) ||
+        (brokenDownText.length === 12 && parseInt(brokenDownText[11]) <= 6) ||
+        (brokenDownText.length === 13 && parseInt(brokenDownText[12]) <= 6) ||
+        (brokenDownText.length === 14 && parseInt(brokenDownText[13]) <= 6) ||
+        (brokenDownText.length === 15 && parseInt(brokenDownText[14]) <= 6) ||
+        (brokenDownText.length === 16 && parseInt(brokenDownText[15]) <= 6) ||
+        (brokenDownText.length === 17 && parseInt(brokenDownText[16]) <= 6) ||
+        (brokenDownText.length === 18 && parseInt(brokenDownText[17]) <= 6) ||
+        (brokenDownText.length === 19 && parseInt(brokenDownText[18]) <= 6) ||
+        (brokenDownText.length === 20 && parseInt(brokenDownText[19]) <= 6) ||
+        (brokenDownText.length === 21 && parseInt(brokenDownText[20]) <= 4)) &&
       (await redisClient.hgetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
         "userState"
@@ -1313,6 +1353,46 @@ async function handleSmile(
           bundleChosen = parseInt(brokenDownText[10]);
           selectedBundle = bundleChosen + 47;
           break;
+        case 12:
+          bundleChosen = parseInt(brokenDownText[11]);
+          selectedBundle = bundleChosen + 53;
+          break;
+        case 13:
+          bundleChosen = parseInt(brokenDownText[12]);
+          selectedBundle = bundleChosen + 59;
+          break;
+        case 14:
+          bundleChosen = parseInt(brokenDownText[13]);
+          selectedBundle = bundleChosen + 65;
+          break;
+        case 15:
+          bundleChosen = parseInt(brokenDownText[14]);
+          selectedBundle = bundleChosen + 71;
+          break;
+        case 16:
+          bundleChosen = parseInt(brokenDownText[15]);
+          selectedBundle = bundleChosen + 77;
+          break;
+        case 17:
+          bundleChosen = parseInt(brokenDownText[16]);
+          selectedBundle = bundleChosen + 83;
+          break;
+        case 18:
+          bundleChosen = parseInt(brokenDownText[17]);
+          selectedBundle = bundleChosen + 89;
+          break;
+        case 19:
+          bundleChosen = parseInt(brokenDownText[18]);
+          selectedBundle = bundleChosen + 95;
+          break;
+        case 20:
+          bundleChosen = parseInt(brokenDownText[19]);
+          selectedBundle = bundleChosen + 101;
+          break;
+        case 21:
+          bundleChosen = parseInt(brokenDownText[20]);
+          selectedBundle = bundleChosen + 107;
+          break;
       }
       response = await saveUserBundleData(
         sessionId,
@@ -1329,43 +1409,25 @@ async function handleSmile(
         brokenDownText.length === 9 ||
         brokenDownText.length === 10 ||
         brokenDownText.length === 11 ||
-        brokenDownText.length === 12) &&
+        brokenDownText.length === 12 ||
+        brokenDownText.length === 13 ||
+        brokenDownText.length === 14 ||
+        brokenDownText.length === 15 ||
+        brokenDownText.length === 16 ||
+        brokenDownText.length === 17 ||
+        brokenDownText.length === 18 ||
+        brokenDownText.length === 19 ||
+        brokenDownText.length === 20 ||
+        brokenDownText.length === 21 ||
+        brokenDownText.length === 22) &&
       (await redisClient.hgetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
         "userState"
       )) === "savedBundle"
     ) {
-      let recipentNumber = "";
+      let textlen = brokenDownText.length;
+      let recipentNumber = brokenDownText[textlen - 1];
 
-      switch (brokenDownText.length) {
-        case 4:
-          recipentNumber = brokenDownText[3];
-          break;
-        case 5:
-          recipentNumber = brokenDownText[4];
-          break;
-        case 6:
-          recipentNumber = brokenDownText[5];
-          break;
-        case 7:
-          recipentNumber = brokenDownText[6];
-          break;
-        case 8:
-          recipentNumber = brokenDownText[7];
-          break;
-        case 9:
-          recipentNumber = brokenDownText[8];
-          break;
-        case 10:
-          recipentNumber = brokenDownText[9];
-          break;
-        case 11:
-          recipentNumber = brokenDownText[10];
-          break;
-        case 12:
-          recipentNumber = brokenDownText[11];
-          break;
-      }
       if (testPhoneNumber(recipentNumber)) {
         console.log("Number is valid");
         await redisClient.hmsetAsync(
@@ -1391,43 +1453,24 @@ async function handleSmile(
         brokenDownText.length === 10 ||
         brokenDownText.length === 11 ||
         brokenDownText.length === 12 ||
-        brokenDownText.length === 13) &&
+        brokenDownText.length === 13 ||
+        brokenDownText.length === 14 ||
+        brokenDownText.length === 15 ||
+        brokenDownText.length === 16 ||
+        brokenDownText.length === 17 ||
+        brokenDownText.length === 18 ||
+        brokenDownText.length === 19 ||
+        brokenDownText.length === 20 ||
+        brokenDownText.length === 21 ||
+        brokenDownText.length === 22 ||
+        brokenDownText.length === 23) &&
       (await redisClient.hgetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
         "userState"
       )) === "gotRecipent"
     ) {
-      let paymentMethod = "";
-
-      switch (brokenDownText.length) {
-        case 5:
-          paymentMethod = brokenDownText[4];
-          break;
-        case 6:
-          paymentMethod = brokenDownText[5];
-          break;
-        case 7:
-          paymentMethod = brokenDownText[6];
-          break;
-        case 8:
-          paymentMethod = brokenDownText[7];
-          break;
-        case 9:
-          paymentMethod = brokenDownText[8];
-          break;
-        case 10:
-          paymentMethod = brokenDownText[9];
-          break;
-        case 11:
-          paymentMethod = brokenDownText[10];
-          break;
-        case 12:
-          paymentMethod = brokenDownText[11];
-          break;
-        case 13:
-          paymentMethod = brokenDownText[12];
-          break;
-      }
+      let textlen = brokenDownText.length;
+      let paymentMethod = brokenDownText[textlen - 1];
 
       if (paymentMethod === "1" || paymentMethod === "2") {
         if (paymentMethod === "1") {
@@ -1466,47 +1509,28 @@ async function handleSmile(
         brokenDownText.length === 11 ||
         brokenDownText.length === 12 ||
         brokenDownText.length === 13 ||
-        brokenDownText.length === 14) &&
+        brokenDownText.length === 14 ||
+        brokenDownText.length === 15 ||
+        brokenDownText.length === 16 ||
+        brokenDownText.length === 17 ||
+        brokenDownText.length === 18 ||
+        brokenDownText.length === 19 ||
+        brokenDownText.length === 20 ||
+        brokenDownText.length === 21 ||
+        brokenDownText.length === 22 ||
+        brokenDownText.length === 23 ||
+        brokenDownText.length === 24) &&
       (await redisClient.hgetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
         "userState"
       )) === "gotPaymentMethod"
     ) {
-      let paymentDetail = "";
       let paymentMethod = await redisClient.hgetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
         "paymentMethod"
       );
-
-      switch (brokenDownText.length) {
-        case 6:
-          paymentDetail = brokenDownText[5];
-          break;
-        case 7:
-          paymentDetail = brokenDownText[6];
-          break;
-        case 8:
-          paymentDetail = brokenDownText[7];
-          break;
-        case 9:
-          paymentDetail = brokenDownText[8];
-          break;
-        case 10:
-          paymentDetail = brokenDownText[9];
-          break;
-        case 11:
-          paymentDetail = brokenDownText[10];
-          break;
-        case 12:
-          paymentDetail = brokenDownText[11];
-          break;
-        case 13:
-          paymentDetail = brokenDownText[12];
-          break;
-        case 14:
-          paymentDetail = brokenDownText[13];
-          break;
-      }
+      let textlen = brokenDownText.length;
+      let paymentDetail = brokenDownText[textlen - 1];
 
       if (paymentMethod === "felawallet") {
         if (/^[0-9]*$/.test(paymentDetail)) {
@@ -1557,7 +1581,17 @@ async function handleSmile(
         brokenDownText.length === 12 ||
         brokenDownText.length === 13 ||
         brokenDownText.length === 14 ||
-        brokenDownText.length === 15) &&
+        brokenDownText.length === 15 ||
+        brokenDownText.length === 16 ||
+        brokenDownText.length === 17 ||
+        brokenDownText.length === 18 ||
+        brokenDownText.length === 19 ||
+        brokenDownText.length === 20 ||
+        brokenDownText.length === 21 ||
+        brokenDownText.length === 22 ||
+        brokenDownText.length === 23 ||
+        brokenDownText.length === 24 ||
+        brokenDownText.length === 25) &&
       (await redisClient.hgetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
         "userState"
@@ -1567,45 +1601,8 @@ async function handleSmile(
         `${APP_PREFIX_REDIS}:${sessionId}`,
         "paymentMethod"
       );
-      let confirmation = "";
-
-      if (brokenDownText.length === 7) {
-        confirmation = brokenDownText[6];
-      } else if (brokenDownText.length === 8) {
-        confirmation = brokenDownText[7];
-      } else if (brokenDownText.length === 9) {
-        confirmation = brokenDownText[8];
-      }
-
-      switch (brokenDownText.length) {
-        case 7:
-          confirmation = brokenDownText[6];
-          break;
-        case 8:
-          confirmation = brokenDownText[7];
-          break;
-        case 9:
-          confirmation = brokenDownText[8];
-          break;
-        case 10:
-          confirmation = brokenDownText[9];
-          break;
-        case 11:
-          confirmation = brokenDownText[10];
-          break;
-        case 12:
-          confirmation = brokenDownText[11];
-          break;
-        case 13:
-          confirmation = brokenDownText[12];
-          break;
-        case 14:
-          confirmation = brokenDownText[13];
-          break;
-        case 15:
-          confirmation = brokenDownText[14];
-          break;
-      }
+      let textlen = brokenDownText.length;
+      let confirmation = brokenDownText[textlen - 1];
 
       if (confirmation === "1") {
         response = await makePayment(paymentMethod, sessionId, phoneNumber);
