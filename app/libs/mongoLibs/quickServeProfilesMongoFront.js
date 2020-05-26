@@ -127,6 +127,53 @@ class QSMongoFront {
       return null;
     }
   }
+
+  async getTopProfiles(userId, service) {
+    let topProfiles = [];
+    let respProfiles = null;
+
+    switch (service) {
+      case "airtime":
+        respProfiles = await AirtimeQS.find({ customer: userId })
+          .sort({ successfulTransactions: -1 })
+          .limit(4)
+          .exec();
+        break;
+      case "lcc":
+        respProfiles = await LccQS.find({ customer: userId })
+          .sort({ successfulTransactions: -1 })
+          .limit(4)
+          .exec();
+        break;
+      case "cabletv":
+        respProfiles = await CabletvQS.find({ customer: userId })
+          .sort({ successfulTransactions: -1 })
+          .limit(4)
+          .exec();
+        break;
+      case "electricity":
+        respProfiles = await ElectricityQS.find({ customer: userId })
+          .sort({ successfulTransactions: -1 })
+          .limit(4)
+          .exec();
+        break;
+      case "databundle":
+        respProfiles = await DatabundleQS.find({ customer: userId })
+          .sort({ successfulTransactions: -1 })
+          .limit(4)
+          .exec();
+        break;
+    }
+
+    if (respProfiles.length === 0) {
+      return topProfiles;
+    } else {
+      for (let profile of respProfiles) {
+        topProfiles.push(profile.name);
+      }
+      return topProfiles;
+    }
+  }
 }
 
 module.exports = QSMongoFront;
