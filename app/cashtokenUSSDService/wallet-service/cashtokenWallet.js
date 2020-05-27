@@ -21,26 +21,26 @@ async function getUsersWalletDetails(phoneNumber) {
     let response = "";
     console.log(`Getting ${phoneNumber}'s walletDetails`);
     let walletResponse = await fetchWalletDetails(phoneNumber);
-    console.log(walletResponse);
 
     if (typeof walletResponse === "object") {
       let { wallet: usersWallet } = walletResponse;
+      console.log(usersWallet);
       response = `CON Dear Customer, Your Balances are:\n`;
       let totalBalance = 0.0;
       let index = 1;
 
       for (let [key, value] of Object.entries(usersWallet)) {
-        if (value.isPublic) {
-          if (value.title === "iSavings") {
-            continue;
-          }
-          totalBalance += parseFloat(value.balance);
-          response += `${index++} ${
-            WalletTypes[value.title]
-          } - ${NAIRASIGN}${formatNumberAsCurrency(value.balance)}\n`;
-        } else {
+        // if (value.isPublic) {
+        if (value.title === "iSavings") {
           continue;
         }
+        totalBalance += parseFloat(value.balance);
+        response += `${index++} ${
+          WalletTypes[value.title]
+        } - ${NAIRASIGN}${formatNumberAsCurrency(value.balance)}\n`;
+        // } else {
+        //   continue;
+        // }
       }
 
       response += `${index} Total Balance - ${NAIRASIGN}${formatNumberAsCurrency(
