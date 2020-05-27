@@ -2,7 +2,7 @@ const { redisClient } = require("$config/redisConnectConfig");
 const mongoFront = require("$mongoLibs/mongoFront");
 const { APP_PREFIX_REDIS, formatNumber } = require("$utils");
 
-function viewCabletvProfile(text, phoneNumber, sessionId) {
+function deleteCabletvProfile(text, phoneNumber, sessionId) {
   return new Promise(async (resolve) => {
     let brokenDownText = text.split("*");
     let response = "";
@@ -18,7 +18,23 @@ function viewCabletvProfile(text, phoneNumber, sessionId) {
       if (profileName.length > 20 || profileName.length <= 0) {
         response = `CON Inputed beneficiary name is invalid\n\n0 Menu`;
       } else {
-        response = await viewProfile(mongo_userId, profileName.toLowerCase());
+        response = await viewProfile(
+          mongo_userId,
+          profileName.toLowerCase(),
+          sessionId
+        );
+      }
+    } else if (textlength === 5) {
+      let {
+        mongo_userId,
+        QS_delete_cabletv_name: cachedName,
+      } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
+      let inputedName = brokenDownText[textlength - 1];
+      if (inputedName.toLowerCase() === cachedName) {
+        response = await deleteProfile(mongo_userId, cachedName);
+      } else {
+        response =
+          "CON Error! Wrong name inputed\nBeneficiary could not be deleted\n\n0 Menu";
       }
     } else {
       response = "CON Error! Wrong option inputed\n\n0 Menu";
@@ -28,7 +44,26 @@ function viewCabletvProfile(text, phoneNumber, sessionId) {
   });
 }
 
-function viewProfile(mongo_userId, profileName) {
+function deleteProfile(mongo_userId, profileName) {
+  return new Promise(async (resolve) => {
+    let response = "";
+    let deleteStatus = await mongoFront.deleteProfile(
+      mongo_userId,
+      profileName,
+      "cabletv"
+    );
+
+    if (deleteStatus) {
+      response = `CON Beneficiary "${profileName}" was deleted successfully\n\n0 Menu`;
+    } else {
+      response = `CON Beneficiary could not be deleted.\nPlease try again\n\n0 Menu`;
+    }
+
+    resolve(response);
+  });
+}
+
+function viewProfile(mongo_userId, profileName, sessionId) {
   return new Promise(async (resolve) => {
     let response = "";
     let profile = await mongoFront.findExistingProfile(
@@ -45,9 +80,18 @@ function viewProfile(mongo_userId, profileName) {
         defaultBouquetPrice,
         successfulTransactions = 0,
       } = profile;
-      response = `CON Beneficiary's Details:\nName: ${name}\nProvider: ${providerName}\nCardNo: ${cardNumber}\nBouquet: ${defaultBouquetName}\nPrice: ${formatNumber(
+
+      await redisClient.hmsetAsync(
+        `${APP_PREFIX_REDIS}:${sessionId}`,
+        "QS_delete_cabletv_name",
+        name
+      );
+
+      response = `CON Name: ${name}\nProvider: ${providerName}\nCardNo: ${cardNumber}\nBouquet: ${defaultBouquetName}\nPrice: ${formatNumber(
         defaultBouquetPrice
-      )}\nTimesUsed: ${formatNumber(successfulTransactions)}\n\n0 Menu`;
+      )}\nTimesUsed: ${formatNumber(
+        successfulTransactions
+      )}\n\n0 Cancel\nEnter name to delete:`;
     } else {
       response = `CON The beneficiary "${profileName}" does not exist\n\n0 Menu`;
     }
@@ -74,4 +118,4 @@ function listTopProfiles(mongo_userId) {
   });
 }
 
-module.exports = { viewCabletvProfile };
+module.exports = { deleteCabletvProfile };

@@ -36,8 +36,9 @@ class QSMongoFront {
 
       return createResponse;
     } catch (err) {
+      console.log("Cannot create Profile");
       console.log(err);
-      return Promise.reject("Cannot create Profile");
+      return null;
     }
   }
 
@@ -81,8 +82,9 @@ class QSMongoFront {
       }
       return allGood;
     } catch (err) {
+      console.log("Cannot update Profile");
       console.log(err);
-      return Promise.reject("Cannot update Profile");
+      return null;
     }
   }
 
@@ -172,6 +174,55 @@ class QSMongoFront {
         topProfiles.push(profile.name);
       }
       return topProfiles;
+    }
+  }
+
+  async deleteProfile(userId, profileName, service) {
+    try {
+      let allGood = null;
+
+      switch (service) {
+        case "airtime":
+          let { ok: airtimeOk } = await AirtimeQS.deleteOne({
+            customer: userId,
+            name: profileName,
+          });
+          allGood = airtimeOk;
+          break;
+        case "lcc":
+          let { ok: lccOk } = await LccQS.deleteOne({
+            customer: userId,
+            name: profileName,
+          });
+          allGood = lccOk;
+          break;
+        case "cabletv":
+          let { ok: cabletvOk } = await CabletvQS.deleteOne({
+            customer: userId,
+            name: profileName,
+          });
+          allGood = cabletvOk;
+          break;
+        case "electricity":
+          let { ok: elecOk } = await ElectricityQS.deleteOne({
+            customer: userId,
+            name: profileName,
+          });
+          allGood = elecOk;
+          break;
+        case "databundle":
+          let { ok: dataOk } = await DatabundleQS.deleteOne({
+            customer: userId,
+            name: profileName,
+          });
+          allGood = dataOk;
+          break;
+      }
+      return allGood;
+    } catch (err) {
+      console.log("Cannot delete Profile");
+      console.log(err);
+      return null;
     }
   }
 }

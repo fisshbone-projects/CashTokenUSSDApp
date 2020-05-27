@@ -65,7 +65,7 @@ function listTopProfiles(mongo_userId) {
       for (let profile of profiles) {
         response += `- ${profile}\n`;
       }
-      response += `Type the name of a beneficiary to view:`;
+      response += `Enter the name of a beneficiary to view:`;
     }
 
     resolve(response);
