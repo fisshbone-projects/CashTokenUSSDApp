@@ -3,24 +3,50 @@ const { displayListOfDiscos, confirmMeterNo } = require("$felaLibs");
 const mongoFront = require("$mongoLibs/mongoFront");
 const { APP_PREFIX_REDIS, formatNumber } = require("$utils");
 
-function createElectricityProfile(text, phoneNumber, sessionId) {
+function updateElectricityProfile(text, phoneNumber, sessionId) {
   return new Promise(async (resolve) => {
     let brokenDownText = text.split("*");
     let response = "";
     let textlength = brokenDownText.length;
+    let {
+      mongo_userId,
+      QS_update_elec_oldname: profileOldName,
+    } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
+    let canEdit = !!profileOldName ? true : false;
 
     if (textlength === 3) {
-      response = "CON Enter Beneficiary's Name (Max 20 characters):";
+      response = await listTopProfiles(mongo_userId);
     } else if (textlength === 4) {
+      let profileName = brokenDownText[textlength - 1];
+      if (profileName.length > 20 || profileName.length <= 0) {
+        response = `CON Inputed beneficiary name is invalid\n\n0 Menu`;
+      } else {
+        let profileExist = await viewProfile(
+          mongo_userId,
+          profileName.toLowerCase(),
+          sessionId
+        );
+        if (profileExist) {
+          let {
+            QS_update_elec_oldname: oldName,
+          } = await redisClient.hgetallAsync(
+            `${APP_PREFIX_REDIS}:${sessionId}`
+          );
+          response = `CON You are updating "${oldName}" now\nUpdate Beneficiary's Name (Max 20 characters):`;
+        } else {
+          response = `CON The beneficiary "${profileName}" does not exist\n\n0 Menu`;
+        }
+      }
+    } else if (textlength === 5 && canEdit) {
       let profileName = brokenDownText[textlength - 1];
       if (profileName.length >= 1 && profileName.length <= 20) {
         redisClient.hmsetAsync(
           `${APP_PREFIX_REDIS}:${sessionId}`,
-          "QS_Elec_name",
+          "QS_update_elec_name",
           profileName.toLowerCase()
         );
 
-        response = "CON Select Beneficiary's Plan:\n1 Prepaid\n2 Postpaid";
+        response = "CON Update Beneficiary's Plan:\n1 Prepaid\n2 Postpaid";
       } else {
         console.log("Beneficiary's Name inputed is more than 20 characters");
         if (profileName.length < 1) {
@@ -30,33 +56,33 @@ function createElectricityProfile(text, phoneNumber, sessionId) {
             "CON Error! Beneficiary's name can only be 20 characters long or less\n\n0 Menu";
         }
       }
-    } else if (textlength === 5) {
+    } else if (textlength === 6 && canEdit) {
       let selectedPlan = brokenDownText[textlength - 1];
 
       if (selectedPlan === "1") {
         redisClient.hmsetAsync(
           `${APP_PREFIX_REDIS}:${sessionId}`,
-          "QS_Elec_plan",
+          "QS_update_elec_plan",
           "prepaid"
         );
 
-        response = `CON Select Disco:\n`;
+        response = `CON Update Disco:\n`;
         let discos = await displayListOfDiscos("prepaid");
         response += discos;
       } else if (selectedPlan === "2") {
         redisClient.hmsetAsync(
           `${APP_PREFIX_REDIS}:${sessionId}`,
-          "QS_Elec_plan",
+          "QS_update_elec_plan",
           "postpaid"
         );
-        response = `CON Select Disco:\n`;
+        response = `CON Update Disco:\n`;
         let discos = await displayListOfDiscos("postpaid");
         response += discos;
       } else {
         response = "CON Error! Wrong option inputed\n\n0 Menu";
       }
-    } else if (textlength === 6) {
-      let { QS_Elec_plan: chosenPlan } = await redisClient.hgetallAsync(
+    } else if (textlength === 7 && canEdit) {
+      let { QS_update_elec_plan: chosenPlan } = await redisClient.hgetallAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`
       );
 
@@ -64,15 +90,15 @@ function createElectricityProfile(text, phoneNumber, sessionId) {
       if (Number(chosenDisco) <= 9 && Number(chosenDisco) >= 1) {
         console.log(chosenPlan, chosenDisco);
         await saveDisco(chosenPlan, chosenDisco, sessionId);
-        response = "CON Enter Beneficiary's Meter Number:";
+        response = "CON Update Beneficiary's Meter Number:";
       } else {
         response = "CON Error! Wrong option inputed\n\n0 Menu";
       }
-    } else if (textlength === 7) {
+    } else if (textlength === 8 && canEdit) {
       let meterNumber = brokenDownText[textlength - 1];
       let {
-        QS_Elec_plan: chosenPlan,
-        QS_Elec_disco: chosenDisco,
+        QS_update_elec_plan: chosenPlan,
+        QS_update_elec_disco: chosenDisco,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       let { verified, minimumAmount } = await confirmMeterNo(
         meterNumber,
@@ -82,22 +108,23 @@ function createElectricityProfile(text, phoneNumber, sessionId) {
       if (verified) {
         redisClient.hmsetAsync(
           `${APP_PREFIX_REDIS}:${sessionId}`,
-          "QS_Elec_meterNo",
+          "QS_update_elec_meterNo",
           meterNumber,
-          "QS_Elec_minAmount",
+          "QS_update_elec_minAmount",
           minimumAmount
         );
 
-        response = "CON Enter Default Amount to Purchase for this Beneficiary:";
+        response =
+          "CON Update Default Amount to Purchase for this Beneficiary:";
       } else {
         response =
           "CON Error!\nInputed meter number cannot be verified \n\n0 Menu";
       }
-    } else if (textlength === 8) {
+    } else if (textlength === 9 && canEdit) {
       let inputedAmount = brokenDownText[textlength - 1];
-      let { QS_Elec_minAmount: minimumAmount } = await redisClient.hgetallAsync(
-        `${APP_PREFIX_REDIS}:${sessionId}`
-      );
+      let {
+        QS_update_elec_minAmount: minimumAmount,
+      } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       if (/^[0-9]*$/.test(inputedAmount)) {
         if (
           Number(inputedAmount) >= minimumAmount &&
@@ -105,7 +132,7 @@ function createElectricityProfile(text, phoneNumber, sessionId) {
         ) {
           await redisClient.hmsetAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`,
-            "QS_Elec_amount",
+            "QS_update_elec_amount",
             inputedAmount
           );
 
@@ -118,80 +145,31 @@ function createElectricityProfile(text, phoneNumber, sessionId) {
       } else {
         response = "CON Error! Inputed amount is not a valid number\n\n0 Menu";
       }
-    } else if (textlength === 9) {
+    } else if (textlength === 10 && canEdit) {
       let userResponse = brokenDownText[textlength - 1];
       if (userResponse === "2") {
         response = "END Beneficiary creation process canceled by user";
       } else if (userResponse === "1") {
         let {
           mongo_userId,
-          QS_Elec_name,
-          QS_Elec_plan,
-          QS_Elec_disco,
-          QS_Elec_meterNo,
-          QS_Elec_amount,
-        } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
-
-        let beneficiaryExists = await mongoFront.findExistingProfile(
-          mongo_userId,
-          QS_Elec_name,
-          "electricity"
-        );
-
-        if (!beneficiaryExists) {
-          console.log("Creating a new electricity beneficiary");
-          let elecDoc = {
-            name: QS_Elec_name,
-            plan: QS_Elec_plan,
-            disco: QS_Elec_disco,
-            meterNumber: QS_Elec_meterNo,
-            defaultAmount: QS_Elec_amount,
-            customer: mongo_userId,
-          };
-          let newId = await mongoFront.createProfile(elecDoc, "electricity");
-          if (newId) {
-            response = "END Beneficiary created successfully!";
-          } else {
-            response =
-              "END There was an error saving beneficiary.\nPlease try again later";
-          }
-        } else {
-          console.log("Updating beneficiary from create state");
-          await redisClient.hmsetAsync(
-            `${APP_PREFIX_REDIS}:${sessionId}`,
-            "QS_Elec_oldProfileId",
-            beneficiaryExists._id.toString()
-          );
-          response = `CON You currently have a beneficiary with the name '${QS_Elec_name}'. Will you like to update this beneficiary instead?\n\n1 Yes\n2 No`;
-        }
-      } else {
-        response = "CON Error! Wrong option inputed\n\n0 Menu";
-      }
-    } else if (textlength === 10) {
-      let userResponse = brokenDownText[textlength - 1];
-      if (userResponse === "2") {
-        response = "END Beneficiary creation process canceled by user";
-      } else if (userResponse === "1") {
-        let {
-          mongo_userId,
-          QS_Elec_name,
-          QS_Elec_plan,
-          QS_Elec_disco,
-          QS_Elec_meterNo,
-          QS_Elec_amount,
-          QS_Elec_oldProfileId,
+          QS_update_elec_name,
+          QS_update_elec_plan,
+          QS_update_elec_disco,
+          QS_update_elec_meterNo,
+          QS_update_elec_amount,
+          QS_update_elec_profileID,
         } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
         let elecDoc = {
-          name: QS_Elec_name,
-          plan: QS_Elec_plan,
-          disco: QS_Elec_disco,
-          meterNumber: QS_Elec_meterNo,
-          defaultAmount: QS_Elec_amount,
+          name: QS_update_elec_name,
+          plan: QS_update_elec_plan,
+          disco: QS_update_elec_disco,
+          meterNumber: QS_update_elec_meterNo,
+          defaultAmount: QS_update_elec_amount,
           customer: mongo_userId,
           updatedAt: Date.now(),
         };
         let updated = await mongoFront.updateProfile(
-          QS_Elec_oldProfileId,
+          QS_update_elec_profileID,
           elecDoc,
           "electricity"
         );
@@ -222,7 +200,7 @@ async function saveDisco(electricPlan, selectedDisco, sessionId) {
       );
       await redisClient.hmsetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
-        "QS_Elec_disco",
+        "QS_update_elec_disco",
         planCode
       );
       console.log(planCode);
@@ -240,7 +218,7 @@ async function saveDisco(electricPlan, selectedDisco, sessionId) {
       );
       await redisClient.hmsetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
-        "QS_Elec_disco",
+        "QS_update_elec_disco",
         planCode
       );
       console.log(planCode);
@@ -249,23 +227,64 @@ async function saveDisco(electricPlan, selectedDisco, sessionId) {
   });
 }
 
+function viewProfile(mongo_userId, profileName, sessionId) {
+  return new Promise(async (resolve) => {
+    let profile = await mongoFront.findExistingProfile(
+      mongo_userId,
+      profileName,
+      "electricity"
+    );
+    if (profile) {
+      let { name, _id } = profile;
+      await redisClient.hmsetAsync(
+        `${APP_PREFIX_REDIS}:${sessionId}`,
+        "QS_update_elec_oldname",
+        name,
+        "QS_update_elec_profileID",
+        _id.toString()
+      );
+      resolve(true);
+    } else {
+      resolve(false);
+    }
+  });
+}
+
+function listTopProfiles(mongo_userId) {
+  return new Promise(async (resolve) => {
+    let response = "";
+    let profiles = await mongoFront.getTopProfiles(mongo_userId, "electricity");
+    if (profiles.length === 0) {
+      response = `CON You do not have any top beneficiaries yet. Create some beneficiaries to see them here\n\n0 Menu`;
+    } else {
+      response = `CON Below are some of your top beneficiaries:\n`;
+      for (let profile of profiles) {
+        response += `- ${profile}\n`;
+      }
+      response += `Enter the name of a beneficiary to view:`;
+    }
+
+    resolve(response);
+  });
+}
+
 function generateSummary(sessionId) {
   return new Promise(async (resolve) => {
     let {
-      QS_Elec_name,
-      QS_Elec_plan,
-      QS_Elec_disco,
-      QS_Elec_amount,
-      QS_Elec_meterNo,
+      QS_update_elec_name,
+      QS_update_elec_plan,
+      QS_update_elec_disco,
+      QS_update_elec_amount,
+      QS_update_elec_meterNo,
     } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
     let response = "";
 
-    response = `CON Confirm beneficiary:\nName: ${QS_Elec_name}\nPlan: ${QS_Elec_plan}\nDisco: ${QS_Elec_disco}\nMeterNo: ${QS_Elec_meterNo}\nDefaultAmount: ${formatNumber(
-      QS_Elec_amount
+    response = `CON Confirm beneficiary:\nName: ${QS_update_elec_name}\nPlan: ${QS_update_elec_plan}\nDisco: ${QS_update_elec_disco}\nMeterNo:${QS_update_elec_meterNo}\nDefaultAmount: ${formatNumber(
+      QS_update_elec_amount
     )}\n\n1 Confirm\n2 Cancel`;
 
     resolve(response);
   });
 }
 
-module.exports = { createElectricityProfile };
+module.exports = { updateElectricityProfile };

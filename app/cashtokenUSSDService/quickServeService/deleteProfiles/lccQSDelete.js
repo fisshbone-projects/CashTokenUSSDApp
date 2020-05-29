@@ -7,9 +7,11 @@ function deleteLccProfile(text, phoneNumber, sessionId) {
     let brokenDownText = text.split("*");
     let response = "";
     let textlength = brokenDownText.length;
-    let { mongo_userId } = await redisClient.hgetallAsync(
-      `${APP_PREFIX_REDIS}:${sessionId}`
-    );
+    let {
+      mongo_userId,
+      QS_delete_lcc_name: deleteMe,
+    } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
+    let canDelete = !!deleteMe ? true : false;
 
     if (textlength === 3) {
       response = await listTopProfiles(mongo_userId);
@@ -24,7 +26,7 @@ function deleteLccProfile(text, phoneNumber, sessionId) {
           sessionId
         );
       }
-    } else if (textlength === 5) {
+    } else if (textlength === 5 && canDelete) {
       let {
         mongo_userId,
         QS_delete_lcc_name: cachedName,
