@@ -326,6 +326,7 @@ async function processElectricity(phoneNumber, text, sessionId) {
       resolve(response);
     } else {
       response = `CON Error!\nInvalid input\n\nEnter 0 to start over`;
+      resolve(response);
     }
   });
 }
