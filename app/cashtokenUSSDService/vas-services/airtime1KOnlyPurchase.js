@@ -26,7 +26,7 @@ async function process1KOnlyAirtime(text, phoneNumber, sessionId) {
       );
       resolve(response);
     } else {
-      response = "CON Invalid response inputed\n\nEnter 0 Back to home menu";
+      response = "CON Invalid response entered\n\nEnter 0 Back to home menu";
       resolve(response);
     }
   });
@@ -137,7 +137,7 @@ async function airtime1KOnlyFlow(brokenDownText, phoneNumber, sessionId) {
       response = `CON Transaction Cancelled!\n\nEnter 0 Back to home menu`;
       resolve(response);
     } else {
-      response = "CON Invalid response inputed\n\nEnter 0 Back to home menu";
+      response = "CON Invalid response entered\n\nEnter 0 Back to home menu";
       resolve(response);
     }
   });

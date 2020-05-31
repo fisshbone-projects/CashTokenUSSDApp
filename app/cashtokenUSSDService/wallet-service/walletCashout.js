@@ -63,7 +63,7 @@ async function processFundDisbursement(text, phoneNumber, sessionId) {
               resolve(response);
             } else {
               response =
-                "CON CON Invalid response inputed\n\nEnter 0 Back to home menu";
+                "CON CON Invalid response entered\n\nEnter 0 Back to home menu";
               resolve(response);
             }
           }
@@ -444,7 +444,7 @@ async function displayBankList(brokenDownText, sessionId) {
           });
       } else {
         console.log("Amount is invalid");
-        response = `CON Error! Inputted amount is not a valid number\n\nEnter 0 to start over`;
+        response = `CON Error! Inputted amount is not a valid number\n\nEnter 0 Back to home menu`;
         resolve(response);
       }
     } else if (
@@ -672,7 +672,7 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
         resolve(response);
       } else {
         console.log("Account Number is invalid");
-        response = `CON Error! Inputed account number is invalid\n\nEnter 0 to start over`;
+        response = `CON Error! Inputed account number is invalid\n\nEnter 0 Back to home menu`;
         resolve(response);
       }
     } else if (
@@ -685,7 +685,7 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
         resolve(response);
       } else {
         console.log("Account Number is invalid");
-        response = `CON Error! Inputed account number is invalid\n\nEnter 0 to start over`;
+        response = `CON Error! Inputed account number is invalid\n\nEnter 0 Back to home menu`;
         resolve(response);
       }
     } else if (
@@ -698,7 +698,7 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
         resolve(response);
       } else {
         console.log("Account Number is invalid");
-        response = `CON Error! Inputed account number is invalid\n\nEnter 0 to start over`;
+        response = `CON Error! Inputed account number is invalid\n\nEnter 0 Back to home menu`;
         resolve(response);
       }
     } else if (
@@ -711,7 +711,7 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
         resolve(response);
       } else {
         console.log("Account Number is invalid");
-        response = `CON Error! Inputed account number is invalid\n\nEnter 0 to start over`;
+        response = `CON Error! Inputed account number is invalid\n\nEnter 0 Back to home menu`;
         resolve(response);
       }
     } else if (
@@ -724,7 +724,7 @@ async function obtainAccountNumberForDisbuseMent(brokenDownText, sessionId) {
         resolve(response);
       } else {
         console.log("Account Number is invalid");
-        response = `CON Error! Inputed account number is invalid\n\nEnter 0 to start over`;
+        response = `CON Error! Inputed account number is invalid\n\nEnter 0 Back to home menu`;
         resolve(response);
       }
     } else {

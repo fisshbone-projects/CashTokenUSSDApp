@@ -108,7 +108,7 @@ app.post(
     } catch (error) {
       console.error(error);
       return res.send(
-        `CON A processing error has occured.\n\nEnter 0 to start over`
+        `CON A processing error has occured.\n\nEnter 0 Back to home menu`
       );
     }
   }

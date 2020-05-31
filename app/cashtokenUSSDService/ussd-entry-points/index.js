@@ -68,26 +68,26 @@ async function ActivateUser(phoneNumber, text, sessionId) {
             resolve(response);
           } else if (isPinRepeating) {
             console.log("PIN is repeating i.e PIN is of type 1111");
-            response = `CON Repeated digit PINs are not allowed (e.g 1111).\nUse a different pattern of PIN\n\nEnter 0 to start over`;
+            response = `CON Repeated digit PINs are not allowed (e.g 1111).\nUse a different pattern of PIN\n\nEnter 0 Back to home menu`;
             resolve(response);
           } else {
             console.log("PIN not between 4 to 12 digits");
-            response = `CON Your PIN can only be 4 to 12 digits long\n\nEnter 0 to start over`;
+            response = `CON Your PIN can only be 4 to 12 digits long\n\nEnter 0 Back to home menu`;
             resolve(response);
           }
         } else {
           console.log("PIN containing non-digits");
-          response = `CON Your PIN can only be numbers\n\nEnter 0 to start over`;
+          response = `CON Your PIN can only be numbers\n\nEnter 0 Back to home menu`;
           resolve(response);
         }
       } else {
         console.log("PIN not matching");
-        response = "CON Your PIN does not match\n\nEnter 0 to start over";
+        response = "CON Your PIN does not match\n\nEnter 0 Back to home menu";
         resolve(response);
       }
     } else {
       console.log("User entered wrong response");
-      response = "CON Invalid response inputed\n\nEnter 0 Back to home menu";
+      response = "CON Invalid response entered\n\nEnter 0 Back to home menu";
       resolve(response);
     }
   });
@@ -106,12 +106,7 @@ function NormalFlow(phoneNumber, text, sessionId) {
 
       response = MAINMENU_1;
     } else if (text.startsWith("1")) {
-      if (App.PROD) {
-        response =
-          "CON QuickServe is an exciting new feature we are working on.\nPlease stay connected\n\n0 Main menu";
-      } else {
-        response = await quickServeService(text, phoneNumber, sessionId);
-      }
+      response = await quickServeService(text, phoneNumber, sessionId);
     } else if (text.startsWith("2")) {
       response = await redeem_wallet(text, phoneNumber, sessionId);
     } else if (text.startsWith("3")) {

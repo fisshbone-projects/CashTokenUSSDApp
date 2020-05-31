@@ -81,7 +81,7 @@ async function processCableTv(phoneNumber, text, sessionId) {
                   if (response !== "") {
                     resolve(response);
                   } else {
-                    response = `CON Error!\nInvalid input\n\nEnter 0 to start over`;
+                    response = `CON Error!\nInvalid response entered\n\nEnter 0 Back to home menu`;
                     resolve(response);
                   }
                 }
@@ -167,7 +167,7 @@ async function menuFlowDisplayBouquets(brokenDownText, sessionId) {
         }
       } else {
         response =
-          "CON Error!\nSelect a valid cable provider\n\nEnter 0 to start over";
+          "CON Error!\nSelect a valid cable provider\n\nEnter 0 Back to home menu";
         resolve(response);
       }
     } else {
@@ -336,7 +336,7 @@ async function menuFlowGetPaymentMethod(
             response = `CON Select payment method:\n1 My Wallet\n2 MyBankUSSD`;
             resolve(response);
           } else {
-            response = `CON Error!\nInputed smartcard number cannot be verified \n\nEnter 0 to start over`;
+            response = `CON Error!\nInputed smartcard number cannot be verified \n\nEnter 0 Back to home menu`;
             resolve(response);
           }
         } else if (
@@ -364,7 +364,7 @@ async function menuFlowGetPaymentMethod(
             response = `CON Select payment method:\n1 My Wallet\n2 MyBankUSSD`;
             resolve(response);
           } else {
-            response = `CON Error!\nInputed smartcard number cannot be verified \n\nEnter 0 to start over`;
+            response = `CON Error!\nInputed smartcard number cannot be verified \n\nEnter 0 Back to home menu`;
             resolve(response);
           }
         } else if (
@@ -392,7 +392,7 @@ async function menuFlowGetPaymentMethod(
             response = `CON Select payment method:\n1 My Wallet\n2 MyBankUSSD`;
             resolve(response);
           } else {
-            response = `CON Error!\nInputed smartcard number cannot be verified \n\nEnter 0 to start over`;
+            response = `CON Error!\nInputed smartcard number cannot be verified \n\nEnter 0 Back to home menu`;
             resolve(response);
           }
         }
@@ -422,7 +422,7 @@ async function menuFlowGetPaymentMethod(
             response = `CON Select payment method:\n1 My Wallet\n2 MyBankUSSD`;
             resolve(response);
           } else {
-            response = `CON Error!\nInputed smartcard number cannot be verified \n\nEnter 0 to start over`;
+            response = `CON Error!\nInputed smartcard number cannot be verified \n\nEnter 0 Back to home menu`;
             resolve(response);
           }
         }
@@ -486,7 +486,7 @@ async function menuFlowGetPaymentDetails(
             }
           } else {
             response =
-              "CON Error!\nSelect a valid payment method\n\nEnter 0 to start over";
+              "CON Error!\nSelect a valid payment method\n\nEnter 0 Back to home menu";
             resolve(response);
           }
         }
@@ -524,7 +524,7 @@ async function menuFlowGetPaymentDetails(
             }
           } else {
             response =
-              "CON Error!\nSelect a valid payment method\n\nEnter 0 to start over";
+              "CON Error!\nSelect a valid payment method\n\nEnter 0 Back to home menu";
             resolve(response);
           }
         }
@@ -585,7 +585,7 @@ async function menuFlowDisplaySummary(brokenDownText, sessionId, providerName) {
             resolve(response);
           } else {
             console.log("PIN is invalid");
-            response = `CON Error!\nPIN can only be numbers\n\nEnter 0 to start over`;
+            response = `CON Error!\nPIN can only be numbers\n\nEnter 0 Back to home menu`;
             resolve(response);
           }
         } else if (
@@ -644,7 +644,7 @@ async function menuFlowDisplaySummary(brokenDownText, sessionId, providerName) {
             resolve(response);
           } else {
             console.log("Invalid myBankUSSD bank inputted");
-            response = `CON Error!\nSelect a valid bank\n\nEnter 0 to start over`;
+            response = `CON Error!\nSelect a valid bank\n\nEnter 0 Back to home menu`;
             resolve(response);
           }
         }
@@ -680,7 +680,7 @@ async function menuFlowDisplaySummary(brokenDownText, sessionId, providerName) {
             resolve(response);
           } else {
             console.log("PIN is invalid");
-            response = `CON Error!\nPIN can only be numbers\n\nEnter 0 to start over`;
+            response = `CON Error!\nPIN can only be numbers\n\nEnter 0 Back to home menu`;
             resolve(response);
           }
         } else if (
@@ -729,7 +729,7 @@ async function menuFlowDisplaySummary(brokenDownText, sessionId, providerName) {
             resolve(response);
           } else {
             console.log("Invalid myBankUSSD bank inputted");
-            response = `CON Error!\nSelect a valid bank\n\nEnter 0 to start over`;
+            response = `CON Error!\nSelect a valid bank\n\nEnter 0 Back to home menu`;
             resolve(response);
           }
         }

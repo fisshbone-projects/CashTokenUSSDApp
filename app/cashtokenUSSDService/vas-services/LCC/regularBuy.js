@@ -15,29 +15,23 @@ const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 const API_DATA_EXPIRE_TIME = parseInt(App.REDIS_API_DATA_EXPIRE);
 
-async function processLCC(phoneNumber, text, sessionId) {
+async function regularBuy(phoneNumber, text, sessionId) {
   return new Promise(async (resolve, reject) => {
-    console.log("Starting the LCC payment process");
     let response = "";
     let brokenDownText = text.split("*");
+    let textLength = brokenDownText.length;
     // brokenDownText.unshift("dummyInsert"); //This dummy input helps the code behave as though the LCC service was a sub menu
     // console.log(brokenDownText);
-    if (brokenDownText.length === 2) {
-      await redisClient.incrAsync(
-        `${APP_PREFIX_REDIS}:reports:count:topMenu_LCC:${moment().format(
-          "DMMYYYY"
-        )}`
+    if (textLength === 3) {
+      await redisClient.hmsetAsync(
+        `${APP_PREFIX_REDIS}:${sessionId}`,
+        "lcc_purchase_method",
+        "regularBuy"
       );
-      // expireReportsInRedis(
-      //   `${APP_PREFIX_REDIS}:reports:count:topMenu_LCC:${moment().format(
-      //     "DMMYYYY"
-      //   )}`
-      // );
       response = `CON Enter your LCC account number:`;
-      resolve(response);
-    } else if (brokenDownText.length === 3) {
+    } else if (textLength === 4) {
       //Verify lcc no and ask for amount
-      let lccAccountNo = brokenDownText[2];
+      let lccAccountNo = brokenDownText[textLength - 1];
       let confirmLCCNo = await confirmLCCAcountNo(lccAccountNo);
 
       if (confirmLCCNo) {
@@ -47,15 +41,13 @@ async function processLCC(phoneNumber, text, sessionId) {
           `${lccAccountNo}`
         );
         response = `CON Enter amount:`;
-        resolve(response);
       } else {
         response =
-          "CON Error!\nEnter a valid LCC account number\n\nEnter 0 to start over";
-        resolve(response);
+          "CON Error!\nEnter a valid LCC account number\n\nEnter 0 Back to home menu";
       }
-    } else if (brokenDownText.length === 4) {
+    } else if (textLength === 5) {
       //save amount and ask for payment method
-      let amount = brokenDownText[3];
+      let amount = brokenDownText[textLength - 1];
       if (/^[0-9]*$/.test(amount)) {
         if (parseInt(amount) >= 50 && parseInt(amount) <= 100000) {
           await redisClient.hsetAsync(
@@ -64,21 +56,18 @@ async function processLCC(phoneNumber, text, sessionId) {
             `${amount}`
           );
           response = `CON Select payment method:\n1 My Wallet\n2 MyBankUSSD`;
-          resolve(response);
         } else {
           console.log(
             "Amount is less than 50 naira | greater than 100,000 naira"
           );
           response = `CON Error! You can pay between the amount N50 and N100,000 only\n\n0 Menu`;
-          resolve(response);
         }
       } else {
         console.log("Amount inputed is invalid");
-        response = `CON Error!\nAmount can only be numbers\n\nEnter 0 to start over`;
-        resolve(response);
+        response = `CON Error!\nAmount can only be numbers\n\nEnter 0 Back to home menu`;
       }
-    } else if (brokenDownText.length === 5) {
-      let paymentMethod = brokenDownText[4];
+    } else if (textLength === 6) {
+      let paymentMethod = brokenDownText[textLength - 1];
 
       if (paymentMethod === "1" || paymentMethod === "2") {
         if (paymentMethod === "1") {
@@ -88,7 +77,6 @@ async function processLCC(phoneNumber, text, sessionId) {
             "felawallet"
           );
           response = "CON Enter your wallet PIN:";
-          resolve(response);
         } else {
           await redisClient.hsetAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`,
@@ -96,21 +84,19 @@ async function processLCC(phoneNumber, text, sessionId) {
             "coralpay"
           );
           response = displayMyBankUSSDBanks();
-          resolve(response);
         }
       } else {
         response =
-          "CON Error!\nSelect a valid payment method\n\nEnter 0 to start over";
-        resolve(response);
+          "CON Error!\nSelect a valid payment method\n\nEnter 0 Back to home menu";
       }
     } else if (
-      brokenDownText.length === 6 &&
+      textLength === 7 &&
       (await redisClient.hgetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
         "paymentMethod"
       )) === "felawallet"
     ) {
-      let walletPin = brokenDownText[5];
+      let walletPin = brokenDownText[textLength - 1];
       if (/^[0-9]*$/.test(walletPin)) {
         await redisClient.hsetAsync(
           `${APP_PREFIX_REDIS}:${sessionId}`,
@@ -124,15 +110,13 @@ async function processLCC(phoneNumber, text, sessionId) {
         response = `CON Confirm LCC Payment:\nLCC AccountNo: ${lccAccountNo}\nAmount: ${formatNumber(
           amount
         )}\nPayMethod: Wallet\n\n1 Confirm\n2 Cancel`;
-        resolve(response);
       } else {
         console.log("PIN is invalid");
-        response = `CON Error!\nPIN can only be numbers\n\nEnter 0 to start over`;
-        resolve(response);
+        response = `CON Error!\nPIN can only be numbers\n\nEnter 0 Back to home menu`;
       }
     } else if (
-      brokenDownText.length === 6 &&
-      parseInt(brokenDownText[5], 10) <=
+      textLength === 7 &&
+      Number(brokenDownText[textLength - 1]) <=
         Object.values(MYBANKUSSD_BANK_CODES).length &&
       (await redisClient.hgetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
@@ -143,7 +127,7 @@ async function processLCC(phoneNumber, text, sessionId) {
         `${APP_PREFIX_REDIS}:${sessionId}`
       );
 
-      let chosenUSSDBank = parseInt(brokenDownText[5], 10);
+      let chosenUSSDBank = Number(brokenDownText[textLength - 1]);
       let chosenUSSDBankName = Object.keys(MYBANKUSSD_BANK_CODES)[
         chosenUSSDBank - 1
       ];
@@ -168,77 +152,64 @@ async function processLCC(phoneNumber, text, sessionId) {
           ? chosenUSSDBankName
           : `${chosenUSSDBankName}`
       }\n\n1 Confirm\n2 Cancel`;
-      resolve(response);
     } else if (
-      brokenDownText.length === 7 &&
-      brokenDownText[6] === "1" &&
+      textLength === 8 &&
       (await redisClient.hgetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
         "paymentMethod"
       )) === "felawallet"
     ) {
-      let {
-        amount,
-        lccAccountNo,
-        paymentMethod,
-        walletPin,
-      } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
-      response = await processLCCPayment(
-        sessionId,
-        phoneNumber,
-        lccAccountNo,
-        amount,
-        paymentMethod,
-        walletPin
-      );
-      resolve(response);
+      let userResponse = brokenDownText[textLength - 1];
+      if (userResponse === "1") {
+        let {
+          amount,
+          lccAccountNo,
+          paymentMethod,
+          walletPin,
+        } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
+        response = await processLCCPayment(
+          sessionId,
+          phoneNumber,
+          lccAccountNo,
+          amount,
+          paymentMethod,
+          walletPin
+        );
+      } else {
+        response = `CON Transaction canceled by user\n\n0 Back to home menu`;
+      }
     } else if (
-      brokenDownText.length === 7 &&
-      brokenDownText[6] === "2" &&
-      (await redisClient.hgetAsync(
-        `${APP_PREFIX_REDIS}:${sessionId}`,
-        "paymentMethod"
-      )) === "felawallet"
-    ) {
-      response = `CON Transaction canceled by user\n\n0 Back to home menu`;
-      resolve(response);
-    } else if (
-      brokenDownText.length === 7 &&
-      brokenDownText[6] === "1" &&
+      textLength === 8 &&
       (await redisClient.hgetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
         "paymentMethod"
       )) === "coralpay"
     ) {
-      let {
-        amount,
-        lccAccountNo,
-        paymentMethod,
-        chosenUSSDBankCode,
-      } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
-      response = await processLCCPayment(
-        sessionId,
-        phoneNumber,
-        lccAccountNo,
-        amount,
-        paymentMethod,
-        undefined,
-        chosenUSSDBankCode
-      );
-      resolve(response);
-    } else if (
-      brokenDownText.length === 7 &&
-      brokenDownText[6] === "2" &&
-      (await redisClient.hgetAsync(
-        `${APP_PREFIX_REDIS}:${sessionId}`,
-        "paymentMethod"
-      )) === "coralpay"
-    ) {
-      response = `CON Transaction canceled by user\n\n0 Back to home menu`;
-      resolve(response);
+      let userResponse = brokenDownText[textLength - 1];
+      if (userResponse === "1") {
+        let {
+          amount,
+          lccAccountNo,
+          paymentMethod,
+          chosenUSSDBankCode,
+        } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
+        response = await processLCCPayment(
+          sessionId,
+          phoneNumber,
+          lccAccountNo,
+          amount,
+          paymentMethod,
+          undefined,
+          chosenUSSDBankCode
+        );
+      } else {
+        response = `CON Transaction canceled by user\n\n0 Back to home menu`;
+      }
     } else {
-      response = `CON Error!\nInvalid input\n\nEnter 0 to start over`;
+      response = `CON Error!\nInvalid response entered\n\nEnter 0 Back to home menu`;
     }
+
+    resolve(response);
   });
 }
 
@@ -399,5 +370,5 @@ function displayMyBankUSSDBanks() {
 }
 
 module.exports = {
-  processLCC,
+  regularBuy,
 };

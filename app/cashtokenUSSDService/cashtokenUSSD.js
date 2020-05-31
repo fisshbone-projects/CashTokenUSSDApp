@@ -158,7 +158,7 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
               .catch((err) => {
                 console.log("An error occured:", err);
                 resolve(
-                  `CON A processing error has occured.\n\nEnter 0 to start over`
+                  `CON A processing error has occured.\n\nEnter 0 Back to home menu`
                 );
               });
           }
@@ -166,7 +166,7 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
         .catch((err) => {
           console.log("An error occured:", err);
           resolve(
-            `CON A processing error has occured.\n\nEnter 0 to start over`
+            `CON A processing error has occured.\n\nEnter 0 Back to home menu`
           );
         });
     });
@@ -207,7 +207,7 @@ async function CELDUSSD(sessionId, serviceCode, phoneNumber, text) {
     return response;
   } catch (err) {
     console.log("An error occured:", err);
-    resolve(`CON A processing error has occured.\n\nEnter 0 to start over`);
+    resolve(`CON A processing error has occured.\n\nEnter 0 Back to home menu`);
   }
 }
 

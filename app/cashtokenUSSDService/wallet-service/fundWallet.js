@@ -116,7 +116,8 @@ async function fundWalletFlow(brokenDownText, phoneNumber, sessionId) {
       response = `CON Transaction Cancelled!\n\n0 Menu`;
       resolve(response);
     } else {
-      response = "CON Error!\nInvalid input\n\nEnter 0 to start over";
+      response =
+        "CON Error!\nInvalid response entered\n\nEnter 0 Back to home menu";
       resolve(response);
     }
   });

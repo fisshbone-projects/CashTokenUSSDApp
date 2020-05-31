@@ -1,5 +1,5 @@
 const { redisClient } = require("$config/redisConnectConfig");
-const { FelaMarketPlace, App } = require("$config/index");
+const { FelaMarketPlace, App } = require("$config");
 const {
   APP_PREFIX_REDIS,
   formatNumber,
@@ -10,6 +10,285 @@ const moment = require("moment");
 const axios = require("axios");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 const API_DATA_EXPIRE_TIME = parseInt(App.REDIS_API_DATA_EXPIRE);
+
+async function regularBuy(phoneNumber, text, sessionId) {
+  return new Promise(async (resolve, reject) => {
+    console.log("Starting the Electricity bill payment process");
+    let response = "";
+    let brokenDownText = text.split("*");
+    let textLength = brokenDownText.length;
+
+    if (textLength === 3) {
+      await redisClient.hmsetAsync(
+        `${APP_PREFIX_REDIS}:${sessionId}`,
+        "elec_purchase_method",
+        "regularBuy"
+      );
+      response = `CON Choose your electricity plan:\n1 Prepaid\n2 Postpaid`;
+    } else if (textLength === 4) {
+      let electricPlan = brokenDownText[textLength - 1];
+      if (electricPlan === "1" || electricPlan === "2") {
+        if (electricPlan === "1") {
+          await redisClient.hsetAsync(
+            `${APP_PREFIX_REDIS}:${sessionId}`,
+            "electricPlan",
+            "prepaid"
+          );
+          response = await displayListOfDiscos("prepaid");
+        } else {
+          await redisClient.hsetAsync(
+            `${APP_PREFIX_REDIS}:${sessionId}`,
+            "electricPlan",
+            "postpaid"
+          );
+          response = await displayListOfDiscos("postpaid");
+        }
+      } else {
+        response =
+          "CON Error!\nSelect a valid electricity plan\n\nEnter 0 Back to home menu";
+      }
+
+      //Return list of discos under that service chosen
+    } else if (textLength === 5) {
+      let { electricPlan } = await redisClient.hgetallAsync(
+        `${APP_PREFIX_REDIS}:${sessionId}`
+      );
+      let selectedDisco = brokenDownText[textLength - 1];
+      if (electricPlan === "prepaid") {
+        if (parseInt(selectedDisco) <= 9 && parseInt(selectedDisco) >= 1) {
+          await saveDisco(electricPlan, selectedDisco, sessionId);
+          response = `CON Enter your meter number:`;
+        } else {
+          response =
+            "CON Error!\nSelect a valid disco\n\nEnter 0 Back to home menu";
+        }
+      } else if (electricPlan === "postpaid") {
+        if (parseInt(selectedDisco) <= 9 && parseInt(selectedDisco) >= 1) {
+          await saveDisco(electricPlan, selectedDisco, sessionId);
+          response = `CON Enter your meter number:`;
+        } else {
+          response =
+            "CON Error!\nSelect a valid disco\n\nEnter 0 Back to home menu";
+        }
+      }
+
+      //Enter meter number
+    } else if (textLength === 6) {
+      let meterNumber = brokenDownText[textLength - 1];
+      let { electricPlan, discoCode } = await redisClient.hgetallAsync(
+        `${APP_PREFIX_REDIS}:${sessionId}`
+      );
+
+      let checkMeterNo = await confirmMeterNo(
+        meterNumber,
+        electricPlan,
+        discoCode,
+        sessionId
+      );
+      if (checkMeterNo) {
+        console.log("Meter No. is valid");
+        await redisClient.hsetAsync(
+          `${APP_PREFIX_REDIS}:${sessionId}`,
+          "meterNumber",
+          meterNumber
+        );
+        response = `CON Enter amount:`;
+      } else {
+        response = `CON Error!\nInputed meter number cannot be verified \n\nEnter 0 Back to home menu`;
+      }
+    } else if (textLength === 7) {
+      let amount = brokenDownText[textLength - 1];
+      let minimumAmount = await redisClient.hgetAsync(
+        `${APP_PREFIX_REDIS}:${sessionId}`,
+        "electrityMinAmount"
+      );
+
+      if (/^[0-9]*$/.test(amount)) {
+        if (parseInt(amount) >= parseInt(minimumAmount)) {
+          await redisClient.hsetAsync(
+            `${APP_PREFIX_REDIS}:${sessionId}`,
+            "amount",
+            `${amount}`
+          );
+
+          response = `CON Select payment method:\n1 My Wallet\n2 MyBankUSSD`;
+        } else {
+          console.log(
+            "Amount inputted is less than the discos minimum amount that can be bought"
+          );
+          response = `CON Error!\nAmount inputted (N${parseInt(
+            amount
+          )}) is less than the minimum amount you can pay (N${parseInt(
+            minimumAmount
+          )})\n\n0 Menu`;
+        }
+      } else {
+        console.log("Amount inputed is invalid");
+        response = `CON Error!\nAmount can only be numbers\n\nEnter 0 Back to home menu`;
+      }
+    } else if (textLength === 8) {
+      let paymentMethod = brokenDownText[textLength - 1];
+
+      if (paymentMethod === "1" || paymentMethod === "2") {
+        if (paymentMethod === "1") {
+          await redisClient.hsetAsync(
+            `${APP_PREFIX_REDIS}:${sessionId}`,
+            "paymentMethod",
+            "felawallet"
+          );
+          response = "CON Enter your wallet PIN:";
+        } else {
+          await redisClient.hsetAsync(
+            `${APP_PREFIX_REDIS}:${sessionId}`,
+            "paymentMethod",
+            "coralpay"
+          );
+          response = displayMyBankUSSDBanks();
+        }
+      } else {
+        response =
+          "CON Error!\nSelect a valid payment method\n\nEnter 0 Back to home menu";
+      }
+
+      //Choose Payment Method
+    } else if (
+      textLength === 9 &&
+      (await redisClient.hgetAsync(
+        `${APP_PREFIX_REDIS}:${sessionId}`,
+        "paymentMethod"
+      )) === "felawallet"
+    ) {
+      let walletPin = brokenDownText[textLength - 1];
+      if (/^[0-9]*$/.test(walletPin)) {
+        await redisClient.hsetAsync(
+          `${APP_PREFIX_REDIS}:${sessionId}`,
+          "walletPin",
+          `${walletPin}`
+        );
+        let {
+          electricPlan,
+          discoCode,
+          meterNumber,
+          amount,
+        } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
+
+        response = `CON Confirm Electricity Bill Payment:\nMeterNo: ${meterNumber}\nElectric Plan: ${
+          electricPlan[0].toUpperCase() + electricPlan.substr(1)
+        }\nDisco: ${discoCode}\nAmount: ${formatNumber(
+          amount
+        )}\nPayMethod: Wallet\n\n1 Confirm\n2 Cancel`;
+      } else {
+        console.log("PIN is invalid");
+        response = `CON Error!\nPIN can only be numbers\n\nEnter 0 Back to home menu`;
+      }
+    } else if (
+      textLength === 9 &&
+      Number(brokenDownText[textLength - 1]) <=
+        Object.values(MYBANKUSSD_BANK_CODES).length &&
+      (await redisClient.hgetAsync(
+        `${APP_PREFIX_REDIS}:${sessionId}`,
+        "paymentMethod"
+      )) === "coralpay"
+    ) {
+      let {
+        electricPlan,
+        discoCode,
+        meterNumber,
+        amount,
+      } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
+
+      let chosenUSSDBank = Number(brokenDownText[textLength - 1]);
+      let chosenUSSDBankName = Object.keys(MYBANKUSSD_BANK_CODES)[
+        chosenUSSDBank - 1
+      ];
+      let chosenUSSDBankCode = Object.values(MYBANKUSSD_BANK_CODES)[
+        chosenUSSDBank - 1
+      ];
+      await redisClient.hmsetAsync(
+        `${APP_PREFIX_REDIS}:${sessionId}`,
+        "chosenUSSDBankName",
+        chosenUSSDBankName,
+        "chosenUSSDBankCode",
+        chosenUSSDBankCode
+      );
+
+      response = `CON Confirm Electricity Bill Payment:\nMeterNo: ${meterNumber}\nElectric Plan: ${
+        electricPlan[0].toUpperCase() + electricPlan.substr(1)
+      }\nDisco: ${discoCode}\nAmount: ${formatNumber(amount)}\nPayMethod: ${
+        chosenUSSDBankName.includes("bank") ||
+        chosenUSSDBankName == "GTB" ||
+        chosenUSSDBankName == "FBN" ||
+        chosenUSSDBankName == "UBA"
+          ? chosenUSSDBankName
+          : `${chosenUSSDBankName}`
+      }\n\n1 Confirm\n2 Cancel`;
+    } else if (
+      textLength === 10 &&
+      (await redisClient.hgetAsync(
+        `${APP_PREFIX_REDIS}:${sessionId}`,
+        "paymentMethod"
+      )) === "felawallet"
+    ) {
+      let userResponse = brokenDownText[textLength - 1];
+      if (userResponse === "1") {
+        let {
+          electricPlan,
+          discoCode,
+          amount,
+          meterNumber,
+          paymentMethod,
+          walletPin,
+        } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
+        response = await processElectricityPayment(
+          sessionId,
+          phoneNumber,
+          meterNumber,
+          discoCode,
+          electricPlan,
+          amount,
+          paymentMethod,
+          walletPin
+        );
+      } else {
+        response = `CON Transaction canceled by user.\n\n0 Menu`;
+      }
+    } else if (
+      textLength === 10 &&
+      (await redisClient.hgetAsync(
+        `${APP_PREFIX_REDIS}:${sessionId}`,
+        "paymentMethod"
+      )) === "coralpay"
+    ) {
+      let userResponse = brokenDownText[textLength - 1];
+      if (userResponse === "1") {
+        let {
+          electricPlan,
+          discoCode,
+          amount,
+          meterNumber,
+          paymentMethod,
+          chosenUSSDBankCode,
+        } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
+        response = await processElectricityPayment(
+          sessionId,
+          phoneNumber,
+          meterNumber,
+          discoCode,
+          electricPlan,
+          amount,
+          paymentMethod,
+          undefined,
+          chosenUSSDBankCode
+        );
+      } else {
+        response = `CON Transaction canceled by user.\n\n0 Menu`;
+      }
+    } else {
+      response = `CON Error!\nInvalid response entered\n\nEnter 0 Back to home menu`;
+    }
+    resolve(response);
+  });
+}
 
 async function processElectricity(phoneNumber, text, sessionId) {
   return new Promise(async (resolve, reject) => {
@@ -52,7 +331,7 @@ async function processElectricity(phoneNumber, text, sessionId) {
         }
       } else {
         response =
-          "CON Error!\nSelect a valid electricity plan\n\nEnter 0 to start over";
+          "CON Error!\nSelect a valid electricity plan\n\nEnter 0 Back to home menu";
         resolve(response);
       }
 
@@ -69,7 +348,7 @@ async function processElectricity(phoneNumber, text, sessionId) {
           resolve(response);
         } else {
           response =
-            "CON Error!\nSelect a valid disco\n\nEnter 0 to start over";
+            "CON Error!\nSelect a valid disco\n\nEnter 0 Back to home menu";
           resolve(response);
         }
       } else if (electricPlan === "postpaid") {
@@ -79,7 +358,7 @@ async function processElectricity(phoneNumber, text, sessionId) {
           resolve(response);
         } else {
           response =
-            "CON Error!\nSelect a valid disco\n\nEnter 0 to start over";
+            "CON Error!\nSelect a valid disco\n\nEnter 0 Back to home menu";
           resolve(response);
         }
       }
@@ -107,7 +386,7 @@ async function processElectricity(phoneNumber, text, sessionId) {
         response = `CON Enter amount:`;
         resolve(response);
       } else {
-        response = `CON Error!\nInputed meter number cannot be verified \n\nEnter 0 to start over`;
+        response = `CON Error!\nInputed meter number cannot be verified \n\nEnter 0 Back to home menu`;
         resolve(response);
       }
 
@@ -142,7 +421,7 @@ async function processElectricity(phoneNumber, text, sessionId) {
         }
       } else {
         console.log("Amount inputed is invalid");
-        response = `CON Error!\nAmount can only be numbers\n\nEnter 0 to start over`;
+        response = `CON Error!\nAmount can only be numbers\n\nEnter 0 Back to home menu`;
         resolve(response);
       }
     } else if (brokenDownText.length === 7) {
@@ -168,7 +447,7 @@ async function processElectricity(phoneNumber, text, sessionId) {
         }
       } else {
         response =
-          "CON Error!\nSelect a valid payment method\n\nEnter 0 to start over";
+          "CON Error!\nSelect a valid payment method\n\nEnter 0 Back to home menu";
         resolve(response);
       }
 
@@ -202,7 +481,7 @@ async function processElectricity(phoneNumber, text, sessionId) {
         resolve(response);
       } else {
         console.log("PIN is invalid");
-        response = `CON Error!\nPIN can only be numbers\n\nEnter 0 to start over`;
+        response = `CON Error!\nPIN can only be numbers\n\nEnter 0 Back to home menu`;
         resolve(response);
       }
       //Payment is wallet
@@ -325,7 +604,7 @@ async function processElectricity(phoneNumber, text, sessionId) {
       response = `CON Transaction canceled by user.\n\n0 Menu`;
       resolve(response);
     } else {
-      response = `CON Error!\nInvalid input\n\nEnter 0 to start over`;
+      response = `CON Error!\nInvalid response entered\n\nEnter 0 Back to home menu`;
       resolve(response);
     }
   });
@@ -654,22 +933,6 @@ async function fetchDiscoDetails() {
   });
 }
 
-// (async () => {
-//   await fetchDiscoDetails();
-//   console.log(
-//     await processElectricityPayment(
-//       "90128120",
-//       "2348029150812",
-//       "04198785356",
-//       "EKEDC",
-//       "prepaid",
-//       "1000",
-//       "",
-//       "coralpay"
-//     )
-//   );
-// })();
-
 module.exports = {
-  processElectricity,
+  regularBuy,
 };

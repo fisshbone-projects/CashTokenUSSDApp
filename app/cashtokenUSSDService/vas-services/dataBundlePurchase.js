@@ -124,13 +124,13 @@ async function dataFlow(brokenDownText, phoneNumber, sessionId) {
           break;
         default:
           response =
-            "CON Invalid response inputed\n\nEnter 0 Back to home menu";
+            "CON Invalid response entered\n\nEnter 0 Back to home menu";
           break;
       }
 
       resolve(response);
     } else {
-      response = "CON Invalid response inputed\n\nEnter 0 Back to home menu";
+      response = "CON Invalid response entered\n\nEnter 0 Back to home menu";
       resolve(response);
     }
   });
@@ -314,7 +314,7 @@ async function handleMTN(brokenDownText, phoneNumber, sessionId, dataHandler) {
         resolve(response);
       } else {
         console.log("Number is invalid");
-        response = `CON Error! Inputted number is not a valid phone number\n\nEnter 0 to start over`;
+        response = `CON Error! Inputted number is not a valid phone number\n\nEnter 0 Back to home menu`;
         resolve(response);
       }
     } else if (
@@ -361,7 +361,7 @@ async function handleMTN(brokenDownText, phoneNumber, sessionId, dataHandler) {
         }
       } else {
         response =
-          "CON Error!\nSelect a valid payment method\n\nEnter 0 to start over";
+          "CON Error!\nSelect a valid payment method\n\nEnter 0 Back to home menu";
         resolve(response);
       }
     } else if (
@@ -401,7 +401,7 @@ async function handleMTN(brokenDownText, phoneNumber, sessionId, dataHandler) {
           resolve(response);
         } else {
           console.log("PIN is invalid");
-          response = `CON Error!\nPIN can only be numbers\n\nEnter 0 to start over`;
+          response = `CON Error!\nPIN can only be numbers\n\nEnter 0 Back to home menu`;
           resolve(response);
         }
       } else if (paymentMethod === "coralpay") {
@@ -460,7 +460,7 @@ async function handleMTN(brokenDownText, phoneNumber, sessionId, dataHandler) {
         resolve(response);
       }
     } else {
-      response = "CON Invalid response inputed\n\nEnter 0 Back to home menu";
+      response = "CON Invalid response entered\n\nEnter 0 Back to home menu";
       resolve(response);
     }
   });
@@ -651,7 +651,7 @@ async function handleAirtel(
         resolve(response);
       } else {
         console.log("Number is invalid");
-        response = `CON Error! Inputted number is not a valid phone number\n\nEnter 0 to start over`;
+        response = `CON Error! Inputted number is not a valid phone number\n\nEnter 0 Back to home menu`;
         resolve(response);
       }
     } else if (
@@ -693,7 +693,7 @@ async function handleAirtel(
         }
       } else {
         response =
-          "CON Error!\nSelect a valid payment method\n\nEnter 0 to start over";
+          "CON Error!\nSelect a valid payment method\n\nEnter 0 Back to home menu";
         resolve(response);
       }
     } else if (
@@ -728,7 +728,7 @@ async function handleAirtel(
           resolve(response);
         } else {
           console.log("PIN is invalid");
-          response = `CON Error!\nPIN can only be numbers\n\nEnter 0 to start over`;
+          response = `CON Error!\nPIN can only be numbers\n\nEnter 0 Back to home menu`;
           resolve(response);
         }
       } else if (paymentMethod === "coralpay") {
@@ -782,7 +782,7 @@ async function handleAirtel(
         resolve(response);
       }
     } else {
-      response = "CON Invalid response inputed\n\nEnter 0 Back to home menu";
+      response = "CON Invalid response entered\n\nEnter 0 Back to home menu";
       resolve(response);
     }
   });
@@ -973,7 +973,7 @@ async function handleEtisalat(
         resolve(response);
       } else {
         console.log("Number is invalid");
-        response = `CON Error! Inputted number is not a valid phone number\n\nEnter 0 to start over`;
+        response = `CON Error! Inputted number is not a valid phone number\n\nEnter 0 Back to home menu`;
         resolve(response);
       }
     } else if (
@@ -1015,7 +1015,7 @@ async function handleEtisalat(
         }
       } else {
         response =
-          "CON Error!\nSelect a valid payment method\n\nEnter 0 to start over";
+          "CON Error!\nSelect a valid payment method\n\nEnter 0 Back to home menu";
         resolve(response);
       }
     } else if (
@@ -1050,7 +1050,7 @@ async function handleEtisalat(
           resolve(response);
         } else {
           console.log("PIN is invalid");
-          response = `CON Error!\nPIN can only be numbers\n\nEnter 0 to start over`;
+          response = `CON Error!\nPIN can only be numbers\n\nEnter 0 Back to home menu`;
           resolve(response);
         }
       } else if (paymentMethod === "coralpay") {
@@ -1104,7 +1104,7 @@ async function handleEtisalat(
         resolve(response);
       }
     } else {
-      response = "CON Invalid response inputed\n\nEnter 0 Back to home menu";
+      response = "CON Invalid response entered\n\nEnter 0 Back to home menu";
       resolve(response);
     }
   });
@@ -1441,7 +1441,7 @@ async function handleSmile(
         resolve(response);
       } else {
         console.log("Number is invalid");
-        response = `CON Error! Inputted number is not a valid phone number\n\nEnter 0 to start over`;
+        response = `CON Error! Inputted number is not a valid phone number\n\nEnter 0 Back to home menu`;
         resolve(response);
       }
     } else if (
@@ -1497,7 +1497,7 @@ async function handleSmile(
         }
       } else {
         response =
-          "CON Error!\nSelect a valid payment method\n\nEnter 0 to start over";
+          "CON Error!\nSelect a valid payment method\n\nEnter 0 Back to home menu";
         resolve(response);
       }
     } else if (
@@ -1545,7 +1545,7 @@ async function handleSmile(
           resolve(response);
         } else {
           console.log("PIN is invalid");
-          response = `CON Error!\nPIN can only be numbers\n\nEnter 0 to start over`;
+          response = `CON Error!\nPIN can only be numbers\n\nEnter 0 Back to home menu`;
           resolve(response);
         }
       } else if (paymentMethod === "coralpay") {
@@ -1612,7 +1612,7 @@ async function handleSmile(
         resolve(response);
       }
     } else {
-      response = "CON Invalid response inputed\n\nEnter 0 Back to home menu";
+      response = "CON Invalid response entered\n\nEnter 0 Back to home menu";
       resolve(response);
     }
   });
@@ -1792,7 +1792,7 @@ async function handleSpectranet(
         resolve(response);
       } else {
         console.log("Number is invalid");
-        response = `CON Error! Inputted number is not a valid phone number\n\nEnter 0 to start over`;
+        response = `CON Error! Inputted number is not a valid phone number\n\nEnter 0 Back to home menu`;
         resolve(response);
       }
     } else if (
@@ -1831,7 +1831,7 @@ async function handleSpectranet(
         }
       } else {
         response =
-          "CON Error!\nSelect a valid payment method\n\nEnter 0 to start over";
+          "CON Error!\nSelect a valid payment method\n\nEnter 0 Back to home menu";
         resolve(response);
       }
     } else if (
@@ -1862,7 +1862,7 @@ async function handleSpectranet(
           resolve(response);
         } else {
           console.log("PIN is invalid");
-          response = `CON Error!\nPIN can only be numbers\n\nEnter 0 to start over`;
+          response = `CON Error!\nPIN can only be numbers\n\nEnter 0 Back to home menu`;
           resolve(response);
         }
       } else if (paymentMethod === "coralpay") {
@@ -1912,7 +1912,7 @@ async function handleSpectranet(
         resolve(response);
       }
     } else {
-      response = "CON Invalid response inputed\n\nEnter 0 Back to home menu";
+      response = "CON Invalid response entered\n\nEnter 0 Back to home menu";
       resolve(response);
     }
   });

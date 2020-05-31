@@ -74,7 +74,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         resolve(response);
       } else {
         console.log("Number is invalid");
-        response = `CON Error! Inputted number is not a valid phone number\n\nEnter 0 to start over`;
+        response = `CON Error! Inputted number is not a valid phone number\n\nEnter 0 Back to home menu`;
         resolve(response);
       }
     } else if (brokenDownText.length === 4) {
@@ -99,7 +99,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         }
       } else {
         console.log("Amount is invalid");
-        response = `CON Error! Inputted amount is not a valid number\n\nEnter 0 to start over`;
+        response = `CON Error! Inputted amount is not a valid number\n\nEnter 0 Back to home menu`;
         resolve(response);
       }
     } else if (
@@ -159,7 +159,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
         resolve(response);
       } else {
         console.log("PIN is invalid");
-        response = `CON Error! PIN can only be numbers\n\nEnter 0 to start over`;
+        response = `CON Error! PIN can only be numbers\n\nEnter 0 Back to home menu`;
         resolve(response);
       }
     } else if (
@@ -307,7 +307,7 @@ async function airtimeFlow(brokenDownText, phoneNumber, sessionId) {
       response = `CON Transaction Cancelled!\n\nEnter 0 Back to home menu`;
       resolve(response);
     } else {
-      response = "CON Invalid response inputed\n\nEnter 0 Back to home menu";
+      response = "CON Invalid response entered\n\nEnter 0 Back to home menu";
       resolve(response);
     }
   });
