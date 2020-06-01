@@ -18,69 +18,67 @@ function quickServe(phoneNumber, text, sessionId) {
     let textLength = brokenDownText.length;
     let {
       mongo_userId,
-      Cabletv_QS_profileListed: hasProfiles,
-      Cabletv_QS_profileViewed: profileViewed,
+      Airtime_QS_profileListed: hasProfiles,
+      Airtime_QS_profileViewed: profileViewed,
     } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
 
-    if (textLength === 3) {
+    if (textLength === 2) {
       await redisClient.hmsetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
-        "cabletv_purchase_method",
+        "airtime_purchase_method",
         "quickServe"
       );
       response = await listTopProfiles(mongo_userId, sessionId);
-    } else if (textLength === 4 && hasProfiles) {
+    } else if (textLength === 3 && hasProfiles) {
       let profileName = brokenDownText[textLength - 1].toLowerCase();
       response = await viewProfile(mongo_userId, profileName, sessionId);
-    } else if (textLength === 5 && profileViewed) {
+    } else if (textLength === 4 && profileViewed) {
       let userResponse = brokenDownText[textLength - 1];
       if (userResponse === "1") {
         response = `CON Select payment method:\n1 My Wallet\n2 MyBankUSSD`;
       } else {
         response = `CON Error!\nInvalid response entered\n\nEnter 0 Back to home menu`;
       }
-    } else if (textLength === 6 && profileViewed) {
+    } else if (textLength === 5 && profileViewed) {
       let paymentMethod = brokenDownText[textLength - 1];
 
       if (paymentMethod === "1" || paymentMethod === "2") {
         if (paymentMethod === "1") {
           await redisClient.hsetAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`,
-            "Cabletv_QS_paymentMethod",
+            "Elec_QS_paymentMethod",
             "felawallet"
           );
           response = "CON Enter your wallet PIN:";
         } else {
           await redisClient.hsetAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`,
-            "Cabletv_QS_paymentMethod",
+            "Elec_QS_paymentMethod",
             "coralpay"
           );
           response = displayMyBankUSSDBanks();
         }
       }
-    } else if (textLength === 7 && profileViewed) {
+    } else if (textLength === 6 && profileViewed) {
       let {
-        Cabletv_QS_paymentMethod: paymentMethod,
-        Cabletv_QS_profileId: profileId,
-        Cabletv_QS_providerCode: providerCode,
-        Cabletv_QS_cardNo: cardNo,
-        Cabletv_QS_bouquetCode: bouquetCode,
-        Cabletv_QS_bouquetPrice: price,
-        Cable_QS_profileSuccessfulTrans: successfulTran,
+        Elec_QS_paymentMethod: paymentMethod,
+        Airtime_QS_profileId: profileId,
+        Airtime_QS_networkCode: providerCode,
+        Airtime_QS_phoneNo: recipentNumber,
+        Airtime_QS_amount: airtimeAmount,
+        Airtime_QS_profileSuccessfulTrans: successfulTran,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
 
       if (paymentMethod === "felawallet") {
         let walletPin = brokenDownText[textLength - 1];
         if (/^[0-9]*$/.test(walletPin)) {
-          response = await processCableTVPayment(
+          response = await processAirtimePurchase(
             sessionId,
             phoneNumber,
-            cardNo,
+            recipentNumber,
+            airtimeAmount,
             providerCode,
-            bouquetCode,
             paymentMethod,
-            price,
             profileId,
             successfulTran,
             walletPin
@@ -98,14 +96,13 @@ function quickServe(phoneNumber, text, sessionId) {
             Number(userResponse) - 1
           ];
 
-          response = await processCableTVPayment(
+          response = await processAirtimePurchase(
             sessionId,
             phoneNumber,
-            cardNo,
+            recipentNumber,
+            airtimeAmount,
             providerCode,
-            bouquetCode,
             paymentMethod,
-            price,
             profileId,
             successfulTran,
             undefined,
@@ -131,47 +128,41 @@ function viewProfile(mongo_userId, profileName, sessionId) {
     let profile = await mongoFront.findExistingProfile(
       mongo_userId,
       profileName,
-      "cabletv"
+      "airtime"
     );
     if (profile) {
       let {
         _id,
         name,
-        providerName,
-        providerCode,
-        cardNumber,
-        defaultBouquetName,
-        defaultBouquetCode,
-        defaultBouquetPrice,
+        networkCode,
+        networkName,
+        phoneNumber,
+        defaultAmount,
         successfulTransactions = 0,
       } = profile;
 
       await redisClient.hmsetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
-        "Cabletv_QS_profileId",
+        "Airtime_QS_profileId",
         _id.toString(),
-        "Cabletv_QS_profileName",
+        "Airtime_QS_profileName",
         name,
-        "Cabletv_QS_providerName",
-        providerName,
-        "Cabletv_QS_providerCode",
-        providerCode,
-        "Cabletv_QS_cardNo",
-        cardNumber,
-        "Cabletv_QS_bouquetName",
-        defaultBouquetName,
-        "Cabletv_QS_bouquetCode",
-        defaultBouquetCode,
-        "Cabletv_QS_bouquetPrice",
-        defaultBouquetPrice,
-        "Cable_QS_profileSuccessfulTrans",
+        "Airtime_QS_networkCode",
+        networkCode,
+        "Airtime_QS_networkName",
+        networkName,
+        "Airtime_QS_phoneNo",
+        phoneNumber,
+        "Airtime_QS_amount",
+        defaultAmount,
+        "Airtime_QS_profileSuccessfulTrans",
         successfulTransactions,
-        "Cabletv_QS_profileViewed",
+        "Airtime_QS_profileViewed",
         "true"
       );
 
-      response = `CON Name: ${name}\nProvider: ${providerName}\nCardNo: ${cardNumber}\nBouquet: ${defaultBouquetName}\nPrice: ${formatNumber(
-        defaultBouquetPrice
+      response = `CON Name: ${name}\nNetwork: ${networkName}\nPhoneNo: ${phoneNumber}\nDefaultAmount: ${formatNumber(
+        defaultAmount
       )}\nTimesUsed: ${formatNumber(
         successfulTransactions
       )}\n\n1 Continue\n0 Cancel`;
@@ -186,13 +177,13 @@ function viewProfile(mongo_userId, profileName, sessionId) {
 function listTopProfiles(mongo_userId, sessionId) {
   return new Promise(async (resolve) => {
     let response = "";
-    let profiles = await mongoFront.getTopProfiles(mongo_userId, "cabletv");
+    let profiles = await mongoFront.getTopProfiles(mongo_userId, "airtime");
     if (profiles.length === 0) {
       response = `CON You do not have any top beneficiaries yet. Create some beneficiaries to see them here\n\n0 Menu`;
     } else {
       await redisClient.hmsetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
-        "Cabletv_QS_profileListed",
+        "Airtime_QS_profileListed",
         "true"
       );
       response = `CON Below are some of your top beneficiaries:\n`;
@@ -216,14 +207,13 @@ function displayMyBankUSSDBanks() {
   return response;
 }
 
-function processCableTVPayment(
+function processAirtimePurchase(
   sessionId,
   phoneNumber,
-  cardNo,
+  recipentNumber,
+  airtimeAmount,
   providerCode,
-  bouquetCode,
   paymentMethod,
-  price,
   profileId,
   successfulTran,
   walletPin = "",
@@ -232,16 +222,16 @@ function processCableTVPayment(
   return new Promise(async (resolve, reject) => {
     let payload = {
       offeringGroup: "core",
-      offeringName: "cabletv",
-      method: `${paymentMethod}`,
+      offeringName: "airtime",
+      method: paymentMethod,
       auth: {
         source: `${FelaMarketPlace.THIS_SOURCE}`,
         passkey: `${walletPin}`,
       },
       params: {
-        smartcard_number: `${cardNo}`,
-        provider_code: `${providerCode}`,
-        service_code: `${bouquetCode}`,
+        recipient: `${recipentNumber}`,
+        amount: `${airtimeAmount}`,
+        network: `${providerCode}`,
       },
       user: {
         sessionId: `${sessionId}`,
@@ -259,68 +249,76 @@ function processCableTVPayment(
           headers: felaHeader,
         }
       );
-      if (paymentMethod === "felawallet") {
-        console.log("Success!");
-        console.log(response.data);
-        await redisClient.incrAsync(
-          `${APP_PREFIX_REDIS}:reports:count:purchases_CableTVWithWallet:${moment().format(
-            "DMMYYYY"
-          )}`
-        );
-        // expireReportsInRedis(
-        //   `${APP_PREFIX_REDIS}:reports:count:purchases_CableTVWithWallet:${moment().format(
-        //     "DMMYYYY"
-        //   )}`
-        // );
-        await redisClient.incrbyAsync(
-          `${APP_PREFIX_REDIS}:reports:count:totalValue_CableTVWithWallet:${moment().format(
-            "DMMYYYY"
-          )}`,
-          parseInt(price)
-        );
-        // expireReportsInRedis(
-        //   `${APP_PREFIX_REDIS}:reports:count:totalValue_CableTVWithWallet:${moment().format(
-        //     "DMMYYYY"
-        //   )}`
-        // );
-        await updateProfileSuccessTran(profileId, successfulTran);
-        resolve(`END Dear Customer, your payment was successful!`);
-      } else {
-        console.log("Getting response from coral pay");
-        await redisClient.incrAsync(
-          `${APP_PREFIX_REDIS}:reports:count:purchases_CableTVWithMyBankUSSD:${moment().format(
-            "DMMYYYY"
-          )}`
-        );
-        // expireReportsInRedis(
-        //   `${APP_PREFIX_REDIS}:reports:count:purchases_CableTVWithMyBankUSSD:${moment().format(
-        //     "DMMYYYY"
-        //   )}`
-        // );
-        await redisClient.incrbyAsync(
-          `${APP_PREFIX_REDIS}:reports:count:totalValue_CableTVWithMyBankUSSD:${moment().format(
-            "DMMYYYY"
-          )}`,
-          parseInt(price)
-        );
-        // expireReportsInRedis(
-        //   `${APP_PREFIX_REDIS}:reports:count:totalValue_CableTVWithMyBankUSSD:${moment().format(
-        //     "DMMYYYY"
-        //   )}`
-        // );
-        let paymentToken = response.data.data.paymentToken;
-        // console.log(response.data);
 
-        // resolve(
-        //   `CON Ur Bank is *${chosenUSSDBankCode}#\nNever 4GET *000*\nTrans Code is ${paymentToken}\nRem last 4 Digits!\n\nDial2Pay *${chosenUSSDBankCode}*000*${paymentToken}#\nExpires in 5mins\n\nCashback\nWin N5k-100m\n\n0 Menu`
-        // );
-        // resolve(
-        //   `CON To complete your transaction, dial *${chosenUSSDBankCode}*000*${paymentToken}#\nPlease note that this USSD String will expire in the next 5 minutes.\n\n 0 Menu`
-        // );
-        await updateProfileSuccessTran(profileId, successfulTran);
-        resolve(
-          `END *${chosenUSSDBankCode}*000*${paymentToken}#\nDear Customer, memorize and dial the above code in your phone dialer to complete your transaction via your bank.`
-        );
+      switch (paymentMethod) {
+        case "felawallet":
+          console.log(JSON.stringify(response.data, null, 2));
+          // console.log(response)
+          await redisClient.incrAsync(
+            `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithWallet:${moment().format(
+              "DMMYYYY"
+            )}`
+          );
+          // expireReportsInRedis(
+          //   `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithWallet:${moment().format(
+          //     "DMMYYYY"
+          //   )}`
+          // );
+          await redisClient.incrbyAsync(
+            `${APP_PREFIX_REDIS}:reports:count:totalValue_AirtimeWithWallet:${moment().format(
+              "DMMYYYY"
+            )}`,
+            parseInt(airtimeAmount)
+          );
+          // expireReportsInRedis(
+          //   `${APP_PREFIX_REDIS}:reports:count:totalValue_AirtimeWithWallet:${moment().format(
+          //     "DMMYYYY"
+          //   )}`
+          // );
+          await updateProfileSuccessTran(profileId, successfulTran);
+          resolve(
+            `END Dear Customer, your line ${recipentNumber} has been successfully credited with ${NAIRASIGN}${formatNumber(
+              airtimeAmount
+            )} Airtime`
+          );
+          break;
+
+        case "coralpay":
+          console.log("Getting response from coral pay");
+          await redisClient.incrAsync(
+            `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithMyBankUSSD:${moment().format(
+              "DMMYYYY"
+            )}`
+          );
+          // expireReportsInRedis(
+          //   `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithMyBankUSSD:${moment().format(
+          //     "DMMYYYY"
+          //   )}`
+          // );
+          await redisClient.incrbyAsync(
+            `${APP_PREFIX_REDIS}:reports:count:totalValue_AirtimeWithMyBankUSSD:${moment().format(
+              "DMMYYYY"
+            )}`,
+            parseInt(airtimeAmount)
+          );
+          // expireReportsInRedis(
+          //   `${APP_PREFIX_REDIS}:reports:count:totalValue_AirtimeWithMyBankUSSD:${moment().format(
+          //     "DMMYYYY"
+          //   )}`
+          // );
+          let paymentToken = response.data.data.paymentToken;
+          // console.log(response.data);
+
+          // resolve(
+          //   `CON Ur Bank is *${chosenUSSDBankCode}#\nNever 4GET *000*\nTrans Code is ${paymentToken}\nRem last 4 Digits!\n\nDial2Pay *${chosenUSSDBankCode}*000*${paymentToken}#\nExpires in 5mins\n\nCashback\nWin N5k-100m\n\n0 Menu`
+          // );
+          // resolve(
+          //   `CON To complete your transaction, dial *${chosenUSSDBankCode}*000*${paymentToken}#\nPlease note that this USSD String will expire in the next 5 minutes.\n\n 0 Menu`
+          // );
+          await updateProfileSuccessTran(profileId, successfulTran);
+          resolve(
+            `END *${chosenUSSDBankCode}*000*${paymentToken}#\nDear Customer, memorize and dial the above code in your phone dialer to complete your transaction via your bank.`
+          );
       }
     } catch (error) {
       console.log("error");
@@ -344,7 +342,7 @@ function updateProfileSuccessTran(profileId, successfulTran) {
       successfulTransactions: updateTran.toString(),
       updatedAt: Date.now(),
     };
-    await mongoFront.updateProfile(profileId, doc, "cabletv");
+    await mongoFront.updateProfile(profileId, doc, "airtime");
     resolve();
   });
 }
