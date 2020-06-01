@@ -18,14 +18,14 @@ function quickServe(phoneNumber, text, sessionId) {
     let textLength = brokenDownText.length;
     let {
       mongo_userId,
-      Airtime_QS_profileListed: hasProfiles,
-      Airtime_QS_profileViewed: profileViewed,
+      Data_QS_profileListed: hasProfiles,
+      Data_QS_profileViewed: profileViewed,
     } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
 
     if (textLength === 2) {
       await redisClient.hmsetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
-        "airtime_purchase_method",
+        "data_purchase_method",
         "quickServe"
       );
       response = await listTopProfiles(mongo_userId, sessionId);
@@ -46,14 +46,14 @@ function quickServe(phoneNumber, text, sessionId) {
         if (paymentMethod === "1") {
           await redisClient.hsetAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`,
-            "Elec_QS_paymentMethod",
+            "Data_QS_paymentMethod",
             "felawallet"
           );
           response = "CON Enter your wallet PIN:";
         } else {
           await redisClient.hsetAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`,
-            "Elec_QS_paymentMethod",
+            "Data_QS_paymentMethod",
             "coralpay"
           );
           response = displayMyBankUSSDBanks();
@@ -61,24 +61,28 @@ function quickServe(phoneNumber, text, sessionId) {
       }
     } else if (textLength === 6 && profileViewed) {
       let {
-        Elec_QS_paymentMethod: paymentMethod,
-        Airtime_QS_profileId: profileId,
-        Airtime_QS_networkCode: providerCode,
-        Airtime_QS_phoneNo: recipentNumber,
-        Airtime_QS_amount: airtimeAmount,
-        Airtime_QS_profileSuccessfulTrans: successfulTran,
+        Data_QS_paymentMethod: paymentMethod,
+        Data_QS_profileId: profileId,
+        Data_QS_networkCode: providerCode,
+        Data_QS_phoneNo: recipentNumber,
+        Data_QS_bundleName: dataPlanName,
+        Data_QS_bundleCode: dataPlanCode,
+        Data_QS_bundlePrice: price,
+        Data_QS_profileSuccessfulTrans: successfulTran,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
 
       if (paymentMethod === "felawallet") {
         let walletPin = brokenDownText[textLength - 1];
         if (/^[0-9]*$/.test(walletPin)) {
-          response = await processAirtimePurchase(
+          response = await processDataPurchase(
             sessionId,
             phoneNumber,
             recipentNumber,
-            airtimeAmount,
             providerCode,
+            dataPlanCode,
+            dataPlanName,
             paymentMethod,
+            price,
             profileId,
             successfulTran,
             walletPin
@@ -96,13 +100,15 @@ function quickServe(phoneNumber, text, sessionId) {
             Number(userResponse) - 1
           ];
 
-          response = await processAirtimePurchase(
+          response = await processDataPurchase(
             sessionId,
             phoneNumber,
             recipentNumber,
-            airtimeAmount,
             providerCode,
+            dataPlanCode,
+            dataPlanName,
             paymentMethod,
+            price,
             profileId,
             successfulTran,
             undefined,
@@ -128,7 +134,7 @@ function viewProfile(mongo_userId, profileName, sessionId) {
     let profile = await mongoFront.findExistingProfile(
       mongo_userId,
       profileName,
-      "airtime"
+      "databundle"
     );
     if (profile) {
       let {
@@ -137,32 +143,38 @@ function viewProfile(mongo_userId, profileName, sessionId) {
         networkCode,
         networkName,
         phoneNumber,
-        defaultAmount,
+        defaultBundleName,
+        defaultBundleCode,
+        defaultBundlePrice,
         successfulTransactions = 0,
       } = profile;
 
       await redisClient.hmsetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
-        "Airtime_QS_profileId",
+        "Data_QS_profileId",
         _id.toString(),
-        "Airtime_QS_profileName",
+        "Data_QS_profileName",
         name,
-        "Airtime_QS_networkCode",
+        "Data_QS_networkCode",
         networkCode,
-        "Airtime_QS_networkName",
+        "Data_QS_networkName",
         networkName,
-        "Airtime_QS_phoneNo",
+        "Data_QS_phoneNo",
         phoneNumber,
-        "Airtime_QS_amount",
-        defaultAmount,
-        "Airtime_QS_profileSuccessfulTrans",
+        "Data_QS_bundleName",
+        defaultBundleName,
+        "Data_QS_bundleCode",
+        defaultBundleCode,
+        "Data_QS_bundlePrice",
+        defaultBundlePrice,
+        "Data_QS_profileSuccessfulTrans",
         successfulTransactions,
-        "Airtime_QS_profileViewed",
+        "Data_QS_profileViewed",
         "true"
       );
 
-      response = `CON Name: ${name}\nNetwork: ${networkName}\nPhoneNo: ${phoneNumber}\nDefaultAmount: ${formatNumber(
-        defaultAmount
+      response = `CON Name: ${name}\nNetwork: ${networkName}\nPhoneNo: ${phoneNumber}\nBundle: ${defaultBundleName}\nPrice: ${formatNumber(
+        defaultBundlePrice
       )}\nTimesUsed: ${formatNumber(
         successfulTransactions
       )}\n\n1 Continue\n0 Cancel`;
@@ -177,13 +189,13 @@ function viewProfile(mongo_userId, profileName, sessionId) {
 function listTopProfiles(mongo_userId, sessionId) {
   return new Promise(async (resolve) => {
     let response = "";
-    let profiles = await mongoFront.getTopProfiles(mongo_userId, "airtime");
+    let profiles = await mongoFront.getTopProfiles(mongo_userId, "databundle");
     if (profiles.length === 0) {
       response = `CON You do not have any top beneficiaries yet. Create some beneficiaries to see them here\n\n0 Menu`;
     } else {
       await redisClient.hmsetAsync(
         `${APP_PREFIX_REDIS}:${sessionId}`,
-        "Airtime_QS_profileListed",
+        "Data_QS_profileListed",
         "true"
       );
       response = `CON Below are some of your top beneficiaries:\n`;
@@ -207,13 +219,15 @@ function displayMyBankUSSDBanks() {
   return response;
 }
 
-function processAirtimePurchase(
+function processDataPurchase(
   sessionId,
   phoneNumber,
   recipentNumber,
-  airtimeAmount,
   providerCode,
+  dataPlanCode,
+  dataPlanName,
   paymentMethod,
+  price,
   profileId,
   successfulTran,
   walletPin = "",
@@ -222,15 +236,15 @@ function processAirtimePurchase(
   return new Promise(async (resolve, reject) => {
     let payload = {
       offeringGroup: "core",
-      offeringName: "airtime",
+      offeringName: "databundle",
       method: paymentMethod,
       auth: {
         source: `${FelaMarketPlace.THIS_SOURCE}`,
         passkey: `${walletPin}`,
       },
       params: {
-        recipient: `${recipentNumber}`,
-        amount: `${airtimeAmount}`,
+        account_id: `${recipentNumber}`,
+        bundle_code: `${dataPlanCode}`,
         network: `${providerCode}`,
       },
       user: {
@@ -255,63 +269,59 @@ function processAirtimePurchase(
           console.log(JSON.stringify(response.data, null, 2));
           // console.log(response)
           await redisClient.incrAsync(
-            `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithWallet:${moment().format(
+            `${APP_PREFIX_REDIS}:reports:count:purchases_DataWithWallet:${moment().format(
               "DMMYYYY"
             )}`
           );
-          // expireReportsInRedis(
-          //   `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithWallet:${moment().format(
-          //     "DMMYYYY"
-          //   )}`
-          // );
+          `${APP_PREFIX_REDIS}:reports:count:purchases_DataWithWallet:${moment().format(
+            "DMMYYYY"
+          )}`;
           await redisClient.incrbyAsync(
-            `${APP_PREFIX_REDIS}:reports:count:totalValue_AirtimeWithWallet:${moment().format(
+            `${APP_PREFIX_REDIS}:reports:count:totalValue_DataWithWallet:${moment().format(
               "DMMYYYY"
             )}`,
-            parseInt(airtimeAmount)
+            parseInt(price)
           );
           // expireReportsInRedis(
-          //   `${APP_PREFIX_REDIS}:reports:count:totalValue_AirtimeWithWallet:${moment().format(
+          //   `${APP_PREFIX_REDIS}:reports:count:totalValue_DataWithWallet:${moment().format(
           //     "DMMYYYY"
           //   )}`
           // );
           await updateProfileSuccessTran(profileId, successfulTran);
           resolve(
-            `END Dear Customer, your line ${recipentNumber} has been successfully credited with ${NAIRASIGN}${formatNumber(
-              airtimeAmount
-            )} Airtime`
+            `END Dear Customer your line ${recipentNumber} has been credited with ${dataPlanName} of Data`
           );
           break;
 
         case "coralpay":
           console.log("Getting response from coral pay");
           await redisClient.incrAsync(
-            `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithMyBankUSSD:${moment().format(
+            `${APP_PREFIX_REDIS}:reports:count:purchases_DataWithMyBankUSSD:${moment().format(
               "DMMYYYY"
             )}`
           );
           // expireReportsInRedis(
-          //   `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithMyBankUSSD:${moment().format(
+          //   `${APP_PREFIX_REDIS}:reports:count:purchases_DataWithMyBankUSSD:${moment().format(
           //     "DMMYYYY"
           //   )}`
           // );
           await redisClient.incrbyAsync(
-            `${APP_PREFIX_REDIS}:reports:count:totalValue_AirtimeWithMyBankUSSD:${moment().format(
+            `${APP_PREFIX_REDIS}:reports:count:totalValue_DataWithMyBankUSSD:${moment().format(
               "DMMYYYY"
             )}`,
-            parseInt(airtimeAmount)
+            parseInt(price)
           );
           // expireReportsInRedis(
-          //   `${APP_PREFIX_REDIS}:reports:count:totalValue_AirtimeWithMyBankUSSD:${moment().format(
+          //   `${APP_PREFIX_REDIS}:reports:count:totalValue_DataWithMyBankUSSD:${moment().format(
           //     "DMMYYYY"
           //   )}`
           // );
           let paymentToken = response.data.data.paymentToken;
           // console.log(response.data);
 
-          // resolve(
-          //   `CON Ur Bank is *${chosenUSSDBankCode}#\nNever 4GET *000*\nTrans Code is ${paymentToken}\nRem last 4 Digits!\n\nDial2Pay *${chosenUSSDBankCode}*000*${paymentToken}#\nExpires in 5mins\n\nCashback\nWin N5k-100m\n\n0 Menu`
-          // );
+          //   resolve(
+          //     `CON Ur Bank is *${chosenUSSDBankCode}#\nNever 4GET *000*\nTrans Code is ${paymentToken}\nRem last 4 Digits!\n\nDial2Pay *${chosenUSSDBankCode}*000*${paymentToken}#\nExpires in 5mins\n\nCashback\nWin N5k-100m\n\n0 Menu`
+          //   );
           // resolve(
           //   `CON To complete your transaction, dial *${chosenUSSDBankCode}*000*${paymentToken}#\nPlease note that this USSD String will expire in the next 5 minutes.\n\n 0 Menu`
           // );
@@ -342,7 +352,7 @@ function updateProfileSuccessTran(profileId, successfulTran) {
       successfulTransactions: updateTran.toString(),
       updatedAt: Date.now(),
     };
-    await mongoFront.updateProfile(profileId, doc, "airtime");
+    await mongoFront.updateProfile(profileId, doc, "databundle");
     resolve();
   });
 }

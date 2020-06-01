@@ -4,7 +4,7 @@ const { regularBuy } = require("./regularBuy");
 const { APP_PREFIX_REDIS, expireReportsInRedis } = require("$utils");
 const moment = require("moment");
 
-async function processAirtime(text, phoneNumber, sessionId) {
+async function processData(text, phoneNumber, sessionId) {
   return new Promise(async (resolve, reject) => {
     let response = "";
     let brokenDownText = text.split("*");
@@ -13,12 +13,12 @@ async function processAirtime(text, phoneNumber, sessionId) {
     // console.log(brokenDownText);
     if (textLength === 1) {
       await redisClient.incrAsync(
-        `${APP_PREFIX_REDIS}:reports:count:topMenu_Airtime:${moment().format(
+        `${APP_PREFIX_REDIS}:reports:count:topMenu_Data:${moment().format(
           "DMMYYYY"
         )}`
       );
       // expireReportsInRedis(
-      //   `${APP_PREFIX_REDIS}:reports:count:topMenu_Airtime:${moment().format(
+      //   `${APP_PREFIX_REDIS}:reports:count:topMenu_Data:${moment().format(
       //     "DMMYYYY"
       //   )}`
       // );
@@ -27,7 +27,7 @@ async function processAirtime(text, phoneNumber, sessionId) {
     } else {
       let userResponse = brokenDownText[1];
       let {
-        airtime_purchase_method: purchaseMethod,
+        data_purchase_method: purchaseMethod,
       } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
 
       if (userResponse === "1" || purchaseMethod === "quickServe") {
@@ -43,5 +43,5 @@ async function processAirtime(text, phoneNumber, sessionId) {
 }
 
 module.exports = {
-  processAirtime,
+  processData,
 };

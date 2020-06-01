@@ -46,14 +46,14 @@ function quickServe(phoneNumber, text, sessionId) {
         if (paymentMethod === "1") {
           await redisClient.hsetAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`,
-            "Elec_QS_paymentMethod",
+            "Airtime_QS_paymentMethod",
             "felawallet"
           );
           response = "CON Enter your wallet PIN:";
         } else {
           await redisClient.hsetAsync(
             `${APP_PREFIX_REDIS}:${sessionId}`,
-            "Elec_QS_paymentMethod",
+            "Airtime_QS_paymentMethod",
             "coralpay"
           );
           response = displayMyBankUSSDBanks();
@@ -61,7 +61,7 @@ function quickServe(phoneNumber, text, sessionId) {
       }
     } else if (textLength === 6 && profileViewed) {
       let {
-        Elec_QS_paymentMethod: paymentMethod,
+        Airtime_QS_paymentMethod: paymentMethod,
         Airtime_QS_profileId: profileId,
         Airtime_QS_networkCode: providerCode,
         Airtime_QS_phoneNo: recipentNumber,
