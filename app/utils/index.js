@@ -464,8 +464,9 @@ async function refineText(text, sessionId) {
     }
 
     if (backToMainMenu) {
-      await redisClient.delAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
       if (splittedText[backToMainMenuIndex + 1] === undefined) {
+        await redisClient.delAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
+
         newText = "";
         await redisClient.rpushAsync(
           `${APP_PREFIX_REDIS}:history:${sessionId}`,

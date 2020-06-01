@@ -28,6 +28,7 @@ function quickServe(phoneNumber, text, sessionId) {
         "airtime_purchase_method",
         "quickServe"
       );
+
       response = await listTopProfiles(mongo_userId, sessionId);
     } else if (textLength === 3 && hasProfiles) {
       let profileName = brokenDownText[textLength - 1].toLowerCase();
