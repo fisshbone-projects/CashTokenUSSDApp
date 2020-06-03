@@ -63,7 +63,7 @@ async function processFundDisbursement(text, phoneNumber, sessionId) {
               resolve(response);
             } else {
               response =
-                "CON CON Invalid response entered\n\nEnter 0 Back to home menu";
+                "CON Invalid response entered\n\nEnter 0 Back to home menu";
               resolve(response);
             }
           }

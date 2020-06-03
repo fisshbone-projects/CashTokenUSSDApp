@@ -325,9 +325,15 @@ async function getBankCharge() {
         }
       )
       .then(async (response) => {
+        let transferFee = null;
+        if (typeof response.data.data.fee === "object") {
+          transferFee = 100;
+        } else {
+          transferFee = response.data.data.fee;
+        }
         await redisClient.setAsync(
           `${APP_PREFIX_REDIS}:BankCharge`,
-          response.data.data.fee
+          transferFee
         );
         await redisClient.expireAsync(`${APP_PREFIX_REDIS}:BankCharge`, 360); //Cache for 1 hour
         resolve();
