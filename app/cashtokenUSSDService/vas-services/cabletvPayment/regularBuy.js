@@ -183,51 +183,61 @@ async function menuFlowDisplayOverFlowBouquets(
 
     switch (providerName) {
       case "DSTV":
-        if (textLength === 5 && brokenDownText[textLength - 1] === "4") {
-          response = await displayBouquets(providerCode, providerName, 3, 6);
-          await redisClient.hset(
-            `${APP_PREFIX_REDIS}:${sessionId}`,
-            "ussdState",
-            "getSmartCardNumber"
-          );
-        } else if (textLength === 6 && brokenDownText[textLength - 1] === "5") {
-          response = await displayBouquets(providerCode, providerName, 7, 11);
-          await redisClient.hset(
-            `${APP_PREFIX_REDIS}:${sessionId}`,
-            "ussdState",
-            "getSmartCardNumber"
-          );
-        } else if (textLength === 7 && brokenDownText[textLength - 1] === "6") {
-          response = await displayBouquets(providerCode, providerName, 12, 15);
-          await redisClient.hset(
-            `${APP_PREFIX_REDIS}:${sessionId}`,
-            "ussdState",
-            "getSmartCardNumber"
-          );
-        } else if (textLength === 8 && brokenDownText[textLength - 1] === "5") {
-          response = await displayBouquets(providerCode, providerName, 16, 19);
-          await redisClient.hset(
-            `${APP_PREFIX_REDIS}:${sessionId}`,
-            "ussdState",
-            "getSmartCardNumber"
-          );
-        } else if (textLength === 9 && brokenDownText[textLength - 1] === "5") {
-          response = await displayBouquets(providerCode, providerName, 20, 25);
-          await redisClient.hset(
-            `${APP_PREFIX_REDIS}:${sessionId}`,
-            "ussdState",
-            "getSmartCardNumber"
-          );
-        } else if (
-          textLength === 10 &&
-          brokenDownText[textLength - 1] === "7"
-        ) {
-          response = await displayBouquets(providerCode, providerName, 26, -1);
-          await redisClient.hset(
-            `${APP_PREFIX_REDIS}:${sessionId}`,
-            "ussdState",
-            "getSmartCardNumber"
-          );
+        if ([5, 6, 7, 8, 9, 10].includes(textLength)) {
+          let userResponse = brokenDownText[textLength - 1];
+          let showNext = false;
+          let displayStart = 0;
+          let displayEnd = 0;
+
+          switch (textLength) {
+            case 5:
+              console.log("HEREHERE");
+              showNext = userResponse === "4";
+              displayStart = 3;
+              displayEnd = 6;
+              break;
+            case 6:
+              showNext = userResponse === "5";
+              displayStart = 7;
+              displayEnd = 11;
+              break;
+            case 7:
+              showNext = userResponse === "6";
+              displayStart = 12;
+              displayEnd = 15;
+              break;
+            case 8:
+              showNext = userResponse === "5";
+              displayStart = 16;
+              displayEnd = 19;
+              break;
+            case 9:
+              showNext = userResponse === "5";
+              displayStart = 20;
+              displayEnd = 25;
+              break;
+            case 10:
+              showNext = userResponse === "7";
+              displayStart = 26;
+              displayEnd = -1;
+              break;
+          }
+
+          if (showNext) {
+            response = await displayBouquets(
+              providerCode,
+              providerName,
+              displayStart,
+              displayEnd
+            );
+            await redisClient.hset(
+              `${APP_PREFIX_REDIS}:${sessionId}`,
+              "ussdState",
+              "getSmartCardNumber"
+            );
+          } else {
+            response = "";
+          }
         }
         break;
     }
