@@ -61,9 +61,9 @@ function createCabletvProfile(text, phoneNumber, sessionId) {
         "QS_Cabletv_processStage",
         "Getting bouquet"
       );
-      response = `CON Select Beneficiary's Default Bouquet:\n`;
+      response = `CON Select Default Bouquet:\n`;
       if (provName === "DSTV") {
-        bouquets = await displayBouquets(provCode, provName, 0, 4);
+        bouquets = await displayBouquets(provCode, provName, 0, 2);
       } else if (provName === "GOTV") {
         bouquets = await displayBouquets(provCode, provName, 0, -1);
       }
@@ -78,54 +78,76 @@ function createCabletvProfile(text, phoneNumber, sessionId) {
 
       response = "CON Enter Beneficiary's Smartcard Number:";
     } else if (
-      (textlength === 6 ||
-        textlength === 7 ||
-        textlength === 8 ||
-        textlength === 9) &&
+      [6, 7, 8, 9, 10, 11, 12].includes(textlength) &&
       chosenProvName === "DSTV" &&
       processStage === "Getting bouquet"
     ) {
-      let selectedOption = brokenDownText[textlength - 1];
+      let userResponse = Number(brokenDownText[textlength - 1]);
+      let displayBouquetStart = 0;
+      let displayBouquetEnd = 0;
+      let displayBouquetShowAt = 0;
       let selectedBouquet = 0;
-      if (textlength === 6 && Number(selectedOption) <= 5) {
-        selectedBouquet = Number(brokenDownText[textlength - 1]) - 1;
+
+      switch (textlength) {
+        case 6:
+          selectedBouquet = userResponse - 1;
+          displayBouquetShowAt = 3;
+          displayBouquetStart = 3;
+          displayBouquetEnd = 6;
+          break;
+        case 7:
+          selectedBouquet = userResponse + 2;
+          displayBouquetShowAt = 4;
+          displayBouquetStart = 7;
+          displayBouquetEnd = 11;
+          break;
+        case 8:
+          selectedBouquet = userResponse + 6;
+          displayBouquetShowAt = 5;
+          displayBouquetStart = 12;
+          displayBouquetEnd = 15;
+          break;
+        case 9:
+          selectedBouquet = userResponse + 11;
+          displayBouquetShowAt = 4;
+          displayBouquetStart = 16;
+          displayBouquetEnd = 19;
+          break;
+        case 10:
+          selectedBouquet = userResponse + 15;
+          displayBouquetShowAt = 4;
+          displayBouquetStart = 20;
+          displayBouquetEnd = 25;
+          break;
+        case 11:
+          selectedBouquet = userResponse + 19;
+          displayBouquetShowAt = 6;
+          displayBouquetStart = 26;
+          displayBouquetEnd = -1;
+          break;
+        case 12:
+          selectedBouquet = userResponse + 25;
+          displayBouquetShowAt = 7;
+          break;
+      }
+
+      if (userResponse <= displayBouquetShowAt) {
         await saveSelectedBouquet(chosenProvCode, selectedBouquet, sessionId);
         response = "CON Enter Beneficiary's Smartcard Number:";
-      } else if (textlength === 6 && Number(selectedOption) > 5) {
-        response = `CON Select Beneficiary's Default Bouquet:\n`;
-        bouquets = await displayBouquets(chosenProvCode, chosenProvName, 5, 9);
-        response += bouquets;
-      } else if (textlength === 7 && Number(selectedOption) <= 5) {
-        selectedBouquet = Number(brokenDownText[textlength - 1]) + 4;
-        await saveSelectedBouquet(chosenProvCode, selectedBouquet, sessionId);
-        response = "CON Enter Beneficiary's Smartcard Number:";
-      } else if (textlength === 7 && Number(selectedOption) > 5) {
-        response = `CON Select Beneficiary's Default Bouquet:\n`;
-        bouquets = await displayBouquets(
-          chosenProvCode,
-          chosenProvName,
-          10,
-          14
-        );
-        response += bouquets;
-      } else if (textlength === 8 && Number(selectedOption) <= 5) {
-        selectedBouquet = Number(brokenDownText[textlength - 1]) + 9;
-        await saveSelectedBouquet(chosenProvCode, selectedBouquet, sessionId);
-        response = "CON Enter Beneficiary's Smartcard Number:";
-      } else if (textlength === 8 && Number(selectedOption) > 5) {
-        response = `CON Select Beneficiary's Default Bouquet:\n`;
-        bouquets = await displayBouquets(
-          chosenProvCode,
-          chosenProvName,
-          15,
-          -1
-        );
-        response += bouquets;
-      } else if (textlength === 9 && Number(selectedOption) <= 7) {
-        selectedBouquet = Number(brokenDownText[textlength - 1]) + 14;
-        await saveSelectedBouquet(chosenProvCode, selectedBouquet, sessionId);
-        response = "CON Enter Beneficiary's Smartcard Number:";
-      } else if (textlength === 9 && Number(selectedOption) > 7) {
+      } else if (userResponse > displayBouquetShowAt) {
+        if (textlength === 12) {
+          response = "CON Error! Wrong option inputed\n\n0 Menu";
+        } else {
+          response = `CON Select Default Bouquet:\n`;
+          bouquets = await displayBouquets(
+            chosenProvCode,
+            chosenProvName,
+            displayBouquetStart,
+            displayBouquetEnd
+          );
+          response += bouquets;
+        }
+      } else {
         response = "CON Error! Wrong option inputed\n\n0 Menu";
       }
     } else if (textlength === 7 && chosenProvName === "GOTV") {
@@ -152,10 +174,7 @@ function createCabletvProfile(text, phoneNumber, sessionId) {
         response = "CON Error! Smartcard number cannot be verified\n\n0 Menu";
       }
     } else if (
-      (textlength === 7 ||
-        textlength === 8 ||
-        textlength === 9 ||
-        textlength === 10) &&
+      [7, 8, 9, 10, 11, 12, 13].includes(textlength) &&
       chosenProvName === "DSTV" &&
       processStage === "Getting cardNo"
     ) {
@@ -193,10 +212,7 @@ function createCabletvProfile(text, phoneNumber, sessionId) {
         response = "CON Error! Wrong option inputed\n\n0 Menu";
       }
     } else if (
-      (textlength === 8 ||
-        textlength === 9 ||
-        textlength === 10 ||
-        textlength === 11) &&
+      [8, 9, 10, 11, 12, 13, 14].includes(textlength) &&
       chosenProvName === "DSTV" &&
       processStage === "Confirming"
     ) {
@@ -218,10 +234,7 @@ function createCabletvProfile(text, phoneNumber, sessionId) {
         response = "CON Error! Wrong option inputed\n\n0 Menu";
       }
     } else if (
-      (textlength === 9 ||
-        textlength === 10 ||
-        textlength === 11 ||
-        textlength === 12) &&
+      [9, 10, 11, 12, 13, 14, 15] &&
       chosenProvName === "DSTV" &&
       processStage === "Updating Profile"
     ) {
@@ -252,7 +265,7 @@ function generateSummary(sessionId) {
     } = await redisClient.hgetallAsync(`${APP_PREFIX_REDIS}:${sessionId}`);
     let response = "";
 
-    response = `CON Confirm beneficiary:\nName: ${QS_Cabletv_name}\nProvider: ${QS_Cabletv_providerName}\nBouquet: ${QS_Cabletv_bouquetName}\nCardNo: ${QS_Cabletv_cardNo}\nPrice: ${formatNumber(
+    response = `CON Confirm:\nName: ${QS_Cabletv_name}\nProvider: ${QS_Cabletv_providerName}\nBouquet: ${QS_Cabletv_bouquetName}\nCardNo: ${QS_Cabletv_cardNo}\nPrice: ${formatNumber(
       QS_Cabletv_bouquetPrice
     )}\n\n1 Confirm\n2 Cancel`;
 
