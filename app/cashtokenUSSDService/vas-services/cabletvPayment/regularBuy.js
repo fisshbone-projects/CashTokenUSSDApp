@@ -191,7 +191,6 @@ async function menuFlowDisplayOverFlowBouquets(
 
           switch (textLength) {
             case 5:
-              console.log("HEREHERE");
               showNext = userResponse === "4";
               displayStart = 3;
               displayEnd = 6;
