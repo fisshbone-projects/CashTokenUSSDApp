@@ -142,7 +142,7 @@ async function menuFlowDisplayBouquets(brokenDownText, sessionId) {
 
         switch (providerName) {
           case "DSTV":
-            response = await displayBouquets(providerCode, providerName, 0, 5);
+            response = await displayBouquets(providerCode, providerName, 0, 2);
             await redisClient.hset(
               `${APP_PREFIX_REDIS}:${sessionId}`,
               "ussdState",
@@ -183,15 +183,46 @@ async function menuFlowDisplayOverFlowBouquets(
 
     switch (providerName) {
       case "DSTV":
-        if (textLength === 5 && brokenDownText[textLength - 1] === "7") {
-          response = await displayBouquets(providerCode, providerName, 6, 11);
+        if (textLength === 5 && brokenDownText[textLength - 1] === "4") {
+          response = await displayBouquets(providerCode, providerName, 3, 6);
           await redisClient.hset(
             `${APP_PREFIX_REDIS}:${sessionId}`,
             "ussdState",
             "getSmartCardNumber"
           );
-        } else if (textLength === 6 && brokenDownText[textLength - 1] === "7") {
-          response = await displayBouquets(providerCode, providerName, 12, -1);
+        } else if (textLength === 6 && brokenDownText[textLength - 1] === "5") {
+          response = await displayBouquets(providerCode, providerName, 7, 11);
+          await redisClient.hset(
+            `${APP_PREFIX_REDIS}:${sessionId}`,
+            "ussdState",
+            "getSmartCardNumber"
+          );
+        } else if (textLength === 7 && brokenDownText[textLength - 1] === "6") {
+          response = await displayBouquets(providerCode, providerName, 12, 15);
+          await redisClient.hset(
+            `${APP_PREFIX_REDIS}:${sessionId}`,
+            "ussdState",
+            "getSmartCardNumber"
+          );
+        } else if (textLength === 8 && brokenDownText[textLength - 1] === "5") {
+          response = await displayBouquets(providerCode, providerName, 16, 19);
+          await redisClient.hset(
+            `${APP_PREFIX_REDIS}:${sessionId}`,
+            "ussdState",
+            "getSmartCardNumber"
+          );
+        } else if (textLength === 9 && brokenDownText[textLength - 1] === "5") {
+          response = await displayBouquets(providerCode, providerName, 20, 25);
+          await redisClient.hset(
+            `${APP_PREFIX_REDIS}:${sessionId}`,
+            "ussdState",
+            "getSmartCardNumber"
+          );
+        } else if (
+          textLength === 10 &&
+          brokenDownText[textLength - 1] === "7"
+        ) {
+          response = await displayBouquets(providerCode, providerName, 26, -1);
           await redisClient.hset(
             `${APP_PREFIX_REDIS}:${sessionId}`,
             "ussdState",
@@ -223,9 +254,10 @@ async function menuFlowGetSmartCardNo(
 
     switch (providerName) {
       case "DSTV":
+        let bouquetSelection = Number(brokenDownText[textLength - 1]);
         if (
           textLength === 5 &&
-          Number(brokenDownText[textLength - 1]) <= 6 &&
+          Number(brokenDownText[textLength - 1]) <= 3 &&
           currentState === "getSmartCardNumber"
         ) {
           let selectedBouquet = parseInt(brokenDownText[textLength - 1]);
@@ -238,25 +270,40 @@ async function menuFlowGetSmartCardNo(
 
           response = `CON Enter your SmartCard Number:`;
         } else if (
-          textLength === 6 &&
-          Number(brokenDownText[textLength - 1]) <= 6 &&
+          ((textLength === 6 && bouquetSelection <= 4) ||
+            (textLength === 7 && bouquetSelection <= 5) ||
+            (textLength === 8 && bouquetSelection <= 4) ||
+            (textLength === 9 && bouquetSelection <= 4) ||
+            (textLength === 10 && bouquetSelection <= 6) ||
+            (textLength === 11 && bouquetSelection <= 7)) &&
           currentState === "getSmartCardNumber"
         ) {
-          let selectedBouquet = parseInt(brokenDownText[textLength - 1]);
-          saveSelectedBouquet(providerCode, selectedBouquet + 5, sessionId);
-          await redisClient.hset(
-            `${APP_PREFIX_REDIS}:${sessionId}`,
-            "ussdState",
-            "getPaymentMethod"
+          let addBy = 0;
+          switch (textLength) {
+            case 6:
+              addBy = 2;
+              break;
+            case 7:
+              addBy = 6;
+              break;
+            case 8:
+              addBy = 11;
+              break;
+            case 9:
+              addBy = 15;
+              break;
+            case 10:
+              addBy = 19;
+              break;
+            case 11:
+              addBy = 25;
+              break;
+          }
+          saveSelectedBouquet(
+            providerCode,
+            bouquetSelection + addBy,
+            sessionId
           );
-          response = `CON Enter your SmartCard Number:`;
-        } else if (
-          textLength === 7 &&
-          Number(brokenDownText[textLength - 1]) <= 7 &&
-          currentState === "getSmartCardNumber"
-        ) {
-          let selectedBouquet = parseInt(brokenDownText[textLength - 1]);
-          saveSelectedBouquet(providerCode, selectedBouquet + 11, sessionId);
           await redisClient.hset(
             `${APP_PREFIX_REDIS}:${sessionId}`,
             "ussdState",
@@ -304,59 +351,7 @@ async function menuFlowGetPaymentMethod(
     switch (providerName) {
       case "DSTV":
         if (
-          textLength === 6 &&
-          brokenDownText[textLength - 1].length > 5 &&
-          currentState === "getPaymentMethod"
-        ) {
-          let {
-            cableBouquetCode: bouquetCode,
-          } = await redisClient.hgetallAsync(
-            `${APP_PREFIX_REDIS}:${sessionId}`
-          );
-
-          let smartCardNo = brokenDownText[textLength - 1];
-          if (
-            await confirmSmartCardNo(smartCardNo, providerCode, bouquetCode)
-          ) {
-            await redisClient.hmsetAsync(
-              `${APP_PREFIX_REDIS}:${sessionId}`,
-              "ussdState",
-              "getPaymentDetails",
-              "cableCardNo",
-              smartCardNo
-            );
-            response = `CON Select payment method:\n1 My Wallet\n2 MyBankUSSD`;
-          } else {
-            response = `CON Error!\nInputed smartcard number cannot be verified \n\nEnter 0 Back to home menu`;
-          }
-        } else if (
-          textLength === 7 &&
-          brokenDownText[textLength - 1].length > 5 &&
-          currentState === "getPaymentMethod"
-        ) {
-          let {
-            cableBouquetCode: bouquetCode,
-          } = await redisClient.hgetallAsync(
-            `${APP_PREFIX_REDIS}:${sessionId}`
-          );
-
-          let smartCardNo = brokenDownText[textLength - 1];
-          if (
-            await confirmSmartCardNo(smartCardNo, providerCode, bouquetCode)
-          ) {
-            await redisClient.hmsetAsync(
-              `${APP_PREFIX_REDIS}:${sessionId}`,
-              "ussdState",
-              "getPaymentDetails",
-              "cableCardNo",
-              smartCardNo
-            );
-            response = `CON Select payment method:\n1 My Wallet\n2 MyBankUSSD`;
-          } else {
-            response = `CON Error!\nInputed smartcard number cannot be verified \n\nEnter 0 Back to home menu`;
-          }
-        } else if (
-          textLength === 8 &&
+          [6, 7, 8, 9, 10, 11, 12].includes(textLength) &&
           brokenDownText[textLength - 1].length > 5 &&
           currentState === "getPaymentMethod"
         ) {
@@ -430,17 +425,10 @@ async function menuFlowGetPaymentDetails(
     switch (providerName) {
       case "DSTV":
         if (
-          (textLength === 7 || textLength === 8 || textLength === 9) &&
+          [7, 8, 9, 10, 11, 12, 13].includes(textLength) &&
           currentState === "getPaymentDetails"
         ) {
-          let paymentMethod = "";
-          if (textLength === 7) {
-            paymentMethod = brokenDownText[textLength - 1];
-          } else if (textLength === 8) {
-            paymentMethod = brokenDownText[textLength - 1];
-          } else if (textLength === 9) {
-            paymentMethod = brokenDownText[textLength - 1];
-          }
+          let paymentMethod = brokenDownText[textLength - 1];
 
           if (paymentMethod === "1" || paymentMethod === "2") {
             if (paymentMethod === "1") {
@@ -518,20 +506,11 @@ async function menuFlowDisplaySummary(brokenDownText, sessionId, providerName) {
     switch (providerName) {
       case "DSTV":
         if (
-          (textLength === 8 || textLength === 9 || textLength === 10) &&
+          [8, 9, 10, 11, 12, 13, 14].includes(textLength) &&
           currentState === "displaySummary" &&
           paymentMethod === "felawallet"
         ) {
-          let walletPin = "";
-
-          if (textLength === 8) {
-            walletPin = brokenDownText[textLength - 1];
-          } else if (textLength === 9) {
-            walletPin = brokenDownText[textLength - 1];
-          } else if (textLength === 10) {
-            walletPin = brokenDownText[textLength - 1];
-          }
-
+          let walletPin = brokenDownText[textLength - 1];
           if (/^[0-9]*$/.test(walletPin)) {
             await redisClient.hmsetAsync(
               `${APP_PREFIX_REDIS}:${sessionId}`,
@@ -549,15 +528,15 @@ async function menuFlowDisplaySummary(brokenDownText, sessionId, providerName) {
             } = await redisClient.hgetallAsync(
               `${APP_PREFIX_REDIS}:${sessionId}`
             );
-            response = `CON Confirm CableTV Payment:\nProvider: ${cableProviderName}\nBouquet: ${cableBouquetName}\nCardNo: ${cableCardNo}\nPrice: ${formatNumber(
+            response = `CON Confirm:\nProvider: ${cableProviderName}\nBouquet: ${cableBouquetName}\nCardNo: ${cableCardNo}\nPrice: ${formatNumber(
               bouquetPrice
-            )}\nPayMethod: Wallet\n\n1 Confirm\n2 Cancel`;
+            )}\nPay: Wallet\n\n1 Confirm\n2 Cancel`;
           } else {
             console.log("PIN is invalid");
             response = `CON Error!\nPIN can only be numbers\n\nEnter 0 Back to home menu`;
           }
         } else if (
-          (textLength === 8 || textLength === 9 || textLength === 10) &&
+          [8, 9, 10, 11, 12, 13, 14].includes(textLength) &&
           currentState === "displaySummary" &&
           paymentMethod === "coralpay"
         ) {
@@ -570,15 +549,7 @@ async function menuFlowDisplaySummary(brokenDownText, sessionId, providerName) {
             `${APP_PREFIX_REDIS}:${sessionId}`
           );
 
-          let chosenUSSDBank = "";
-
-          if (textLength === 8) {
-            chosenUSSDBank = parseInt(brokenDownText[textLength - 1], 10);
-          } else if (textLength === 9) {
-            chosenUSSDBank = parseInt(brokenDownText[textLength - 1], 10);
-          } else if (textLength === 10) {
-            chosenUSSDBank = parseInt(brokenDownText[textLength - 1], 10);
-          }
+          let chosenUSSDBank = Number(brokenDownText[textLength - 1]);
 
           if (chosenUSSDBank <= Object.values(MYBANKUSSD_BANK_CODES).length) {
             let chosenUSSDBankName = Object.keys(MYBANKUSSD_BANK_CODES)[
@@ -597,9 +568,9 @@ async function menuFlowDisplaySummary(brokenDownText, sessionId, providerName) {
               "makePayment"
             );
 
-            response = `CON Confirm CableTV Payment:\nProvider: ${cableProviderName}\nBouquet: ${cableBouquetName}\nCardNo: ${cableCardNo}\nPrice: ${formatNumber(
+            response = `CON Confirm:\nProvider: ${cableProviderName}\nBouquet: ${cableBouquetName}\nCardNo: ${cableCardNo}\nPrice: ${formatNumber(
               bouquetPrice
-            )}\nPayMethod: ${
+            )}\nPay: ${
               chosenUSSDBankName.includes("bank") ||
               chosenUSSDBankName == "GTB" ||
               chosenUSSDBankName == "FBN" ||
@@ -717,70 +688,69 @@ async function menuFlowMakePayment(
     switch (providerName) {
       case "DSTV":
         if (
-          ((textLength === 9 && brokenDownText[textLength - 1] === "1") ||
-            (textLength === 10 && brokenDownText[textLength - 1] === "1") ||
-            (textLength === 11 && brokenDownText[textLength - 1] === "1")) &&
+          [9, 10, 11, 12, 13, 14, 15].includes(textLength) &&
           currentState === "makePayment" &&
           paymentMethod === "felawallet"
         ) {
-          let {
-            cableProviderCode,
-            cableCardNo,
-            cableBouquetCode,
-            paymentMethod,
-            walletPin,
-            bouquetPrice,
-          } = await redisClient.hgetallAsync(
-            `${APP_PREFIX_REDIS}:${sessionId}`
-          );
+          let userResponse = brokenDownText[textLength - 1];
 
-          response = await processCableTVPayment(
-            sessionId,
-            phoneNumber,
-            cableCardNo,
-            cableProviderCode,
-            cableBouquetCode,
-            paymentMethod,
-            bouquetPrice,
-            walletPin
-          );
+          if (userResponse === "1") {
+            let {
+              cableProviderCode,
+              cableCardNo,
+              cableBouquetCode,
+              paymentMethod,
+              walletPin,
+              bouquetPrice,
+            } = await redisClient.hgetallAsync(
+              `${APP_PREFIX_REDIS}:${sessionId}`
+            );
+
+            response = await processCableTVPayment(
+              sessionId,
+              phoneNumber,
+              cableCardNo,
+              cableProviderCode,
+              cableBouquetCode,
+              paymentMethod,
+              bouquetPrice,
+              walletPin
+            );
+          } else {
+            response = `CON Transaction canceled by user.\n\n0 Menu`;
+          }
         } else if (
-          ((textLength === 9 && brokenDownText[textLength - 1] === "1") ||
-            (textLength === 10 && brokenDownText[textLength - 1] === "1") ||
-            (textLength === 11 && brokenDownText[textLength - 1] === "1")) &&
+          [9, 10, 11, 12, 13, 14, 15].includes(textLength) &&
           currentState === "makePayment" &&
           paymentMethod === "coralpay"
         ) {
-          let {
-            cableProviderCode,
-            cableCardNo,
-            cableBouquetCode,
-            paymentMethod,
-            chosenUSSDBankCode,
-            bouquetPrice,
-          } = await redisClient.hgetallAsync(
-            `${APP_PREFIX_REDIS}:${sessionId}`
-          );
+          let userResponse = brokenDownText[textLength - 1];
+          if (userResponse === "1") {
+            let {
+              cableProviderCode,
+              cableCardNo,
+              cableBouquetCode,
+              paymentMethod,
+              chosenUSSDBankCode,
+              bouquetPrice,
+            } = await redisClient.hgetallAsync(
+              `${APP_PREFIX_REDIS}:${sessionId}`
+            );
 
-          response = await processCableTVPayment(
-            sessionId,
-            phoneNumber,
-            cableCardNo,
-            cableProviderCode,
-            cableBouquetCode,
-            paymentMethod,
-            bouquetPrice,
-            undefined,
-            chosenUSSDBankCode
-          );
-        } else if (
-          ((textLength === 9 && brokenDownText[textLength - 1] === "2") ||
-            (textLength === 10 && brokenDownText[textLength - 1] === "2") ||
-            (textLength === 11 && brokenDownText[textLength - 1] === "2")) &&
-          currentState === "makePayment" &&
-          (paymentMethod === "felawallet" || paymentMethod === "coralpay")
-        ) {
-          response = `CON Transaction canceled by user.\n\n0 Menu`;
+            response = await processCableTVPayment(
+              sessionId,
+              phoneNumber,
+              cableCardNo,
+              cableProviderCode,
+              cableBouquetCode,
+              paymentMethod,
+              bouquetPrice,
+              undefined,
+              chosenUSSDBankCode
+            );
+          } else {
+            response = `CON Transaction canceled by user.\n\n0 Menu`;
+          }
         }
 
         break;
