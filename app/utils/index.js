@@ -73,7 +73,7 @@ const MYBANKUSSD_BANK_CODES = {
   Keystone: "777",
   Stanbic: "909",
   FBN: "894",
-  Unity: "799",
+  Unity: "7799",
 };
 
 Object.freeze(MYBANKUSSD_BANK_CODES);
