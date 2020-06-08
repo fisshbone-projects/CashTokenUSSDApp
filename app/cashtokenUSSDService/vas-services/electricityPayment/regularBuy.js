@@ -890,7 +890,7 @@ async function fetchDiscoDetails() {
               );
               console.log(API_DATA_EXPIRE_TIME);
               redisClient.expire(
-                `${APP_PREFIX_REDIS}:Discos:Prepaid:Code`,
+                `${APP_PREFIX_REDIS}:Discos:Prepaid:Title`,
                 API_DATA_EXPIRE_TIME
               );
               redisClient.expire(
