@@ -9,6 +9,7 @@ const {
 const { FelaMarketPlace, App } = require("$config");
 const felaHeader = { Authorization: `Bearer ${FelaMarketPlace.AUTH_BEARER}` };
 const mongoFront = require("$mongoLibs/mongoFront");
+const NAIRASIGN = "N";
 const moment = require("moment");
 
 function quickServe(phoneNumber, text, sessionId) {
@@ -253,7 +254,7 @@ function processAirtimePurchase(
       switch (paymentMethod) {
         case "felawallet":
           console.log(JSON.stringify(response.data, null, 2));
-          // console.log(response)
+
           await redisClient.incrAsync(
             `${APP_PREFIX_REDIS}:reports:count:purchases_AirtimeWithWallet:${moment().format(
               "DMMYYYY"
@@ -276,6 +277,7 @@ function processAirtimePurchase(
           //   )}`
           // );
           await updateProfileSuccessTran(profileId, successfulTran);
+
           resolve(
             `END Dear Customer, your line ${recipentNumber} has been successfully credited with ${NAIRASIGN}${formatNumber(
               airtimeAmount
@@ -319,15 +321,18 @@ function processAirtimePurchase(
           resolve(
             `END *${chosenUSSDBankCode}*000*${paymentToken}#\nDear Customer, memorize and dial the above code in your phone dialer to complete your transaction via your bank.`
           );
+          break;
       }
     } catch (error) {
       console.log("error");
-      console.log(JSON.stringify(error.response.data, null, 2));
+
       if (!!error.response) {
+        console.log(JSON.stringify(error.response.data, null, 2));
         resolve(
           `CON Transaction Failed!\n${error.response.data.message}\n\nEnter 0 Back to home menu`
         );
       } else {
+        console.log(JSON.stringify(error, null, 2));
         resolve(`CON Transaction Failed!\n\nEnter 0 Back to home menu`);
       }
     }
