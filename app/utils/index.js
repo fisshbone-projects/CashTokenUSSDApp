@@ -70,7 +70,7 @@ const MYBANKUSSD_BANK_CODES = {
   Fidelity: "770",
   Union: "826",
   WEMA: "945",
-  Keystone: "777",
+  Keystone: "7111",
   Stanbic: "909",
   FBN: "894",
   Unity: "7799",
