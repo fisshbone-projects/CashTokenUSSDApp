@@ -53,7 +53,7 @@ const DIRECTDIAL_BANK_MAP = {
   "Fidelity Bank Plc": "770",
   "Union Bank Of Nigeria Plc": "826",
   "Wema Bank Plc": "945",
-  "Keystone Bank Plc": "777",
+  "Keystone Bank Plc": "7111",
   "Stanbic Ibtc Bank Plc": "909",
   "First Bank Plc": "894",
   "Unity Bank Plc": "799",
