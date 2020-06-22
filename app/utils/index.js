@@ -65,7 +65,7 @@ const MYBANKUSSD_BANK_CODES = {
   UBA: "919",
   GTB: "737",
   Zenith: "966",
-  Ecobank: "326",
+  Eco: "326",
   Sterling: "822",
   Fidelity: "770",
   Union: "826",
@@ -74,6 +74,7 @@ const MYBANKUSSD_BANK_CODES = {
   Stanbic: "909",
   FBN: "894",
   Unity: "7799",
+  Heritage: "745",
 };
 
 Object.freeze(MYBANKUSSD_BANK_CODES);
