@@ -1,6 +1,7 @@
 const { redisClient } = require("$config/redisConnectConfig");
 const { quickServe } = require("./quickServe");
 const { regularBuy } = require("./regularBuy");
+const { showLastElectricityPurchase } = require("./lastElectricityPurchase");
 const { APP_PREFIX_REDIS, expireReportsInRedis } = require("$utils");
 const moment = require("moment");
 
@@ -22,7 +23,7 @@ async function processElectricity(phoneNumber, text, sessionId) {
       //     "DMMYYYY"
       //   )}`
       // );
-      response = `CON Select Purchase Method:\n1 QuickServe\n2 Regular Buy`;
+      response = `CON Select Purchase Method:\n1 QuickServe\n2 Regular Buy\n3 Check Last Purchase Details`;
     } else {
       let userResponse = brokenDownText[2];
       let {
@@ -33,6 +34,8 @@ async function processElectricity(phoneNumber, text, sessionId) {
         response = await quickServe(phoneNumber, text, sessionId);
       } else if (userResponse === "2" || purchaseMethod === "regularBuy") {
         response = await regularBuy(phoneNumber, text, sessionId);
+      } else if (userResponse === "3") {
+        response = await showLastElectricityPurchase(phoneNumber);
       } else {
         response = `CON Error!\nInvalid response entered\n\nEnter 0 Back to home menu`;
       }
