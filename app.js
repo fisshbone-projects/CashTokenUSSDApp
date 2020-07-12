@@ -51,20 +51,27 @@ app.post(
         case "*347*999#":
           // response = `END Hello!!! You have reached CashToken.\nOur systems are currently undergoing upgrades.\nServices will be restored shortly, please check back soon. `;
 
-          response = listOfDirectDialServices.includes(
-            `${getDirectDialService}`
-          )
-            ? await processDirectDial(
-                req.body.sessionId,
-                req.body.phoneNumber,
-                refinedText
-              )
-            : await CELDUSSD(
-                req.body.sessionId,
-                req.body.serviceCode,
-                sanitizePhoneNumber(req.body.phoneNumber),
-                refinedText
-              );
+          // response = listOfDirectDialServices.includes(
+          //   `${getDirectDialService}`
+          // )
+          //   ? await processDirectDial(
+          //       req.body.sessionId,
+          //       req.body.phoneNumber,
+          //       refinedText
+          //     )
+          //   : await CELDUSSD(
+          //       req.body.sessionId,
+          //       req.body.serviceCode,
+          //       sanitizePhoneNumber(req.body.phoneNumber),
+          //       refinedText
+          //     );
+
+          response = await CELDUSSD(
+            req.body.sessionId,
+            req.body.serviceCode,
+            sanitizePhoneNumber(req.body.phoneNumber),
+            refinedText
+          );
           break;
         case "*384*24222#":
           // response = `END Hello!!! You have reached CashToken.\nOur systems are currently undergoing upgrades.\nServices will be restored shortly, please check back soon. `;
