@@ -32,7 +32,7 @@
     "extends-classes": "^1.0.5",
     "helmet": "^3.21.2",
     "link-module-alias": "^1.2.0",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "mongoose": "^5.9.9",
     "mongoose-dynamic-schemas": "^1.2.6",
     "mongoose-unique-validator": "^2.0.3",
